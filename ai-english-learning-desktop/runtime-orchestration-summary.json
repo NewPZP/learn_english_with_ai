@@ -1,0 +1,260 @@
+{
+  "schemaVersion": "1.0",
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.22.00.00.00",
+    "version_source": "skill-release-manifest.json",
+    "read_status": "ok"
+  },
+  "project": {
+    "resolvedLane": "redesign_duplicate_project",
+    "operation": "redesign",
+    "deviceType": "desktop",
+    "sourceProjectPath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile",
+    "draftProjectPath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-desktop",
+    "selectedIntentWorkflowRead": true,
+    "intentProfile": {
+      "caseFamily": "redesign_duplicate_project",
+      "sourceType": "existing_project"
+    },
+    "designRead": "Convert mobile English learning app to desktop layout: sidebar navigation replaces bottom tab nav, multi-column layouts, wider content areas, same teal brand identity",
+    "designDials": {
+      "layoutVariance": 3,
+      "motionIntensity": 2,
+      "visualDensity": 3
+    },
+    "styleDefinitionBrief": "Desktop web app with left sidebar navigation (240px), wide content areas (max-width 1200px), multi-column layouts where appropriate, same fresh modern education style with teal primary color",
+    "redesignAudit": {
+      "primaryIssue": "mobile-first layout with bottom tab nav and narrow content width",
+      "fixPriority": [
+        "layout-width",
+        "navigation-paradigm",
+        "multi-column-density",
+        "spacing-scale"
+      ],
+      "preserve": [
+        "business copy",
+        "data-dom-id interactions",
+        "teal brand identity",
+        "all article/vocab/phrase content",
+        "lucide icons"
+      ],
+      "change": [
+        "bottom tab nav to left sidebar",
+        "max-width 448px to max-width 1200px",
+        "single-column to multi-column layouts",
+        "mobile header to desktop top bar within sidebar layout"
+      ],
+      "risk": "do not break existing data-dom-id attributes"
+    },
+    "contextReadScope": "lane-contracts + dispatch-index + shared-kernel + quality-gate + artifact-validation + delivery-evidence + visual-experience",
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-experience-guidelines.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      }
+    ],
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 2,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ]
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressNextAction": "proceed-to-dispatch-or-readiness"
+    },
+    "sharedProjectShellContract": {
+      "radiusScale": {
+        "sm": 4,
+        "md": 8,
+        "lg": 16,
+        "full": 9999
+      },
+      "surfaceDepthModel": "border-led static surfaces; shadow alpha <= 0.05; shadow-2 for floating layers only",
+      "typographySystem": "Inter, Noto Sans SC, PingFang SC, Microsoft YaHei, system-ui",
+      "desktopNavigation": {
+        "applies": true,
+        "type": "left-sidebar",
+        "widthPx": 240,
+        "heightFull": true,
+        "position": "fixed-left",
+        "items": [
+          {
+            "key": "articles",
+            "label": "文章",
+            "icon": "library"
+          },
+          {
+            "key": "discover",
+            "label": "发现",
+            "icon": "compass"
+          },
+          {
+            "key": "mine",
+            "label": "我的",
+            "icon": "user"
+          }
+        ],
+        "activeState": "primary background tint + primary text color",
+        "canonicalSidebarHtml": "<aside class=\"sidebar-nav\" style=\"width:240px;position:fixed;top:0;left:0;bottom:0;background:var(--en-card);border-right:1px solid var(--en-border);display:flex;flex-direction:column;z-index:40\"><div style=\"height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--en-border)\"><span style=\"font-size:18px;font-weight:700;color:var(--en-primary);letter-spacing:-0.02em\">LinguaAI</span></div><nav style=\"flex:1;padding:12px 12px;display:flex;flex-direction:column;gap:4px\"><button data-nav-key=\"articles\" data-active=\"true\" style=\"display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:var(--en-primary-50);color:var(--en-primary);font-size:14px;font-weight:500;cursor:pointer\"><i data-lucide=\"library\" style=\"width:20px;height:20px;flex-shrink:0\"></i><span>文章</span></button><button data-nav-key=\"discover\" style=\"display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer\"><i data-lucide=\"compass\" style=\"width:20px;height:20px;flex-shrink:0\"></i><span>发现</span></button><button data-nav-key=\"mine\" style=\"display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer\"><i data-lucide=\"user\" style=\"width:20px;height:20px;flex-shrink:0\"></i><span>我的</span></button></nav></aside>"
+      },
+      "contentAreaContract": {
+        "marginLeft": "240px (sidebar width)",
+        "maxWidth": "1200px",
+        "padding": "24px 32px",
+        "background": "var(--en-background)"
+      }
+    },
+    "mobileNavigation": {
+      "applies": false
+    },
+    "generationTree": {
+      "root": {
+        "nodeId": "gen-redesign-shell",
+        "kind": "redesign-shell",
+        "pageIds": [
+          "page-article-list",
+          "page-import-article",
+          "page-word-preview",
+          "page-podcast",
+          "page-intensive-listening"
+        ],
+        "output": null,
+        "sharedRegions": [
+          "colors_and_type.css (brand CSS, design tokens, typography, radius, shadow, desktop sidebar navigation canonical HTML)"
+        ],
+        "status": "generated",
+        "children": [
+          {
+            "nodeId": "page-article-list",
+            "kind": "page-redesign",
+            "output": "pages/article-list.html",
+            "status": "dispatched",
+            "children": []
+          },
+          {
+            "nodeId": "page-import-article",
+            "kind": "page-redesign",
+            "output": "pages/import-article.html",
+            "status": "dispatched",
+            "children": []
+          },
+          {
+            "nodeId": "page-word-preview",
+            "kind": "page-redesign",
+            "output": "pages/word-preview.html",
+            "status": "dispatched",
+            "children": []
+          },
+          {
+            "nodeId": "page-podcast",
+            "kind": "page-redesign",
+            "output": "pages/podcast.html",
+            "status": "dispatched",
+            "children": []
+          },
+          {
+            "nodeId": "page-intensive-listening",
+            "kind": "page-redesign",
+            "output": "pages/intensive-listening.html",
+            "status": "dispatched",
+            "children": []
+          }
+        ]
+      }
+    },
+    "validationHistory": [
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "2c17a8afcff74e29d1a7b4c807217946dc43858ef4baa2829275f42ee476d462",
+        "checkedAt": "2026-08-11T08:00:21.719Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 1,
+        "repairPlanHints": [],
+        "errorSignatures": [
+          {
+            "errorClass": "artifact-readiness",
+            "normalized": "[design-file] Validation failed for .design file batch: ======================================== [FAIL] Validation failed ---------------------------------------- Found 1 issues: 1. [root.config.deviceType] invalid value \"web\", allowed: desktop | mobile | tablet | freeSize ========================================",
+            "signature": "9fa71a1b1422dec9ca96bd5fec4f04df8e07c20cf1f6cd6ca9334a4a5226e2ce"
+          }
+        ],
+        "terminalState": null
+      }
+    ],
+    "validationRepairLedger": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "2c17a8afcff74e29d1a7b4c807217946dc43858ef4baa2829275f42ee476d462",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-11T08:00:59.857Z",
+        "repairEntryStatus": "started-awaiting-owner-batch-repair",
+        "ownerTriage": [
+          {
+            "owner": "main-agent",
+            "errorClass": "artifact-readiness",
+            "affectedFiles": [],
+            "repairScope": "repair_design_registration_or_file_reference_only",
+            "strategy": "read .design and affected file metadata only"
+          }
+        ],
+        "repairPlanHints": [],
+        "repairActions": [],
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null,
+        "blockedReason": null
+      }
+    ],
+    "repairEntryEvidence": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "2c17a8afcff74e29d1a7b4c807217946dc43858ef4baa2829275f42ee476d462",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-11T08:00:59.857Z",
+        "ledgerIndex": 0,
+        "ownerTriageCount": 1,
+        "repairActionCount": 0,
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null
+      }
+    ]
+  }
+}

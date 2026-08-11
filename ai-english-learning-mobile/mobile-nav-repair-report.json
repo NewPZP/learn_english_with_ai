@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "repairedPages": [
+    {
+      "htmlSrc": "pages/article-list.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "articles"
+    },
+    {
+      "htmlSrc": "pages/import-article.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "articles"
+    },
+    {
+      "htmlSrc": "pages/word-preview.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "articles"
+    },
+    {
+      "htmlSrc": "pages/podcast.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "articles"
+    },
+    {
+      "htmlSrc": "pages/intensive-listening.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "articles"
+    }
+  ],
+  "skippedPages": [],
+  "failedPages": [],
+  "repairCount": 5,
+  "previousFailedReportDetected": false,
+  "checkedAt": "2026-08-11T07:15:04.440Z"
+}

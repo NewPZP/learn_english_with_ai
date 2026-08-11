@@ -1,0 +1,213 @@
+{
+  "data": [
+    {
+      "id": "page-article-list",
+      "title": "文章列表",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786492800000,
+      "canvasData": {
+        "x": 309,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1016,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-9369600f",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/article-list.html",
+        "interactions": [
+          {
+            "domId": "cta-import-article",
+            "targetPageId": "page-import-article"
+          },
+          {
+            "domId": "cta-word-preview",
+            "targetPageId": "page-word-preview"
+          },
+          {
+            "domId": "cta-podcast",
+            "targetPageId": "page-podcast"
+          },
+          {
+            "domId": "cta-intensive-listening",
+            "targetPageId": "page-intensive-listening"
+          },
+          {
+            "domId": "cta-ai-config",
+            "targetPageId": "page-ai-config"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-import-article",
+      "title": "导入文章",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786492800000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1402,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-b2bfbdd4",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/import-article.html",
+        "interactions": [
+          {
+            "domId": "back-article-list",
+            "targetPageId": "page-article-list"
+          },
+          {
+            "domId": "cta-save-article",
+            "targetPageId": "page-article-list"
+          },
+          {
+            "domId": "cta-ai-config",
+            "targetPageId": "page-ai-config"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-word-preview",
+      "title": "单词预习",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786492800000,
+      "canvasData": {
+        "x": 0,
+        "y": 522,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1216,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-a1ea74cd",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/word-preview.html",
+        "interactions": [
+          {
+            "domId": "back-article-list",
+            "targetPageId": "page-article-list"
+          },
+          {
+            "domId": "cta-ai-config",
+            "targetPageId": "page-ai-config"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-podcast",
+      "title": "播客模式",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786492800000,
+      "canvasData": {
+        "x": 0,
+        "y": 989,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 981,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-3d4603b4",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/podcast.html",
+        "interactions": [
+          {
+            "domId": "back-article-list",
+            "targetPageId": "page-article-list"
+          },
+          {
+            "domId": "cta-ai-config",
+            "targetPageId": "page-ai-config"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-intensive-listening",
+      "title": "听力训练",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786492800000,
+      "canvasData": {
+        "x": 0,
+        "y": 1388,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 978,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-2c37d943",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/intensive-listening.html",
+        "interactions": [
+          {
+            "domId": "back-article-list",
+            "targetPageId": "page-article-list"
+          },
+          {
+            "domId": "cta-ai-config",
+            "targetPageId": "page-ai-config"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-ai-config",
+      "title": "AI 配置",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786485515286,
+      "canvasData": {
+        "x": 309,
+        "y": 409,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1247,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-d08b8464",
+          "measuredAt": 1786485891839
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/ai-config.html",
+        "interactions": [
+          {
+            "domId": "back-article-list",
+            "targetPageId": "page-article-list"
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "mobile",
+    "projectName": "AI英语学习App"
+  }
+}

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 配置</title>
+    <style id="theme-vars">
+/* ============================================================
+   AI English Learning App — Brand CSS
+   Style: Fresh Modern Education (清新现代教育风)
+   Primary hue: Teal
+   ============================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+  /* Brand primary scale (teal) */
+  --en-primary-50: #f0fdfa;
+  --en-primary-100: #ccfbf1;
+  --en-primary-200: #99f6e4;
+  --en-primary-300: #5eead4;
+  --en-primary-400: #2dd4bf;
+  --en-primary-500: #14b8a6;
+  --en-primary-600: #0d9488;
+  --en-primary-700: #0f766e;
+  --en-primary-800: #115e59;
+  --en-primary-900: #134e4a;
+
+  /* Neutral scale (slate) */
+  --en-neutral-50: #f8fafc;
+  --en-neutral-100: #f1f5f9;
+  --en-neutral-200: #e2e8f0;
+  --en-neutral-300: #cbd5e1;
+  --en-neutral-400: #94a3b8;
+  --en-neutral-500: #64748b;
+  --en-neutral-600: #475569;
+  --en-neutral-700: #334155;
+  --en-neutral-800: #1e293b;
+  --en-neutral-900: #0f172a;
+
+  /* State colors (semantic only) */
+  --state-success: #16a34a;
+  --state-success-light: #dcfce7;
+  --state-warning: #d97706;
+  --state-warning-light: #fef3c7;
+  --state-error: #dc2626;
+  --state-error-light: #fee2e2;
+  --state-info: #2563eb;
+  --state-info-light: #dbeafe;
+
+  /* Radius scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --en-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --en-font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* ---- Semantic aliases (light mode) ---- */
+  --en-background: #ffffff;
+  --en-foreground: #0f172a;
+  --en-card: #ffffff;
+  --en-card-foreground: #0f172a;
+  --en-popover: #ffffff;
+  --en-popover-foreground: #0f172a;
+  --en-primary: #0d9488;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #f1f5f9;
+  --en-muted-foreground: #64748b;
+  --en-border: #e2e8f0;
+  --en-input: #e2e8f0;
+  --en-ring: #0d9488;
+
+  /* Radius aliases */
+  --en-radius-small: 4px;
+  --en-radius-medium: 8px;
+  --en-radius-large: 16px;
+
+  /* Shadows — static surfaces only, alpha <= 0.05 */
+  --en-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  /* Floating layers — deeper elevation allowed */
+  --en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18);
+  --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30);
+}
+
+/* ---- Dark mode semantic aliases ---- */
+html.dark {
+  --en-background: #0f172a;
+  --en-foreground: #f8fafc;
+  --en-card: #1e293b;
+  --en-card-foreground: #f8fafc;
+  --en-popover: #1e293b;
+  --en-popover-foreground: #f8fafc;
+  --en-primary: #14b8a6;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #1e293b;
+  --en-muted-foreground: #94a3b8;
+  --en-border: #334155;
+  --en-input: #334155;
+  --en-ring: #14b8a6;
+
+  --en-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 1px rgba(0, 0, 0, 0.10);
+  --en-shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.40);
+  --en-shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.50);
+}
+
+/* ---- Base typography ---- */
+body {
+  font-family: var(--en-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular nums for data/metrics */
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Tailwind theme mapping ---- */
+@theme inline {
+  --color-background: var(--en-background);
+  --color-foreground: var(--en-foreground);
+  --color-card: var(--en-card);
+  --color-card-foreground: var(--en-card-foreground);
+  --color-popover: var(--en-popover);
+  --color-popover-foreground: var(--en-popover-foreground);
+  --color-primary: var(--en-primary);
+  --color-primary-foreground: var(--en-primary-foreground);
+  --color-muted: var(--en-muted);
+  --color-muted-foreground: var(--en-muted-foreground);
+  --color-border: var(--en-border);
+  --color-input: var(--en-input);
+  --color-ring: var(--en-ring);
+
+  --color-primary-50: var(--en-primary-50);
+  --color-primary-100: var(--en-primary-100);
+  --color-primary-200: var(--en-primary-200);
+  --color-primary-300: var(--en-primary-300);
+  --color-primary-400: var(--en-primary-400);
+  --color-primary-500: var(--en-primary-500);
+  --color-primary-600: var(--en-primary-600);
+  --color-primary-700: var(--en-primary-700);
+  --color-primary-800: var(--en-primary-800);
+  --color-primary-900: var(--en-primary-900);
+
+  --color-neutral-50: var(--en-neutral-50);
+  --color-neutral-100: var(--en-neutral-100);
+  --color-neutral-200: var(--en-neutral-200);
+  --color-neutral-300: var(--en-neutral-300);
+  --color-neutral-400: var(--en-neutral-400);
+  --color-neutral-500: var(--en-neutral-500);
+  --color-neutral-600: var(--en-neutral-600);
+  --color-neutral-700: var(--en-neutral-700);
+  --color-neutral-800: var(--en-neutral-800);
+  --color-neutral-900: var(--en-neutral-900);
+
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-error: var(--state-error);
+  --color-state-info: var(--state-info);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --font-sans: var(--en-font-sans);
+  --font-mono: var(--en-font-mono);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--en-background);
+    --color-foreground: var(--en-foreground);
+    --color-card: var(--en-card);
+    --color-card-foreground: var(--en-card-foreground);
+    --color-popover: var(--en-popover);
+    --color-popover-foreground: var(--en-popover-foreground);
+    --color-primary: var(--en-primary);
+    --color-primary-foreground: var(--en-primary-foreground);
+    --color-muted: var(--en-muted);
+    --color-muted-foreground: var(--en-muted-foreground);
+    --color-border: var(--en-border);
+    --color-input: var(--en-input);
+    --color-ring: var(--en-ring);
+    --color-primary-50: var(--en-primary-50);
+    --color-primary-100: var(--en-primary-100);
+    --color-primary-200: var(--en-primary-200);
+    --color-primary-300: var(--en-primary-300);
+    --color-primary-400: var(--en-primary-400);
+    --color-primary-500: var(--en-primary-500);
+    --color-primary-600: var(--en-primary-600);
+    --color-primary-700: var(--en-primary-700);
+    --color-primary-800: var(--en-primary-800);
+    --color-primary-900: var(--en-primary-900);
+    --color-neutral-50: var(--en-neutral-50);
+    --color-neutral-100: var(--en-neutral-100);
+    --color-neutral-200: var(--en-neutral-200);
+    --color-neutral-300: var(--en-neutral-300);
+    --color-neutral-400: var(--en-neutral-400);
+    --color-neutral-500: var(--en-neutral-500);
+    --color-neutral-600: var(--en-neutral-600);
+    --color-neutral-700: var(--en-neutral-700);
+    --color-neutral-800: var(--en-neutral-800);
+    --color-neutral-900: var(--en-neutral-900);
+    --color-state-success: var(--state-success);
+    --color-state-warning: var(--state-warning);
+    --color-state-error: var(--state-error);
+    --color-state-info: var(--state-info);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-full: var(--radius-full);
+  }
+  @layer base {
+    body { background: var(--en-background); color: var(--en-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--en-background); }
+      .text-background { color: var(--en-background); }
+      .border-background { border-color: var(--en-background); }
+      .ring-background { --tw-ring-color: var(--en-background); }
+      .bg-foreground { background-color: var(--en-foreground); }
+      .text-foreground { color: var(--en-foreground); }
+      .border-foreground { border-color: var(--en-foreground); }
+      .ring-foreground { --tw-ring-color: var(--en-foreground); }
+      .bg-card { background-color: var(--en-card); }
+      .text-card { color: var(--en-card); }
+      .border-card { border-color: var(--en-card); }
+      .ring-card { --tw-ring-color: var(--en-card); }
+      .bg-card-foreground { background-color: var(--en-card-foreground); }
+      .text-card-foreground { color: var(--en-card-foreground); }
+      .border-card-foreground { border-color: var(--en-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--en-card-foreground); }
+      .bg-popover { background-color: var(--en-popover); }
+      .text-popover { color: var(--en-popover); }
+      .border-popover { border-color: var(--en-popover); }
+      .ring-popover { --tw-ring-color: var(--en-popover); }
+      .bg-popover-foreground { background-color: var(--en-popover-foreground); }
+      .text-popover-foreground { color: var(--en-popover-foreground); }
+      .border-popover-foreground { border-color: var(--en-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--en-popover-foreground); }
+      .bg-primary { background-color: var(--en-primary); }
+      .text-primary { color: var(--en-primary); }
+      .border-primary { border-color: var(--en-primary); }
+      .ring-primary { --tw-ring-color: var(--en-primary); }
+      .bg-primary-foreground { background-color: var(--en-primary-foreground); }
+      .text-primary-foreground { color: var(--en-primary-foreground); }
+      .border-primary-foreground { border-color: var(--en-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--en-primary-foreground); }
+      .bg-muted { background-color: var(--en-muted); }
+      .text-muted { color: var(--en-muted); }
+      .border-muted { border-color: var(--en-muted); }
+      .ring-muted { --tw-ring-color: var(--en-muted); }
+      .bg-muted-foreground { background-color: var(--en-muted-foreground); }
+      .text-muted-foreground { color: var(--en-muted-foreground); }
+      .border-muted-foreground { border-color: var(--en-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--en-muted-foreground); }
+      .bg-border { background-color: var(--en-border); }
+      .text-border { color: var(--en-border); }
+      .border-border { border-color: var(--en-border); }
+      .ring-border { --tw-ring-color: var(--en-border); }
+      .bg-input { background-color: var(--en-input); }
+      .text-input { color: var(--en-input); }
+      .border-input { border-color: var(--en-input); }
+      .ring-input { --tw-ring-color: var(--en-input); }
+      .bg-ring { background-color: var(--en-ring); }
+      .text-ring { color: var(--en-ring); }
+      .border-ring { border-color: var(--en-ring); }
+      .ring-ring { --tw-ring-color: var(--en-ring); }
+      .bg-primary-50 { background-color: var(--en-primary-50); }
+      .text-primary-50 { color: var(--en-primary-50); }
+      .border-primary-50 { border-color: var(--en-primary-50); }
+      .ring-primary-50 { --tw-ring-color: var(--en-primary-50); }
+      .bg-primary-100 { background-color: var(--en-primary-100); }
+      .text-primary-100 { color: var(--en-primary-100); }
+      .border-primary-100 { border-color: var(--en-primary-100); }
+      .ring-primary-100 { --tw-ring-color: var(--en-primary-100); }
+      .bg-primary-200 { background-color: var(--en-primary-200); }
+      .text-primary-200 { color: var(--en-primary-200); }
+      .border-primary-200 { border-color: var(--en-primary-200); }
+      .ring-primary-200 { --tw-ring-color: var(--en-primary-200); }
+      .bg-primary-300 { background-color: var(--en-primary-300); }
+      .text-primary-300 { color: var(--en-primary-300); }
+      .border-primary-300 { border-color: var(--en-primary-300); }
+      .ring-primary-300 { --tw-ring-color: var(--en-primary-300); }
+      .bg-primary-400 { background-color: var(--en-primary-400); }
+      .text-primary-400 { color: var(--en-primary-400); }
+      .border-primary-400 { border-color: var(--en-primary-400); }
+      .ring-primary-400 { --tw-ring-color: var(--en-primary-400); }
+      .bg-primary-500 { background-color: var(--en-primary-500); }
+      .text-primary-500 { color: var(--en-primary-500); }
+      .border-primary-500 { border-color: var(--en-primary-500); }
+      .ring-primary-500 { --tw-ring-color: var(--en-primary-500); }
+      .bg-primary-600 { background-color: var(--en-primary-600); }
+      .text-primary-600 { color: var(--en-primary-600); }
+      .border-primary-600 { border-color: var(--en-primary-600); }
+      .ring-primary-600 { --tw-ring-color: var(--en-primary-600); }
+      .bg-primary-700 { background-color: var(--en-primary-700); }
+      .text-primary-700 { color: var(--en-primary-700); }
+      .border-primary-700 { border-color: var(--en-primary-700); }
+      .ring-primary-700 { --tw-ring-color: var(--en-primary-700); }
+      .bg-primary-800 { background-color: var(--en-primary-800); }
+      .text-primary-800 { color: var(--en-primary-800); }
+      .border-primary-800 { border-color: var(--en-primary-800); }
+      .ring-primary-800 { --tw-ring-color: var(--en-primary-800); }
+      .bg-primary-900 { background-color: var(--en-primary-900); }
+      .text-primary-900 { color: var(--en-primary-900); }
+      .border-primary-900 { border-color: var(--en-primary-900); }
+      .ring-primary-900 { --tw-ring-color: var(--en-primary-900); }
+      .bg-neutral-50 { background-color: var(--en-neutral-50); }
+      .text-neutral-50 { color: var(--en-neutral-50); }
+      .border-neutral-50 { border-color: var(--en-neutral-50); }
+      .ring-neutral-50 { --tw-ring-color: var(--en-neutral-50); }
+      .bg-neutral-100 { background-color: var(--en-neutral-100); }
+      .text-neutral-100 { color: var(--en-neutral-100); }
+      .border-neutral-100 { border-color: var(--en-neutral-100); }
+      .ring-neutral-100 { --tw-ring-color: var(--en-neutral-100); }
+      .bg-neutral-200 { background-color: var(--en-neutral-200); }
+      .text-neutral-200 { color: var(--en-neutral-200); }
+      .border-neutral-200 { border-color: var(--en-neutral-200); }
+      .ring-neutral-200 { --tw-ring-color: var(--en-neutral-200); }
+      .bg-neutral-300 { background-color: var(--en-neutral-300); }
+      .text-neutral-300 { color: var(--en-neutral-300); }
+      .border-neutral-300 { border-color: var(--en-neutral-300); }
+      .ring-neutral-300 { --tw-ring-color: var(--en-neutral-300); }
+      .bg-neutral-400 { background-color: var(--en-neutral-400); }
+      .text-neutral-400 { color: var(--en-neutral-400); }
+      .border-neutral-400 { border-color: var(--en-neutral-400); }
+      .ring-neutral-400 { --tw-ring-color: var(--en-neutral-400); }
+      .bg-neutral-500 { background-color: var(--en-neutral-500); }
+      .text-neutral-500 { color: var(--en-neutral-500); }
+      .border-neutral-500 { border-color: var(--en-neutral-500); }
+      .ring-neutral-500 { --tw-ring-color: var(--en-neutral-500); }
+      .bg-neutral-600 { background-color: var(--en-neutral-600); }
+      .text-neutral-600 { color: var(--en-neutral-600); }
+      .border-neutral-600 { border-color: var(--en-neutral-600); }
+      .ring-neutral-600 { --tw-ring-color: var(--en-neutral-600); }
+      .bg-neutral-700 { background-color: var(--en-neutral-700); }
+      .text-neutral-700 { color: var(--en-neutral-700); }
+      .border-neutral-700 { border-color: var(--en-neutral-700); }
+      .ring-neutral-700 { --tw-ring-color: var(--en-neutral-700); }
+      .bg-neutral-800 { background-color: var(--en-neutral-800); }
+      .text-neutral-800 { color: var(--en-neutral-800); }
+      .border-neutral-800 { border-color: var(--en-neutral-800); }
+      .ring-neutral-800 { --tw-ring-color: var(--en-neutral-800); }
+      .bg-neutral-900 { background-color: var(--en-neutral-900); }
+      .text-neutral-900 { color: var(--en-neutral-900); }
+      .border-neutral-900 { border-color: var(--en-neutral-900); }
+      .ring-neutral-900 { --tw-ring-color: var(--en-neutral-900); }
+      .bg-state-success { background-color: var(--state-success); }
+      .text-state-success { color: var(--state-success); }
+      .border-state-success { border-color: var(--state-success); }
+      .ring-state-success { --tw-ring-color: var(--state-success); }
+      .bg-state-warning { background-color: var(--state-warning); }
+      .text-state-warning { color: var(--state-warning); }
+      .border-state-warning { border-color: var(--state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--state-warning); }
+      .bg-state-error { background-color: var(--state-error); }
+      .text-state-error { color: var(--state-error); }
+      .border-state-error { border-color: var(--state-error); }
+      .ring-state-error { --tw-ring-color: var(--state-error); }
+      .bg-state-info { background-color: var(--state-info); }
+      .text-state-info { color: var(--state-info); }
+      .border-state-info { border-color: var(--state-info); }
+      .ring-state-info { --tw-ring-color: var(--state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main class="page-root">
+    <style id="critical-layout">
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.page-root { display: flex; flex-direction: column; min-height: 100vh; }
+.header-bar { position: sticky; top: 0; z-index: 30; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: var(--en-card); border-bottom: 1px solid var(--en-border); }
+.content-wrapper { flex: 1; padding: 16px; }
+.config-panel { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 20px; box-shadow: var(--en-shadow-1); margin-bottom: 16px; }
+.config-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.config-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+.config-icon.text-model { background: var(--en-primary-50); color: var(--en-primary); }
+.config-icon.voice-model { background: var(--state-warning-light); color: var(--state-warning); }
+.config-title-wrap { flex: 1; min-width: 0; }
+.config-title { font-size: 16px; font-weight: 600; color: var(--en-foreground); margin: 0; }
+.config-desc { font-size: 12px; color: var(--en-muted-foreground); margin-top: 2px; }
+.config-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.config-badge.connected { background: var(--state-success-light); color: var(--state-success); }
+.config-badge.disconnected { background: var(--en-muted); color: var(--en-muted-foreground); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-label { font-size: 13px; font-weight: 500; color: var(--en-muted-foreground); }
+.form-label .optional { font-weight: 400; color: var(--en-neutral-400); margin-left: 4px; }
+.input-wrapper { position: relative; width: 100%; }
+.form-input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--en-border); border-radius: 8px; background: var(--en-background); color: var(--en-foreground); font-size: 15px; font-family: inherit; outline: none; box-sizing: border-box; transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1); }
+.form-input:focus { border-color: var(--en-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent); }
+.form-input.password { padding-right: 44px; }
+.toggle-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: transparent; color: var(--en-muted-foreground); cursor: pointer; border-radius: 4px; }
+.toggle-btn:hover { color: var(--en-foreground); }
+.form-select { width: 100%; height: 44px; padding: 0 36px 0 14px; border: 1px solid var(--en-border); border-radius: 8px; background: var(--en-background); color: var(--en-foreground); font-size: 15px; font-family: inherit; outline: none; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; box-sizing: border-box; cursor: pointer; }
+.form-select:focus { border-color: var(--en-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent); }
+.range-row { display: flex; align-items: center; justify-content: space-between; }
+.range-value { font-size: 13px; font-weight: 600; color: var(--en-primary); font-variant-numeric: tabular-nums; }
+.range-input { width: 100%; height: 6px; -webkit-appearance: none; appearance: none; background: var(--en-muted); border-radius: 9999px; outline: none; cursor: pointer; }
+.range-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--en-primary); cursor: pointer; border: 2px solid var(--en-card); box-shadow: var(--en-shadow-1); }
+.range-input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--en-primary); cursor: pointer; border: none; }
+.config-actions { display: flex; gap: 12px; margin-top: 4px; }
+.config-actions > button { flex: 1; }
+.connection-status { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-radius: 8px; margin-top: 16px; }
+.connection-status.ok { background: var(--state-success-light); }
+.connection-status.warn { background: var(--state-warning-light); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.ok { background: var(--state-success); }
+.status-dot.warn { background: var(--state-warning); }
+.btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms, border-color 150ms, opacity 150ms; cursor: pointer; border: none; }
+.btn-primary { background: var(--en-primary); color: var(--en-primary-foreground); }
+.btn-primary:hover { background: var(--en-primary-700); }
+.btn-primary:active { background: var(--en-primary-800); }
+.btn-secondary { background: var(--en-card); color: var(--en-foreground); border: 1px solid var(--en-border); }
+.btn-secondary:hover { background: var(--en-muted); }
+.btn-secondary:active { opacity: 0.85; }
+.icon-btn { transition: background-color 150ms; cursor: pointer; }
+.icon-btn:hover { background: var(--en-muted); }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+    </style>
+
+    <!-- Header -->
+    <header class="header-bar">
+      <button type="button" data-dom-id="back-article-list" class="icon-btn" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:transparent;color:var(--en-foreground);border-radius:8px;flex-shrink:0;">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      </button>
+      <h1 style="font-size:16px;font-weight:600;color:var(--en-foreground);margin:0;">AI 配置</h1>
+      <span style="width:36px;height:36px;display:inline-block;flex-shrink:0;"></span>
+    </header>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+
+      <!-- Card 1: Text Model -->
+      <section class="config-panel">
+        <div class="config-header">
+          <div class="config-icon text-model">
+            <i data-lucide="type" style="width:22px;height:22px;"></i>
+          </div>
+          <div class="config-title-wrap">
+            <h2 class="config-title">文字模型</h2>
+            <p class="config-desc">用于生词提取、文章摘要、理解问答</p>
+          </div>
+          <span class="config-badge connected">
+            <i data-lucide="check" style="width:12px;height:12px;"></i>
+            已连接
+          </span>
+        </div>
+
+        <!-- API Key -->
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div class="input-wrapper">
+            <input type="password" id="text-api-key" class="form-input password" value="sk-proj-xxxxxxxxxxxxxxxxxxxx" />
+            <button type="button" class="toggle-btn" data-target="text-api-key">
+              <i data-lucide="eye" style="width:18px;height:18px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Base URL -->
+        <div class="form-group">
+          <label class="form-label">Base URL<span class="optional">(可选)</span></label>
+          <input type="text" class="form-input" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" />
+        </div>
+
+        <!-- 模型名称 + Max Tokens -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">模型名称</label>
+            <input type="text" class="form-input" value="gpt-4o" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Tokens</label>
+            <input type="number" class="form-input" value="4096" />
+          </div>
+        </div>
+
+        <!-- Temperature -->
+        <div class="form-group">
+          <div class="range-row">
+            <label class="form-label">Temperature</label>
+            <span class="range-value" id="temp-value">0.7</span>
+          </div>
+          <input type="range" class="range-input" min="0" max="2" step="0.1" value="0.7" id="temp-slider" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="config-actions">
+          <button type="button" class="btn btn-secondary test-btn" style="height:44px;border-radius:8px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;">测试连接</button>
+          <button type="button" class="btn btn-primary" style="height:44px;border-radius:8px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;">保存配置</button>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status ok">
+          <span class="status-dot ok"></span>
+          <span style="flex:1;font-size:13px;color:var(--state-success);font-weight:500;">文字模型连接正常</span>
+          <span style="font-size:12px;color:var(--state-success);font-variant-numeric:tabular-nums;">延迟 230ms</span>
+        </div>
+      </section>
+
+      <!-- Card 2: Voice Model -->
+      <section class="config-panel" style="margin-bottom:0;">
+        <div class="config-header">
+          <div class="config-icon voice-model">
+            <i data-lucide="audio-lines" style="width:22px;height:22px;"></i>
+          </div>
+          <div class="config-title-wrap">
+            <h2 class="config-title">声音模型</h2>
+            <p class="config-desc">用于生成文章语音、播客音频</p>
+          </div>
+          <span class="config-badge disconnected">未连接</span>
+        </div>
+
+        <!-- API Key -->
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div class="input-wrapper">
+            <input type="password" id="voice-api-key" class="form-input password" placeholder="输入 API Key" />
+            <button type="button" class="toggle-btn" data-target="voice-api-key">
+              <i data-lucide="eye" style="width:18px;height:18px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Base URL -->
+        <div class="form-group">
+          <label class="form-label">Base URL<span class="optional">(可选)</span></label>
+          <input type="text" class="form-input" placeholder="https://api.openai.com/v1" />
+        </div>
+
+        <!-- 模型名称 + 语音类型 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">模型名称</label>
+            <input type="text" class="form-input" placeholder="tts-1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">语音类型</label>
+            <select class="form-select">
+              <option value="alloy">Alloy</option>
+              <option value="echo">Echo</option>
+              <option value="fable">Fable</option>
+              <option value="onyx">Onyx</option>
+              <option value="nova">Nova</option>
+              <option value="shimmer">Shimmer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 音频格式 + 语速 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">音频格式</label>
+            <select class="form-select">
+              <option value="mp3">MP3</option>
+              <option value="opus">Opus</option>
+              <option value="aac">AAC</option>
+              <option value="flac">FLAC</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="range-row">
+              <label class="form-label">语速</label>
+              <span class="range-value" id="speed-value">1.0x</span>
+            </div>
+            <input type="range" class="range-input" min="0.5" max="2" step="0.1" value="1" id="speed-slider" />
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="config-actions">
+          <button type="button" class="btn btn-secondary test-btn" style="height:44px;border-radius:8px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;">测试连接</button>
+          <button type="button" class="btn btn-primary" style="height:44px;border-radius:8px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;">保存配置</button>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status warn">
+          <span class="status-dot warn"></span>
+          <span style="flex:1;font-size:13px;color:var(--state-warning);font-weight:500;">声音模型尚未配置</span>
+          <span style="font-size:12px;color:var(--state-warning);">填写 API Key 后可测试</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav data-mobile-nav="global" class="sticky bottom-0 w-full bg-card border-t border-border" style="height:56px"><div class="w-full max-w-md mx-auto grid grid-cols-3 h-full"><button data-nav-key="articles" data-dom-id="back-article-list" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground"><i data-lucide="library" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">文章</span></button><button data-nav-key="discover" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground"><i data-lucide="compass" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">发现</span></button><button data-nav-key="mine" data-active="true" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-primary"><i data-lucide="user" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">我的</span></button></div></nav>
+    </main>
+    <script>
+      lucide.createIcons();
+
+      // Password toggle for both toggle buttons
+      document.querySelectorAll('.toggle-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var targetId = this.getAttribute('data-target');
+          var input = document.getElementById(targetId);
+          if (input) {
+            if (input.type === 'password') {
+              input.type = 'text';
+              this.querySelector('i').setAttribute('data-lucide', 'eye-off');
+            } else {
+              input.type = 'password';
+              this.querySelector('i').setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+          }
+        });
+      });
+
+      // Temperature slider value update
+      var tempSlider = document.getElementById('temp-slider');
+      var tempValue = document.getElementById('temp-value');
+      tempSlider.addEventListener('input', function() {
+        tempValue.textContent = parseFloat(this.value).toFixed(1);
+      });
+
+      // Speed slider value update
+      var speedSlider = document.getElementById('speed-slider');
+      var speedValue = document.getElementById('speed-value');
+      speedSlider.addEventListener('input', function() {
+        speedValue.textContent = parseFloat(this.value).toFixed(1) + 'x';
+      });
+
+      // Test button binding
+      document.querySelectorAll('.test-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var originalHTML = this.innerHTML;
+          this.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;"></i><span>测试中...</span>';
+          this.disabled = true;
+          lucide.createIcons();
+          var self = this;
+          setTimeout(function() {
+            self.innerHTML = originalHTML;
+            self.disabled = false;
+            lucide.createIcons();
+          }, 1500);
+        });
+      });
+    </script>
+</body>
+</html>

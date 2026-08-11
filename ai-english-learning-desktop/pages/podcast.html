@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>播客模式</title>
+    <style id="theme-vars">
+/* ============================================================
+   AI English Learning App — Brand CSS
+   Style: Fresh Modern Education (清新现代教育风)
+   Primary hue: Teal
+   ============================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+  /* Brand primary scale (teal) */
+  --en-primary-50: #f0fdfa;
+  --en-primary-100: #ccfbf1;
+  --en-primary-200: #99f6e4;
+  --en-primary-300: #5eead4;
+  --en-primary-400: #2dd4bf;
+  --en-primary-500: #14b8a6;
+  --en-primary-600: #0d9488;
+  --en-primary-700: #0f766e;
+  --en-primary-800: #115e59;
+  --en-primary-900: #134e4a;
+
+  /* Neutral scale (slate) */
+  --en-neutral-50: #f8fafc;
+  --en-neutral-100: #f1f5f9;
+  --en-neutral-200: #e2e8f0;
+  --en-neutral-300: #cbd5e1;
+  --en-neutral-400: #94a3b8;
+  --en-neutral-500: #64748b;
+  --en-neutral-600: #475569;
+  --en-neutral-700: #334155;
+  --en-neutral-800: #1e293b;
+  --en-neutral-900: #0f172a;
+
+  /* State colors (semantic only) */
+  --state-success: #16a34a;
+  --state-success-light: #dcfce7;
+  --state-warning: #d97706;
+  --state-warning-light: #fef3c7;
+  --state-error: #dc2626;
+  --state-error-light: #fee2e2;
+  --state-info: #2563eb;
+  --state-info-light: #dbeafe;
+
+  /* Radius scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --en-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --en-font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* ---- Semantic aliases (light mode) ---- */
+  --en-background: #ffffff;
+  --en-foreground: #0f172a;
+  --en-card: #ffffff;
+  --en-card-foreground: #0f172a;
+  --en-popover: #ffffff;
+  --en-popover-foreground: #0f172a;
+  --en-primary: #0d9488;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #f1f5f9;
+  --en-muted-foreground: #64748b;
+  --en-border: #e2e8f0;
+  --en-input: #e2e8f0;
+  --en-ring: #0d9488;
+
+  /* Radius aliases */
+  --en-radius-small: 4px;
+  --en-radius-medium: 8px;
+  --en-radius-large: 16px;
+
+  /* Shadows — static surfaces only, alpha <= 0.05 */
+  --en-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  /* Floating layers — deeper elevation allowed */
+  --en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18);
+  --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30);
+}
+
+/* ---- Dark mode semantic aliases ---- */
+html.dark {
+  --en-background: #0f172a;
+  --en-foreground: #f8fafc;
+  --en-card: #1e293b;
+  --en-card-foreground: #f8fafc;
+  --en-popover: #1e293b;
+  --en-popover-foreground: #f8fafc;
+  --en-primary: #14b8a6;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #1e293b;
+  --en-muted-foreground: #94a3b8;
+  --en-border: #334155;
+  --en-input: #334155;
+  --en-ring: #14b8a6;
+
+  --en-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 1px rgba(0, 0, 0, 0.10);
+  --en-shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.40);
+  --en-shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.50);
+}
+
+/* ---- Base typography ---- */
+body {
+  font-family: var(--en-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular nums for data/metrics */
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Tailwind theme mapping ---- */
+@theme inline {
+  --color-background: var(--en-background);
+  --color-foreground: var(--en-foreground);
+  --color-card: var(--en-card);
+  --color-card-foreground: var(--en-card-foreground);
+  --color-popover: var(--en-popover);
+  --color-popover-foreground: var(--en-popover-foreground);
+  --color-primary: var(--en-primary);
+  --color-primary-foreground: var(--en-primary-foreground);
+  --color-muted: var(--en-muted);
+  --color-muted-foreground: var(--en-muted-foreground);
+  --color-border: var(--en-border);
+  --color-input: var(--en-input);
+  --color-ring: var(--en-ring);
+
+  --color-primary-50: var(--en-primary-50);
+  --color-primary-100: var(--en-primary-100);
+  --color-primary-200: var(--en-primary-200);
+  --color-primary-300: var(--en-primary-300);
+  --color-primary-400: var(--en-primary-400);
+  --color-primary-500: var(--en-primary-500);
+  --color-primary-600: var(--en-primary-600);
+  --color-primary-700: var(--en-primary-700);
+  --color-primary-800: var(--en-primary-800);
+  --color-primary-900: var(--en-primary-900);
+
+  --color-neutral-50: var(--en-neutral-50);
+  --color-neutral-100: var(--en-neutral-100);
+  --color-neutral-200: var(--en-neutral-200);
+  --color-neutral-300: var(--en-neutral-300);
+  --color-neutral-400: var(--en-neutral-400);
+  --color-neutral-500: var(--en-neutral-500);
+  --color-neutral-600: var(--en-neutral-600);
+  --color-neutral-700: var(--en-neutral-700);
+  --color-neutral-800: var(--en-neutral-800);
+  --color-neutral-900: var(--en-neutral-900);
+
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-error: var(--state-error);
+  --color-state-info: var(--state-info);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --font-sans: var(--en-font-sans);
+  --font-mono: var(--en-font-mono);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--en-background);
+    --color-foreground: var(--en-foreground);
+    --color-card: var(--en-card);
+    --color-card-foreground: var(--en-card-foreground);
+    --color-popover: var(--en-popover);
+    --color-popover-foreground: var(--en-popover-foreground);
+    --color-primary: var(--en-primary);
+    --color-primary-foreground: var(--en-primary-foreground);
+    --color-muted: var(--en-muted);
+    --color-muted-foreground: var(--en-muted-foreground);
+    --color-border: var(--en-border);
+    --color-input: var(--en-input);
+    --color-ring: var(--en-ring);
+    --color-primary-50: var(--en-primary-50);
+    --color-primary-100: var(--en-primary-100);
+    --color-primary-200: var(--en-primary-200);
+    --color-primary-300: var(--en-primary-300);
+    --color-primary-400: var(--en-primary-400);
+    --color-primary-500: var(--en-primary-500);
+    --color-primary-600: var(--en-primary-600);
+    --color-primary-700: var(--en-primary-700);
+    --color-primary-800: var(--en-primary-800);
+    --color-primary-900: var(--en-primary-900);
+    --color-neutral-50: var(--en-neutral-50);
+    --color-neutral-100: var(--en-neutral-100);
+    --color-neutral-200: var(--en-neutral-200);
+    --color-neutral-300: var(--en-neutral-300);
+    --color-neutral-400: var(--en-neutral-400);
+    --color-neutral-500: var(--en-neutral-500);
+    --color-neutral-600: var(--en-neutral-600);
+    --color-neutral-700: var(--en-neutral-700);
+    --color-neutral-800: var(--en-neutral-800);
+    --color-neutral-900: var(--en-neutral-900);
+    --color-state-success: var(--state-success);
+    --color-state-warning: var(--state-warning);
+    --color-state-error: var(--state-error);
+    --color-state-info: var(--state-info);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-full: var(--radius-full);
+  }
+  @layer base {
+    body { background: var(--en-background); color: var(--en-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--en-background); }
+      .text-background { color: var(--en-background); }
+      .border-background { border-color: var(--en-background); }
+      .ring-background { --tw-ring-color: var(--en-background); }
+      .bg-foreground { background-color: var(--en-foreground); }
+      .text-foreground { color: var(--en-foreground); }
+      .border-foreground { border-color: var(--en-foreground); }
+      .ring-foreground { --tw-ring-color: var(--en-foreground); }
+      .bg-card { background-color: var(--en-card); }
+      .text-card { color: var(--en-card); }
+      .border-card { border-color: var(--en-card); }
+      .ring-card { --tw-ring-color: var(--en-card); }
+      .bg-card-foreground { background-color: var(--en-card-foreground); }
+      .text-card-foreground { color: var(--en-card-foreground); }
+      .border-card-foreground { border-color: var(--en-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--en-card-foreground); }
+      .bg-popover { background-color: var(--en-popover); }
+      .text-popover { color: var(--en-popover); }
+      .border-popover { border-color: var(--en-popover); }
+      .ring-popover { --tw-ring-color: var(--en-popover); }
+      .bg-popover-foreground { background-color: var(--en-popover-foreground); }
+      .text-popover-foreground { color: var(--en-popover-foreground); }
+      .border-popover-foreground { border-color: var(--en-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--en-popover-foreground); }
+      .bg-primary { background-color: var(--en-primary); }
+      .text-primary { color: var(--en-primary); }
+      .border-primary { border-color: var(--en-primary); }
+      .ring-primary { --tw-ring-color: var(--en-primary); }
+      .bg-primary-foreground { background-color: var(--en-primary-foreground); }
+      .text-primary-foreground { color: var(--en-primary-foreground); }
+      .border-primary-foreground { border-color: var(--en-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--en-primary-foreground); }
+      .bg-muted { background-color: var(--en-muted); }
+      .text-muted { color: var(--en-muted); }
+      .border-muted { border-color: var(--en-muted); }
+      .ring-muted { --tw-ring-color: var(--en-muted); }
+      .bg-muted-foreground { background-color: var(--en-muted-foreground); }
+      .text-muted-foreground { color: var(--en-muted-foreground); }
+      .border-muted-foreground { border-color: var(--en-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--en-muted-foreground); }
+      .bg-border { background-color: var(--en-border); }
+      .text-border { color: var(--en-border); }
+      .border-border { border-color: var(--en-border); }
+      .ring-border { --tw-ring-color: var(--en-border); }
+      .bg-input { background-color: var(--en-input); }
+      .text-input { color: var(--en-input); }
+      .border-input { border-color: var(--en-input); }
+      .ring-input { --tw-ring-color: var(--en-input); }
+      .bg-ring { background-color: var(--en-ring); }
+      .text-ring { color: var(--en-ring); }
+      .border-ring { border-color: var(--en-ring); }
+      .ring-ring { --tw-ring-color: var(--en-ring); }
+      .bg-primary-50 { background-color: var(--en-primary-50); }
+      .text-primary-50 { color: var(--en-primary-50); }
+      .border-primary-50 { border-color: var(--en-primary-50); }
+      .ring-primary-50 { --tw-ring-color: var(--en-primary-50); }
+      .bg-primary-100 { background-color: var(--en-primary-100); }
+      .text-primary-100 { color: var(--en-primary-100); }
+      .border-primary-100 { border-color: var(--en-primary-100); }
+      .ring-primary-100 { --tw-ring-color: var(--en-primary-100); }
+      .bg-primary-200 { background-color: var(--en-primary-200); }
+      .text-primary-200 { color: var(--en-primary-200); }
+      .border-primary-200 { border-color: var(--en-primary-200); }
+      .ring-primary-200 { --tw-ring-color: var(--en-primary-200); }
+      .bg-primary-300 { background-color: var(--en-primary-300); }
+      .text-primary-300 { color: var(--en-primary-300); }
+      .border-primary-300 { border-color: var(--en-primary-300); }
+      .ring-primary-300 { --tw-ring-color: var(--en-primary-300); }
+      .bg-primary-400 { background-color: var(--en-primary-400); }
+      .text-primary-400 { color: var(--en-primary-400); }
+      .border-primary-400 { border-color: var(--en-primary-400); }
+      .ring-primary-400 { --tw-ring-color: var(--en-primary-400); }
+      .bg-primary-500 { background-color: var(--en-primary-500); }
+      .text-primary-500 { color: var(--en-primary-500); }
+      .border-primary-500 { border-color: var(--en-primary-500); }
+      .ring-primary-500 { --tw-ring-color: var(--en-primary-500); }
+      .bg-primary-600 { background-color: var(--en-primary-600); }
+      .text-primary-600 { color: var(--en-primary-600); }
+      .border-primary-600 { border-color: var(--en-primary-600); }
+      .ring-primary-600 { --tw-ring-color: var(--en-primary-600); }
+      .bg-primary-700 { background-color: var(--en-primary-700); }
+      .text-primary-700 { color: var(--en-primary-700); }
+      .border-primary-700 { border-color: var(--en-primary-700); }
+      .ring-primary-700 { --tw-ring-color: var(--en-primary-700); }
+      .bg-primary-800 { background-color: var(--en-primary-800); }
+      .text-primary-800 { color: var(--en-primary-800); }
+      .border-primary-800 { border-color: var(--en-primary-800); }
+      .ring-primary-800 { --tw-ring-color: var(--en-primary-800); }
+      .bg-primary-900 { background-color: var(--en-primary-900); }
+      .text-primary-900 { color: var(--en-primary-900); }
+      .border-primary-900 { border-color: var(--en-primary-900); }
+      .ring-primary-900 { --tw-ring-color: var(--en-primary-900); }
+      .bg-neutral-50 { background-color: var(--en-neutral-50); }
+      .text-neutral-50 { color: var(--en-neutral-50); }
+      .border-neutral-50 { border-color: var(--en-neutral-50); }
+      .ring-neutral-50 { --tw-ring-color: var(--en-neutral-50); }
+      .bg-neutral-100 { background-color: var(--en-neutral-100); }
+      .text-neutral-100 { color: var(--en-neutral-100); }
+      .border-neutral-100 { border-color: var(--en-neutral-100); }
+      .ring-neutral-100 { --tw-ring-color: var(--en-neutral-100); }
+      .bg-neutral-200 { background-color: var(--en-neutral-200); }
+      .text-neutral-200 { color: var(--en-neutral-200); }
+      .border-neutral-200 { border-color: var(--en-neutral-200); }
+      .ring-neutral-200 { --tw-ring-color: var(--en-neutral-200); }
+      .bg-neutral-300 { background-color: var(--en-neutral-300); }
+      .text-neutral-300 { color: var(--en-neutral-300); }
+      .border-neutral-300 { border-color: var(--en-neutral-300); }
+      .ring-neutral-300 { --tw-ring-color: var(--en-neutral-300); }
+      .bg-neutral-400 { background-color: var(--en-neutral-400); }
+      .text-neutral-400 { color: var(--en-neutral-400); }
+      .border-neutral-400 { border-color: var(--en-neutral-400); }
+      .ring-neutral-400 { --tw-ring-color: var(--en-neutral-400); }
+      .bg-neutral-500 { background-color: var(--en-neutral-500); }
+      .text-neutral-500 { color: var(--en-neutral-500); }
+      .border-neutral-500 { border-color: var(--en-neutral-500); }
+      .ring-neutral-500 { --tw-ring-color: var(--en-neutral-500); }
+      .bg-neutral-600 { background-color: var(--en-neutral-600); }
+      .text-neutral-600 { color: var(--en-neutral-600); }
+      .border-neutral-600 { border-color: var(--en-neutral-600); }
+      .ring-neutral-600 { --tw-ring-color: var(--en-neutral-600); }
+      .bg-neutral-700 { background-color: var(--en-neutral-700); }
+      .text-neutral-700 { color: var(--en-neutral-700); }
+      .border-neutral-700 { border-color: var(--en-neutral-700); }
+      .ring-neutral-700 { --tw-ring-color: var(--en-neutral-700); }
+      .bg-neutral-800 { background-color: var(--en-neutral-800); }
+      .text-neutral-800 { color: var(--en-neutral-800); }
+      .border-neutral-800 { border-color: var(--en-neutral-800); }
+      .ring-neutral-800 { --tw-ring-color: var(--en-neutral-800); }
+      .bg-neutral-900 { background-color: var(--en-neutral-900); }
+      .text-neutral-900 { color: var(--en-neutral-900); }
+      .border-neutral-900 { border-color: var(--en-neutral-900); }
+      .ring-neutral-900 { --tw-ring-color: var(--en-neutral-900); }
+      .bg-state-success { background-color: var(--state-success); }
+      .text-state-success { color: var(--state-success); }
+      .border-state-success { border-color: var(--state-success); }
+      .ring-state-success { --tw-ring-color: var(--state-success); }
+      .bg-state-warning { background-color: var(--state-warning); }
+      .text-state-warning { color: var(--state-warning); }
+      .border-state-warning { border-color: var(--state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--state-warning); }
+      .bg-state-error { background-color: var(--state-error); }
+      .text-state-error { color: var(--state-error); }
+      .border-state-error { border-color: var(--state-error); }
+      .ring-state-error { --tw-ring-color: var(--state-error); }
+      .bg-state-info { background-color: var(--state-info); }
+      .text-state-info { color: var(--state-info); }
+      .border-state-info { border-color: var(--state-info); }
+      .ring-state-info { --tw-ring-color: var(--state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style id="critical-layout">
+      .podcast-topbar{position:sticky;top:0;z-index:20;height:56px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 32px;background:var(--en-card);border-bottom:1px solid var(--en-border)}
+      .podcast-topbar .topbar-title{font-size:16px;font-weight:600;color:var(--en-foreground);letter-spacing:-0.01em;justify-self:center}
+      .icon-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--en-radius-medium);border:none;background:transparent;cursor:pointer;color:var(--en-foreground);transition:background 120ms cubic-bezier(.2,.8,.2,1)}
+      .icon-btn:hover{background:var(--en-muted)}
+      .icon-btn:active{background:var(--en-neutral-200)}
+      .icon-btn:focus-visible{outline:2px solid var(--en-ring);outline-offset:2px}
+      .info-card{background:var(--en-card);border:1px solid var(--en-border);border-radius:var(--en-radius-large);padding:20px}
+      .stat-badge{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:var(--radius-full);background:var(--en-muted);font-size:12px;color:var(--en-muted-foreground);white-space:nowrap;line-height:1}
+      .readalong-toggle{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;border-radius:var(--radius-full);font-size:14px;font-weight:500;border:1px solid var(--en-border);background:transparent;color:var(--en-foreground);cursor:pointer;transition:background 120ms cubic-bezier(.2,.8,.2,1),color 120ms cubic-bezier(.2,.8,.2,1),border-color 120ms cubic-bezier(.2,.8,.2,1)}
+      .readalong-toggle:hover{border-color:var(--en-primary);color:var(--en-primary)}
+      .readalong-toggle:active{transform:scale(.98)}
+      .readalong-toggle:focus-visible{outline:2px solid var(--en-ring);outline-offset:2px}
+      .subtitle-area{background:color-mix(in srgb,var(--en-muted) 30%,transparent);border-radius:var(--en-radius-large);padding:20px;min-height:220px;display:flex;flex-direction:column;gap:12px}
+      .subtitle-line{font-size:15px;line-height:1.6;color:var(--en-muted-foreground);margin:0}
+      .subtitle-line.current{position:relative;font-size:17px;font-weight:500;color:var(--en-foreground);background:color-mix(in srgb,var(--en-primary) 10%,transparent);border-radius:var(--en-radius-medium);padding:10px 12px 10px 20px}
+      .subtitle-line.current::before{content:'';position:absolute;left:6px;top:14px;bottom:14px;width:3px;border-radius:var(--radius-full);background:var(--en-primary)}
+      .subtitle-line.faded{color:color-mix(in srgb,var(--en-muted-foreground) 70%,transparent)}
+      .playing-dot{display:inline-block;width:6px;height:6px;border-radius:var(--radius-full);background:var(--en-primary);margin-right:6px;vertical-align:middle;animation:pulse-dot 1.4s ease-in-out infinite}
+      @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+      .player-controls{display:flex;flex-direction:column;gap:12px;background:var(--en-card);border:1px solid var(--en-border);border-radius:var(--en-radius-large);padding:20px}
+      .progress-bar{width:100%;height:4px;border-radius:var(--radius-full);background:var(--en-muted);overflow:hidden}
+      .progress-bar .progress-fill{height:100%;width:35%;border-radius:var(--radius-full);background:var(--en-primary)}
+      .time-row{display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums;color:var(--en-muted-foreground)}
+      .controls-row{display:flex;align-items:center;justify-content:space-around;gap:4px}
+      .control-btn{display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;color:var(--en-muted-foreground);transition:color 120ms cubic-bezier(.2,.8,.2,1);padding:8px;border-radius:var(--en-radius-medium)}
+      .control-btn:hover{color:var(--en-foreground)}
+      .control-btn:active{color:var(--en-primary)}
+      .control-btn:focus-visible{outline:2px solid var(--en-ring);outline-offset:2px}
+      .nav-btn{display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;color:var(--en-foreground);padding:8px;border-radius:var(--en-radius-medium);transition:color 120ms cubic-bezier(.2,.8,.2,1)}
+      .nav-btn:hover{color:var(--en-primary)}
+      .nav-btn:active{transform:scale(.95)}
+      .nav-btn:focus-visible{outline:2px solid var(--en-ring);outline-offset:2px}
+      .play-button{width:56px;height:56px;border-radius:var(--radius-full);background:var(--en-primary);color:var(--en-primary-foreground);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;transition:transform 120ms cubic-bezier(.2,.8,.2,1),box-shadow 120ms cubic-bezier(.2,.8,.2,1);box-shadow:var(--en-shadow-1);flex-shrink:0}
+      .play-button:hover{transform:translateY(-1px);box-shadow:var(--en-shadow-2)}
+      .play-button:active{transform:translateY(0) scale(.97)}
+      .play-button:focus-visible{outline:2px solid var(--en-ring);outline-offset:3px}
+      .play-button svg{fill:currentColor}
+      .speed-btn{font-size:16px;color:var(--en-muted-foreground);background:transparent;border:none;cursor:pointer;padding:8px 4px;border-radius:var(--en-radius-medium);transition:color 120ms cubic-bezier(.2,.8,.2,1);font-variant-numeric:tabular-nums}
+      .speed-btn:hover{color:var(--en-foreground)}
+      .speed-btn:active{color:var(--en-primary)}
+      .speed-btn:focus-visible{outline:2px solid var(--en-ring);outline-offset:2px}
+      .sentence-panel{background:var(--en-card);border:1px solid var(--en-border);border-radius:var(--en-radius-large);padding:16px}
+      .sentence-list-header{display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;cursor:pointer}
+      .sentence-row{display:flex;align-items:center;gap:12px;height:40px;border-bottom:1px solid var(--en-border);font-size:13px}
+      .sentence-row:last-child{border-bottom:none}
+      .sentence-row .sentence-num{width:24px;text-align:center;font-variant-numeric:tabular-nums;color:var(--en-muted-foreground);flex-shrink:0}
+      .sentence-row .sentence-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--en-muted-foreground)}
+      .sentence-row .sentence-duration{font-variant-numeric:tabular-nums;color:var(--en-muted-foreground);flex-shrink:0}
+      .sentence-row.current{background:color-mix(in srgb,var(--en-primary) 10%,transparent);border-radius:var(--en-radius-medium)}
+      .sentence-row.current .sentence-num,.sentence-row.current .sentence-text,.sentence-row.current .sentence-duration{color:var(--en-primary);font-weight:500}
+      @media (prefers-reduced-motion:reduce){
+        .playing-dot{animation:none}
+        *{transition-duration:.01ms !important}
+      }
+    </style>
+    <aside class="sidebar-nav" style="width:240px;position:fixed;top:0;left:0;bottom:0;background:var(--en-card);border-right:1px solid var(--en-border);display:flex;flex-direction:column;z-index:40">
+      <div style="height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--en-border)">
+        <span style="font-size:18px;font-weight:700;color:var(--en-primary);letter-spacing:-0.02em">LinguaAI</span>
+      </div>
+      <nav style="flex:1;padding:12px;display:flex;flex-direction:column;gap:4px">
+        <button data-nav-key="articles" data-active="true" data-dom-id="back-article-list" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:var(--en-primary-50);color:var(--en-primary);font-size:14px;font-weight:500;cursor:pointer">
+          <i data-lucide="library" style="width:20px;height:20px;flex-shrink:0"></i>
+          <span>文章</span>
+        </button>
+        <button data-nav-key="discover" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer">
+          <i data-lucide="compass" style="width:20px;height:20px;flex-shrink:0"></i>
+          <span>发现</span>
+        </button>
+        <div class="nav-group" style="display:flex;flex-direction:column;gap:2px">
+          <div class="nav-group-label" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--en-muted-foreground)">
+            <i data-lucide="user" style="width:20px;height:20px;flex-shrink:0"></i>
+            <span>我的</span>
+            <i data-lucide="chevron-down" style="width:16px;height:16px;margin-left:auto;opacity:0.5"></i>
+          </div>
+          <button data-nav-key="ai-config" data-dom-id="cta-ai-config" style="display:flex;align-items:center;gap:10px;padding:10px 12px 10px 42px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer">
+            <i data-lucide="settings" style="width:18px;height:18px;flex-shrink:0"></i>
+            <span>AI 配置</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+    <div style="margin-left:240px;min-height:100vh;background:var(--en-background)">
+      <header class="podcast-topbar">
+        <a href="#" data-dom-id="back-article-list" class="icon-btn" aria-label="返回文章列表" style="justify-self:start">
+          <i data-lucide="arrow-left" style="width:20px;height:20px"></i>
+        </a>
+        <span class="topbar-title">播客模式</span>
+        <button class="icon-btn" aria-label="更多选项" style="justify-self:end">
+          <i data-lucide="more-horizontal" style="width:20px;height:20px"></i>
+        </button>
+      </header>
+      <div style="max-width:1200px;margin:0 auto;padding:24px 32px;display:flex;gap:24px;align-items:flex-start">
+        <section style="flex:3;min-width:0;display:flex;flex-direction:column;gap:16px">
+          <section class="info-card">
+            <h1 style="font-size:20px;font-weight:600;color:var(--en-foreground);line-height:1.4;margin:0 0 8px 0;text-wrap:balance;word-break:keep-all;overflow-wrap:break-word">Inside the Mind of a Master Procrastinator</h1>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+              <span style="font-size:13px;color:var(--en-muted-foreground)">Tim Urban · TED Talk</span>
+              <span style="color:var(--en-neutral-300);font-size:13px">·</span>
+              <span style="display:inline-flex;align-items:center;gap:3px;font-size:13px;color:var(--en-muted-foreground);white-space:nowrap">
+                <i data-lucide="clock" style="width:14px;height:14px"></i>
+                12:30
+              </span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="stat-badge">
+                <i data-lucide="file-text" style="width:14px;height:14px"></i>
+                1,250 词
+              </span>
+              <span class="stat-badge">
+                <i data-lucide="book" style="width:14px;height:14px"></i>
+                32 生词
+              </span>
+              <span class="stat-badge">
+                <i data-lucide="link" style="width:14px;height:14px"></i>
+                8 短语
+              </span>
+            </div>
+          </section>
+
+          <button class="readalong-toggle" style="align-self:flex-end">
+            <i data-lucide="mic" style="width:16px;height:16px"></i>
+            跟读模式
+          </button>
+
+          <section class="subtitle-area">
+            <p class="subtitle-line">So I want to start with a story about a guy.</p>
+            <p class="subtitle-line">He was a senior in college, and he was working on his thesis.</p>
+            <div class="subtitle-line current">
+              <span class="playing-dot" aria-hidden="true"></span>And he had been working on it for months, and he just couldn't seem to finish it.
+            </div>
+            <p class="subtitle-line">So finally, he decided to pull an all-nighter.</p>
+            <p class="subtitle-line faded">And he got it done, and he graduated.</p>
+          </section>
+
+          <section class="player-controls">
+            <div class="progress-bar" role="progressbar" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="time-row">
+              <span>04:23</span>
+              <span>12:30</span>
+            </div>
+            <div class="controls-row">
+              <button class="control-btn" aria-label="重复本句">
+                <i data-lucide="repeat" style="width:24px;height:24px"></i>
+              </button>
+              <button class="nav-btn" aria-label="上一句">
+                <i data-lucide="skip-back" style="width:28px;height:28px"></i>
+              </button>
+              <button class="play-button" aria-label="播放">
+                <i data-lucide="play" style="width:28px;height:28px"></i>
+              </button>
+              <button class="nav-btn" aria-label="下一句">
+                <i data-lucide="skip-forward" style="width:28px;height:28px"></i>
+              </button>
+              <button class="speed-btn" aria-label="播放速度">1.0x</button>
+            </div>
+          </section>
+        </section>
+
+        <section class="sentence-panel" style="flex:2;min-width:0">
+          <div class="sentence-list-header" role="button" tabindex="0" aria-expanded="true">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:15px;font-weight:600;color:var(--en-foreground)">全部句子</span>
+              <span style="font-size:13px;color:var(--en-muted-foreground)">42 句</span>
+            </div>
+            <i data-lucide="chevron-down" style="width:20px;height:20px;color:var(--en-muted-foreground)"></i>
+          </div>
+          <div>
+            <div class="sentence-row current">
+              <span class="sentence-num">1</span>
+              <span class="sentence-text">So I want to start with a story about a guy.</span>
+              <span class="sentence-duration">0:08</span>
+            </div>
+            <div class="sentence-row">
+              <span class="sentence-num">2</span>
+              <span class="sentence-text">He was a senior in college, and he was working on his thesis.</span>
+              <span class="sentence-duration">0:12</span>
+            </div>
+            <div class="sentence-row">
+              <span class="sentence-num">3</span>
+              <span class="sentence-text">And he had been working on it for months, and he just couldn't…</span>
+              <span class="sentence-duration">0:15</span>
+            </div>
+            <div class="sentence-row">
+              <span class="sentence-num">4</span>
+              <span class="sentence-text">So finally, he decided to pull an all-nighter.</span>
+              <span class="sentence-duration">0:10</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

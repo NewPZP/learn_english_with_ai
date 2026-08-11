@@ -1,0 +1,117 @@
+{
+  "success": true,
+  "outcome": "passed",
+  "repairable": true,
+  "terminalViolations": [],
+  "terminalBlockingSummary": null,
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.22.00.00.00",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": null,
+    "recorded_at": null,
+    "expected_version": "2026.07.22.00.00.00",
+    "status": "matched",
+    "read_status": "ok"
+  },
+  "operatingMode": "free-explore",
+  "renderBlockingErrorCount": 0,
+  "softWarningCount": 10,
+  "renderBlockingErrors": [],
+  "errorSignatures": [],
+  "softWarnings": [
+    "[repair-ledger] validationRepairLedger[0].repairActions[] is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportPath is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportHash is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationSuccess should be a boolean",
+    "[html-quality] ai-config.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] article-list.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] import-article.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] intensive-listening.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] podcast.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] word-preview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead."
+  ],
+  "repairPlanHints": [],
+  "repairActionTable": [],
+  "errorCount": 0,
+  "warningCount": 10,
+  "errors": [],
+  "warnings": [
+    "[repair-ledger] validationRepairLedger[0].repairActions[] is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportPath is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportHash is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationSuccess should be a boolean",
+    "[html-quality] ai-config.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] article-list.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] import-article.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] intensive-listening.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] podcast.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] word-preview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead."
+  ],
+  "validationRunDisciplineStatus": {
+    "declared": true,
+    "restoreMode": false,
+    "maxFullValidationRuns": 2,
+    "validationHistoryCount": 1,
+    "repairLedgerCount": 1,
+    "softWarningsTriggerRepair": false,
+    "terminalState": null,
+    "nextAction": null,
+    "violations": [],
+    "success": true
+  },
+  "terminalState": null,
+  "nextCheck": {
+    "type": "finish-readiness",
+    "command": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-desktop' --check=all",
+    "fullValidationAllowed": false,
+    "reason": "workspace validation passed; run complete finish readiness before final delivery"
+  },
+  "repairBatch": [],
+  "repairContextPacket": {
+    "schema_version": "1.0",
+    "purpose": "small-context repair packet; read this before full validation-report.json",
+    "success": true,
+    "terminalState": null,
+    "skillProvenance": {
+      "name": "solo-design",
+      "version": "2026.07.22.00.00.00",
+      "version_source": "skill-release-manifest.json",
+      "runtime_skill_dir": null,
+      "recorded_at": null,
+      "expected_version": "2026.07.22.00.00.00",
+      "status": "matched",
+      "read_status": "ok"
+    },
+    "renderBlockingErrorCount": 0,
+    "softWarningCount": 10,
+    "renderBlockingErrors": [],
+    "repairActionTable": [],
+    "nextCheck": {
+      "type": "finish-readiness",
+      "command": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-desktop' --check=all",
+      "fullValidationAllowed": false,
+      "reason": "workspace validation passed; run complete finish readiness before final delivery"
+    },
+    "forbidden": [
+      "do not read validator source",
+      "do not rerun full validation when nextCheck.fullValidationAllowed=false",
+      "do not start preview/browser unless user explicitly asks",
+      "do not hand-edit repair ledger fields"
+    ]
+  },
+  "projectFileHashes": {
+    "ai-english-learning-desktop.design": "fef1595b85b0f491f632ad7029c4897aeb40e107f9096fa6ce9843a8b6ceaaf1",
+    "runtime-orchestration-summary.json": "6bef17679b9d17aebb3097ebb605bee66aa54cb5832878ff51468d51d9b936f7",
+    "pages/ai-config.html": "aaabdb5330a4f79d27cddf49c308bb6a0f300fb9da5532b51a4f6e09b8324cea",
+    "pages/article-list.html": "dea40603d29934363be660df04069352eb416594b6da64e858c4d40bbf763061",
+    "pages/import-article.html": "eaabdc37e447019caa117dda0d82f1cfeb44ac27fceda661044f8091c0241ede",
+    "pages/intensive-listening.html": "a7172408f0c6698de847fd67d2818bf9f4cd3de94d78c27dc4e536630787cec2",
+    "pages/podcast.html": "e882553e2cadaa4e87155b19e38b5d573c0e1dd18ca1ca4c3c102c1078018b19",
+    "pages/word-preview.html": "b7745e2aa7ece6e71907d369f1654ce320d75b75961c3b97e87e588ef28a1ff6"
+  },
+  "designDir": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-desktop",
+  "expectedPages": null,
+  "requireInteractions": null,
+  "checkedAt": "2026-08-11T21:36:08.417Z"
+}

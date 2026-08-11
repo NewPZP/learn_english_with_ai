@@ -1,0 +1,69 @@
+{
+  "root": {
+    "nodeId": "gen-project-shell",
+    "kind": "project-shell",
+    "pageIds": ["page-article-list", "page-import-article", "page-word-preview", "page-podcast", "page-intensive-listening"],
+    "output": null,
+    "sharedRegions": ["colors_and_type.css (brand CSS, design tokens, typography, radius, shadow, mobile navigation canonical HTML)"],
+    "privateRegions": [],
+    "mutableSlots": [],
+    "status": "generated",
+    "children": [
+      {
+        "nodeId": "page-article-list",
+        "kind": "page-leaf",
+        "pageIds": ["page-article-list"],
+        "output": "pages/article-list.html",
+        "sharedRegions": [],
+        "privateRegions": ["app header", "article cards with progress", "import FAB", "bottom navigation"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "page-import-article",
+        "kind": "page-leaf",
+        "pageIds": ["page-import-article"],
+        "output": "pages/import-article.html",
+        "sharedRegions": [],
+        "privateRegions": ["import header with back", "text paste area", "AI processing steps", "vocabulary preview", "save button"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "page-word-preview",
+        "kind": "page-leaf",
+        "pageIds": ["page-word-preview"],
+        "output": "pages/word-preview.html",
+        "sharedRegions": [],
+        "privateRegions": ["learning header with progress", "flashcard front/back", "memory curve indicator", "spaced repetition controls", "word list sidebar"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "page-podcast",
+        "kind": "page-leaf",
+        "pageIds": ["page-podcast"],
+        "output": "pages/podcast.html",
+        "sharedRegions": [],
+        "privateRegions": ["player header with back", "article info", "subtitle display", "audio controls", "progress bar", "sentence list"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      },
+      {
+        "nodeId": "page-intensive-listening",
+        "kind": "page-leaf",
+        "pageIds": ["page-intensive-listening"],
+        "output": "pages/intensive-listening.html",
+        "sharedRegions": [],
+        "privateRegions": ["training header with progress", "mode selector tabs", "sentence display with blanks", "dictation input", "check answer button", "result feedback", "accuracy score"],
+        "mutableSlots": [],
+        "status": "planned",
+        "children": []
+      }
+    ]
+  }
+}

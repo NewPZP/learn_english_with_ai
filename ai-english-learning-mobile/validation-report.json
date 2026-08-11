@@ -1,0 +1,120 @@
+{
+  "success": true,
+  "outcome": "passed",
+  "repairable": true,
+  "terminalViolations": [],
+  "terminalBlockingSummary": null,
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.22.00.00.00",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": null,
+    "recorded_at": null,
+    "expected_version": "2026.07.22.00.00.00",
+    "status": "matched",
+    "read_status": "ok"
+  },
+  "operatingMode": "free-explore",
+  "renderBlockingErrorCount": 0,
+  "softWarningCount": 11,
+  "renderBlockingErrors": [],
+  "errorSignatures": [],
+  "softWarnings": [
+    "[repair-ledger] validationRepairLedger[0].repairActions[] is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportPath is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportHash is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationSuccess should be a boolean",
+    "[html-quality] colors_and_type.css: ordinary/static shadow tokens must keep every shadow alpha <= 0.05; deeper shadows are allowed only for floating-layer tokens such as modal/popover/dropdown/drawer/overlay (--en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18), --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30)).",
+    "[html-quality] ai-config.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] article-list.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] import-article.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] intensive-listening.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] podcast.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] word-preview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead."
+  ],
+  "repairPlanHints": [],
+  "repairActionTable": [],
+  "errorCount": 0,
+  "warningCount": 11,
+  "errors": [],
+  "warnings": [
+    "[repair-ledger] validationRepairLedger[0].repairActions[] is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportPath is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationReportHash is missing",
+    "[repair-ledger] validationRepairLedger[0].revalidationSuccess should be a boolean",
+    "[html-quality] colors_and_type.css: ordinary/static shadow tokens must keep every shadow alpha <= 0.05; deeper shadows are allowed only for floating-layer tokens such as modal/popover/dropdown/drawer/overlay (--en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18), --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30)).",
+    "[html-quality] ai-config.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] article-list.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] import-article.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] intensive-listening.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] podcast.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] word-preview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead."
+  ],
+  "validationRunDisciplineStatus": {
+    "declared": true,
+    "restoreMode": false,
+    "maxFullValidationRuns": 2,
+    "validationHistoryCount": 1,
+    "repairLedgerCount": 1,
+    "softWarningsTriggerRepair": false,
+    "terminalState": null,
+    "nextAction": null,
+    "violations": [],
+    "success": true
+  },
+  "terminalState": null,
+  "nextCheck": {
+    "type": "finish-readiness",
+    "command": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --check=all",
+    "fullValidationAllowed": false,
+    "reason": "workspace validation passed; run complete finish readiness before final delivery"
+  },
+  "repairBatch": [],
+  "repairContextPacket": {
+    "schema_version": "1.0",
+    "purpose": "small-context repair packet; read this before full validation-report.json",
+    "success": true,
+    "terminalState": null,
+    "skillProvenance": {
+      "name": "solo-design",
+      "version": "2026.07.22.00.00.00",
+      "version_source": "skill-release-manifest.json",
+      "runtime_skill_dir": null,
+      "recorded_at": null,
+      "expected_version": "2026.07.22.00.00.00",
+      "status": "matched",
+      "read_status": "ok"
+    },
+    "renderBlockingErrorCount": 0,
+    "softWarningCount": 11,
+    "renderBlockingErrors": [],
+    "repairActionTable": [],
+    "nextCheck": {
+      "type": "finish-readiness",
+      "command": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --check=all",
+      "fullValidationAllowed": false,
+      "reason": "workspace validation passed; run complete finish readiness before final delivery"
+    },
+    "forbidden": [
+      "do not read validator source",
+      "do not rerun full validation when nextCheck.fullValidationAllowed=false",
+      "do not start preview/browser unless user explicitly asks",
+      "do not hand-edit repair ledger fields"
+    ]
+  },
+  "projectFileHashes": {
+    "ai-english-learning-mobile.design": "adfeee28f3f165544155a3b6f979ede6a4e5089cb4999610078535186864c8de",
+    "colors_and_type.css": "d5e40b91fb7197eb399aab2696f3d649a1276bcfd4b7fb2503db3d225127a9a3",
+    "runtime-orchestration-summary.json": "460d27edb5ad52b626660f9028036658a7a6a367f47eaa0bf1c58a23daa53276",
+    "pages/ai-config.html": "d80f65b10b41209d3b479d328ef2d491cdf3921fa714ecc15417dd8a678b6d6a",
+    "pages/article-list.html": "807faaf953d80e0773a1a5b455e833132107b0774de158933fd55dbb692acfd9",
+    "pages/import-article.html": "527bc1493b1df45c94a3c55655dfd84ae53351fff49259d1c644edfd57899435",
+    "pages/intensive-listening.html": "67640ccc718c2edf2b31e872b8e093debf681e3b21cb01d0e44459dd4411b7c1",
+    "pages/podcast.html": "9c8bdde727e031ab8a8f9e028fe0971030473511016cb9459e82d57857003f5a",
+    "pages/word-preview.html": "96d9575ec561a7a43dcb84ab71fda74a346f1a5e82c3626380ccf9b1f62b350c"
+  },
+  "designDir": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile",
+  "expectedPages": null,
+  "requireInteractions": null,
+  "checkedAt": "2026-08-11T22:04:35.501Z"
+}

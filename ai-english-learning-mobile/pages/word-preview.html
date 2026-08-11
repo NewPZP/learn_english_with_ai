@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词预习</title>
+    <style id="theme-vars">
+/* ============================================================
+   AI English Learning App — Brand CSS
+   Style: Fresh Modern Education (清新现代教育风)
+   Primary hue: Teal
+   ============================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+  /* Brand primary scale (teal) */
+  --en-primary-50: #f0fdfa;
+  --en-primary-100: #ccfbf1;
+  --en-primary-200: #99f6e4;
+  --en-primary-300: #5eead4;
+  --en-primary-400: #2dd4bf;
+  --en-primary-500: #14b8a6;
+  --en-primary-600: #0d9488;
+  --en-primary-700: #0f766e;
+  --en-primary-800: #115e59;
+  --en-primary-900: #134e4a;
+
+  /* Neutral scale (slate) */
+  --en-neutral-50: #f8fafc;
+  --en-neutral-100: #f1f5f9;
+  --en-neutral-200: #e2e8f0;
+  --en-neutral-300: #cbd5e1;
+  --en-neutral-400: #94a3b8;
+  --en-neutral-500: #64748b;
+  --en-neutral-600: #475569;
+  --en-neutral-700: #334155;
+  --en-neutral-800: #1e293b;
+  --en-neutral-900: #0f172a;
+
+  /* State colors (semantic only) */
+  --state-success: #16a34a;
+  --state-success-light: #dcfce7;
+  --state-warning: #d97706;
+  --state-warning-light: #fef3c7;
+  --state-error: #dc2626;
+  --state-error-light: #fee2e2;
+  --state-info: #2563eb;
+  --state-info-light: #dbeafe;
+
+  /* Radius scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --en-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --en-font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* ---- Semantic aliases (light mode) ---- */
+  --en-background: #ffffff;
+  --en-foreground: #0f172a;
+  --en-card: #ffffff;
+  --en-card-foreground: #0f172a;
+  --en-popover: #ffffff;
+  --en-popover-foreground: #0f172a;
+  --en-primary: #0d9488;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #f1f5f9;
+  --en-muted-foreground: #64748b;
+  --en-border: #e2e8f0;
+  --en-input: #e2e8f0;
+  --en-ring: #0d9488;
+
+  /* Radius aliases */
+  --en-radius-small: 4px;
+  --en-radius-medium: 8px;
+  --en-radius-large: 16px;
+
+  /* Shadows — static surfaces only, alpha <= 0.05 */
+  --en-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  /* Floating layers — deeper elevation allowed */
+  --en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18);
+  --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30);
+}
+
+/* ---- Dark mode semantic aliases ---- */
+html.dark {
+  --en-background: #0f172a;
+  --en-foreground: #f8fafc;
+  --en-card: #1e293b;
+  --en-card-foreground: #f8fafc;
+  --en-popover: #1e293b;
+  --en-popover-foreground: #f8fafc;
+  --en-primary: #14b8a6;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #1e293b;
+  --en-muted-foreground: #94a3b8;
+  --en-border: #334155;
+  --en-input: #334155;
+  --en-ring: #14b8a6;
+
+  --en-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 1px rgba(0, 0, 0, 0.10);
+  --en-shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.40);
+  --en-shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.50);
+}
+
+/* ---- Base typography ---- */
+body {
+  font-family: var(--en-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular nums for data/metrics */
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Tailwind theme mapping ---- */
+@theme inline {
+  --color-background: var(--en-background);
+  --color-foreground: var(--en-foreground);
+  --color-card: var(--en-card);
+  --color-card-foreground: var(--en-card-foreground);
+  --color-popover: var(--en-popover);
+  --color-popover-foreground: var(--en-popover-foreground);
+  --color-primary: var(--en-primary);
+  --color-primary-foreground: var(--en-primary-foreground);
+  --color-muted: var(--en-muted);
+  --color-muted-foreground: var(--en-muted-foreground);
+  --color-border: var(--en-border);
+  --color-input: var(--en-input);
+  --color-ring: var(--en-ring);
+
+  --color-primary-50: var(--en-primary-50);
+  --color-primary-100: var(--en-primary-100);
+  --color-primary-200: var(--en-primary-200);
+  --color-primary-300: var(--en-primary-300);
+  --color-primary-400: var(--en-primary-400);
+  --color-primary-500: var(--en-primary-500);
+  --color-primary-600: var(--en-primary-600);
+  --color-primary-700: var(--en-primary-700);
+  --color-primary-800: var(--en-primary-800);
+  --color-primary-900: var(--en-primary-900);
+
+  --color-neutral-50: var(--en-neutral-50);
+  --color-neutral-100: var(--en-neutral-100);
+  --color-neutral-200: var(--en-neutral-200);
+  --color-neutral-300: var(--en-neutral-300);
+  --color-neutral-400: var(--en-neutral-400);
+  --color-neutral-500: var(--en-neutral-500);
+  --color-neutral-600: var(--en-neutral-600);
+  --color-neutral-700: var(--en-neutral-700);
+  --color-neutral-800: var(--en-neutral-800);
+  --color-neutral-900: var(--en-neutral-900);
+
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-error: var(--state-error);
+  --color-state-info: var(--state-info);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --font-sans: var(--en-font-sans);
+  --font-mono: var(--en-font-mono);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--en-background);
+    --color-foreground: var(--en-foreground);
+    --color-card: var(--en-card);
+    --color-card-foreground: var(--en-card-foreground);
+    --color-popover: var(--en-popover);
+    --color-popover-foreground: var(--en-popover-foreground);
+    --color-primary: var(--en-primary);
+    --color-primary-foreground: var(--en-primary-foreground);
+    --color-muted: var(--en-muted);
+    --color-muted-foreground: var(--en-muted-foreground);
+    --color-border: var(--en-border);
+    --color-input: var(--en-input);
+    --color-ring: var(--en-ring);
+    --color-primary-50: var(--en-primary-50);
+    --color-primary-100: var(--en-primary-100);
+    --color-primary-200: var(--en-primary-200);
+    --color-primary-300: var(--en-primary-300);
+    --color-primary-400: var(--en-primary-400);
+    --color-primary-500: var(--en-primary-500);
+    --color-primary-600: var(--en-primary-600);
+    --color-primary-700: var(--en-primary-700);
+    --color-primary-800: var(--en-primary-800);
+    --color-primary-900: var(--en-primary-900);
+    --color-neutral-50: var(--en-neutral-50);
+    --color-neutral-100: var(--en-neutral-100);
+    --color-neutral-200: var(--en-neutral-200);
+    --color-neutral-300: var(--en-neutral-300);
+    --color-neutral-400: var(--en-neutral-400);
+    --color-neutral-500: var(--en-neutral-500);
+    --color-neutral-600: var(--en-neutral-600);
+    --color-neutral-700: var(--en-neutral-700);
+    --color-neutral-800: var(--en-neutral-800);
+    --color-neutral-900: var(--en-neutral-900);
+    --color-state-success: var(--state-success);
+    --color-state-warning: var(--state-warning);
+    --color-state-error: var(--state-error);
+    --color-state-info: var(--state-info);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-full: var(--radius-full);
+  }
+  @layer base {
+    body { background: var(--en-background); color: var(--en-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--en-background); }
+      .text-background { color: var(--en-background); }
+      .border-background { border-color: var(--en-background); }
+      .ring-background { --tw-ring-color: var(--en-background); }
+      .bg-foreground { background-color: var(--en-foreground); }
+      .text-foreground { color: var(--en-foreground); }
+      .border-foreground { border-color: var(--en-foreground); }
+      .ring-foreground { --tw-ring-color: var(--en-foreground); }
+      .bg-card { background-color: var(--en-card); }
+      .text-card { color: var(--en-card); }
+      .border-card { border-color: var(--en-card); }
+      .ring-card { --tw-ring-color: var(--en-card); }
+      .bg-card-foreground { background-color: var(--en-card-foreground); }
+      .text-card-foreground { color: var(--en-card-foreground); }
+      .border-card-foreground { border-color: var(--en-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--en-card-foreground); }
+      .bg-popover { background-color: var(--en-popover); }
+      .text-popover { color: var(--en-popover); }
+      .border-popover { border-color: var(--en-popover); }
+      .ring-popover { --tw-ring-color: var(--en-popover); }
+      .bg-popover-foreground { background-color: var(--en-popover-foreground); }
+      .text-popover-foreground { color: var(--en-popover-foreground); }
+      .border-popover-foreground { border-color: var(--en-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--en-popover-foreground); }
+      .bg-primary { background-color: var(--en-primary); }
+      .text-primary { color: var(--en-primary); }
+      .border-primary { border-color: var(--en-primary); }
+      .ring-primary { --tw-ring-color: var(--en-primary); }
+      .bg-primary-foreground { background-color: var(--en-primary-foreground); }
+      .text-primary-foreground { color: var(--en-primary-foreground); }
+      .border-primary-foreground { border-color: var(--en-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--en-primary-foreground); }
+      .bg-muted { background-color: var(--en-muted); }
+      .text-muted { color: var(--en-muted); }
+      .border-muted { border-color: var(--en-muted); }
+      .ring-muted { --tw-ring-color: var(--en-muted); }
+      .bg-muted-foreground { background-color: var(--en-muted-foreground); }
+      .text-muted-foreground { color: var(--en-muted-foreground); }
+      .border-muted-foreground { border-color: var(--en-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--en-muted-foreground); }
+      .bg-border { background-color: var(--en-border); }
+      .text-border { color: var(--en-border); }
+      .border-border { border-color: var(--en-border); }
+      .ring-border { --tw-ring-color: var(--en-border); }
+      .bg-input { background-color: var(--en-input); }
+      .text-input { color: var(--en-input); }
+      .border-input { border-color: var(--en-input); }
+      .ring-input { --tw-ring-color: var(--en-input); }
+      .bg-ring { background-color: var(--en-ring); }
+      .text-ring { color: var(--en-ring); }
+      .border-ring { border-color: var(--en-ring); }
+      .ring-ring { --tw-ring-color: var(--en-ring); }
+      .bg-primary-50 { background-color: var(--en-primary-50); }
+      .text-primary-50 { color: var(--en-primary-50); }
+      .border-primary-50 { border-color: var(--en-primary-50); }
+      .ring-primary-50 { --tw-ring-color: var(--en-primary-50); }
+      .bg-primary-100 { background-color: var(--en-primary-100); }
+      .text-primary-100 { color: var(--en-primary-100); }
+      .border-primary-100 { border-color: var(--en-primary-100); }
+      .ring-primary-100 { --tw-ring-color: var(--en-primary-100); }
+      .bg-primary-200 { background-color: var(--en-primary-200); }
+      .text-primary-200 { color: var(--en-primary-200); }
+      .border-primary-200 { border-color: var(--en-primary-200); }
+      .ring-primary-200 { --tw-ring-color: var(--en-primary-200); }
+      .bg-primary-300 { background-color: var(--en-primary-300); }
+      .text-primary-300 { color: var(--en-primary-300); }
+      .border-primary-300 { border-color: var(--en-primary-300); }
+      .ring-primary-300 { --tw-ring-color: var(--en-primary-300); }
+      .bg-primary-400 { background-color: var(--en-primary-400); }
+      .text-primary-400 { color: var(--en-primary-400); }
+      .border-primary-400 { border-color: var(--en-primary-400); }
+      .ring-primary-400 { --tw-ring-color: var(--en-primary-400); }
+      .bg-primary-500 { background-color: var(--en-primary-500); }
+      .text-primary-500 { color: var(--en-primary-500); }
+      .border-primary-500 { border-color: var(--en-primary-500); }
+      .ring-primary-500 { --tw-ring-color: var(--en-primary-500); }
+      .bg-primary-600 { background-color: var(--en-primary-600); }
+      .text-primary-600 { color: var(--en-primary-600); }
+      .border-primary-600 { border-color: var(--en-primary-600); }
+      .ring-primary-600 { --tw-ring-color: var(--en-primary-600); }
+      .bg-primary-700 { background-color: var(--en-primary-700); }
+      .text-primary-700 { color: var(--en-primary-700); }
+      .border-primary-700 { border-color: var(--en-primary-700); }
+      .ring-primary-700 { --tw-ring-color: var(--en-primary-700); }
+      .bg-primary-800 { background-color: var(--en-primary-800); }
+      .text-primary-800 { color: var(--en-primary-800); }
+      .border-primary-800 { border-color: var(--en-primary-800); }
+      .ring-primary-800 { --tw-ring-color: var(--en-primary-800); }
+      .bg-primary-900 { background-color: var(--en-primary-900); }
+      .text-primary-900 { color: var(--en-primary-900); }
+      .border-primary-900 { border-color: var(--en-primary-900); }
+      .ring-primary-900 { --tw-ring-color: var(--en-primary-900); }
+      .bg-neutral-50 { background-color: var(--en-neutral-50); }
+      .text-neutral-50 { color: var(--en-neutral-50); }
+      .border-neutral-50 { border-color: var(--en-neutral-50); }
+      .ring-neutral-50 { --tw-ring-color: var(--en-neutral-50); }
+      .bg-neutral-100 { background-color: var(--en-neutral-100); }
+      .text-neutral-100 { color: var(--en-neutral-100); }
+      .border-neutral-100 { border-color: var(--en-neutral-100); }
+      .ring-neutral-100 { --tw-ring-color: var(--en-neutral-100); }
+      .bg-neutral-200 { background-color: var(--en-neutral-200); }
+      .text-neutral-200 { color: var(--en-neutral-200); }
+      .border-neutral-200 { border-color: var(--en-neutral-200); }
+      .ring-neutral-200 { --tw-ring-color: var(--en-neutral-200); }
+      .bg-neutral-300 { background-color: var(--en-neutral-300); }
+      .text-neutral-300 { color: var(--en-neutral-300); }
+      .border-neutral-300 { border-color: var(--en-neutral-300); }
+      .ring-neutral-300 { --tw-ring-color: var(--en-neutral-300); }
+      .bg-neutral-400 { background-color: var(--en-neutral-400); }
+      .text-neutral-400 { color: var(--en-neutral-400); }
+      .border-neutral-400 { border-color: var(--en-neutral-400); }
+      .ring-neutral-400 { --tw-ring-color: var(--en-neutral-400); }
+      .bg-neutral-500 { background-color: var(--en-neutral-500); }
+      .text-neutral-500 { color: var(--en-neutral-500); }
+      .border-neutral-500 { border-color: var(--en-neutral-500); }
+      .ring-neutral-500 { --tw-ring-color: var(--en-neutral-500); }
+      .bg-neutral-600 { background-color: var(--en-neutral-600); }
+      .text-neutral-600 { color: var(--en-neutral-600); }
+      .border-neutral-600 { border-color: var(--en-neutral-600); }
+      .ring-neutral-600 { --tw-ring-color: var(--en-neutral-600); }
+      .bg-neutral-700 { background-color: var(--en-neutral-700); }
+      .text-neutral-700 { color: var(--en-neutral-700); }
+      .border-neutral-700 { border-color: var(--en-neutral-700); }
+      .ring-neutral-700 { --tw-ring-color: var(--en-neutral-700); }
+      .bg-neutral-800 { background-color: var(--en-neutral-800); }
+      .text-neutral-800 { color: var(--en-neutral-800); }
+      .border-neutral-800 { border-color: var(--en-neutral-800); }
+      .ring-neutral-800 { --tw-ring-color: var(--en-neutral-800); }
+      .bg-neutral-900 { background-color: var(--en-neutral-900); }
+      .text-neutral-900 { color: var(--en-neutral-900); }
+      .border-neutral-900 { border-color: var(--en-neutral-900); }
+      .ring-neutral-900 { --tw-ring-color: var(--en-neutral-900); }
+      .bg-state-success { background-color: var(--state-success); }
+      .text-state-success { color: var(--state-success); }
+      .border-state-success { border-color: var(--state-success); }
+      .ring-state-success { --tw-ring-color: var(--state-success); }
+      .bg-state-warning { background-color: var(--state-warning); }
+      .text-state-warning { color: var(--state-warning); }
+      .border-state-warning { border-color: var(--state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--state-warning); }
+      .bg-state-error { background-color: var(--state-error); }
+      .text-state-error { color: var(--state-error); }
+      .border-state-error { border-color: var(--state-error); }
+      .ring-state-error { --tw-ring-color: var(--state-error); }
+      .bg-state-info { background-color: var(--state-info); }
+      .text-state-info { color: var(--state-info); }
+      .border-state-info { border-color: var(--state-info); }
+      .ring-state-info { --tw-ring-color: var(--state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+      <!-- Header (sticky, 56px) -->
+      <header class="wp-header sticky top-0 z-30 flex items-center justify-between" style="height:56px;padding:0 16px;background:var(--en-card);border-bottom:1px solid var(--en-border)">
+        <a href="#" data-dom-id="back-article-list" class="wp-back-btn flex h-9 w-9 items-center justify-center rounded-lg transition-colors" style="color:var(--en-foreground)" aria-label="返回">
+          <i data-lucide="arrow-left" class="h-5 w-5"></i>
+        </a>
+        <h1 class="text-[17px] font-semibold" style="color:var(--en-foreground)">单词预习</h1>
+        <span class="nums text-[15px] font-semibold" style="color:var(--en-primary)">12 / 30</span>
+      </header>
+
+      <!-- Content -->
+      <div class="wp-content mx-auto w-full max-w-md px-4 pt-4 pb-6">
+
+        <!-- Progress Section -->
+        <section class="mb-5">
+          <div class="progress-bar" style="height:6px;width:100%;border-radius:9999px;background:var(--en-muted);overflow:hidden">
+            <div style="height:100%;width:40%;border-radius:9999px;background:var(--en-primary)"></div>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-[13px]" style="color:var(--en-muted-foreground)">已掌握 8 词</span>
+            <span class="text-[13px]" style="color:var(--state-warning)">待复习 4 词</span>
+          </div>
+        </section>
+
+        <!-- Memory Curve Visualization -->
+        <section class="mb-5 rounded-lg border p-4" style="background:var(--en-card);border-color:var(--en-border)">
+          <p class="mb-3 text-[13px]" style="color:var(--en-muted-foreground)">记忆曲线</p>
+          <svg viewBox="0 0 300 110" class="w-full" style="overflow:visible" aria-label="艾宾浩斯记忆曲线">
+            <!-- Upcoming path (dashed, border color) -->
+            <path d="M 80 48 C 105 53, 128 65, 148 68 C 175 74, 195 79, 215 82 C 240 85, 265 87, 285 88"
+                  fill="none" stroke="var(--en-border)" stroke-width="2" stroke-dasharray="4 3" stroke-linecap="round"/>
+            <!-- Completed path (solid, primary) -->
+            <path d="M 15 25 C 35 28, 58 42, 80 48"
+                  fill="none" stroke="var(--en-primary)" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- P1: completed -->
+            <g transform="translate(15, 25)">
+              <circle r="7" fill="var(--en-primary)"/>
+              <path d="M -3 0 L -1 2 L 3 -2.5" stroke="var(--en-primary-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <!-- P2: completed -->
+            <g transform="translate(80, 48)">
+              <circle r="7" fill="var(--en-primary)"/>
+              <path d="M -3 0 L -1 2 L 3 -2.5" stroke="var(--en-primary-foreground)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <!-- P3: current (pulsing ring) -->
+            <g transform="translate(148, 68)">
+              <circle class="pulse-ring" r="7" fill="none" stroke="var(--en-primary)" stroke-width="2" opacity="0.6"/>
+              <circle r="7" fill="var(--en-primary)"/>
+            </g>
+
+            <!-- P4: upcoming -->
+            <circle cx="215" cy="82" r="7" fill="var(--en-card)" stroke="var(--en-border)" stroke-width="2"/>
+
+            <!-- P5: upcoming -->
+            <circle cx="285" cy="88" r="7" fill="var(--en-card)" stroke="var(--en-border)" stroke-width="2"/>
+
+            <!-- Day labels -->
+            <text x="15" y="106" text-anchor="middle" font-size="10" fill="var(--en-muted-foreground)">1天</text>
+            <text x="80" y="106" text-anchor="middle" font-size="10" fill="var(--en-muted-foreground)">2天</text>
+            <text x="148" y="106" text-anchor="middle" font-size="10" fill="var(--en-primary)" font-weight="600">4天</text>
+            <text x="215" y="106" text-anchor="middle" font-size="10" fill="var(--en-muted-foreground)">7天</text>
+            <text x="285" y="106" text-anchor="middle" font-size="10" fill="var(--en-muted-foreground)">15天</text>
+          </svg>
+        </section>
+
+        <!-- Flashcard Front -->
+        <section class="flashcard mb-3 rounded-lg border p-6" style="background:var(--en-card);border-color:var(--en-border);min-height:280px">
+          <div class="flex min-h-[232px] flex-col items-center justify-center text-center">
+            <h2 class="text-[28px] font-semibold leading-tight" style="color:var(--en-foreground)">procrastination</h2>
+            <p class="mt-2 text-[16px]" style="color:var(--en-muted-foreground)">/prəˌkræstɪˈneɪʃən/</p>
+            <p class="mt-1 text-[14px]" style="color:var(--en-primary)">n.</p>
+            <div class="mt-4 flex items-center gap-1.5 text-[12px]" style="color:var(--en-muted-foreground)">
+              <i data-lucide="rotate-3d" class="h-3.5 w-3.5"></i>
+              <span>点击卡片查看释义</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Divider: front / back state separator -->
+        <div class="mb-3 flex items-center gap-2">
+          <div class="h-px flex-1" style="background:var(--en-border)"></div>
+          <span class="text-[11px]" style="color:var(--en-muted-foreground)">释义面</span>
+          <div class="h-px flex-1" style="background:var(--en-border)"></div>
+        </div>
+
+        <!-- Flashcard Back -->
+        <section class="flashcard-back mb-4 rounded-lg border p-6" style="background:var(--en-card);border-color:var(--en-border)">
+          <div class="flex flex-col gap-3">
+            <div>
+              <p class="text-[12px] uppercase tracking-wide" style="color:var(--en-muted-foreground)">释义</p>
+              <p class="mt-0.5 text-[15px] leading-relaxed" style="color:var(--en-foreground)">The act of delaying or postponing tasks</p>
+            </div>
+            <div class="h-px" style="background:var(--en-border)"></div>
+            <div>
+              <p class="text-[12px] uppercase tracking-wide" style="color:var(--en-muted-foreground)">例句</p>
+              <p class="mt-0.5 text-[14px] italic leading-relaxed" style="color:var(--en-muted-foreground)">His procrastination led to a last-minute panic.</p>
+            </div>
+            <div class="h-px" style="background:var(--en-border)"></div>
+            <div>
+              <p class="text-[12px] uppercase tracking-wide" style="color:var(--en-muted-foreground)">翻译</p>
+              <p class="mt-0.5 text-[16px] font-semibold" style="color:var(--en-primary)">拖延症</p>
+            </div>
+            <div class="h-px" style="background:var(--en-border)"></div>
+            <div>
+              <p class="text-[12px] uppercase tracking-wide" style="color:var(--en-muted-foreground)">近义词</p>
+              <p class="mt-0.5 text-[13px]" style="color:var(--en-muted-foreground)">Syn: delay, postponement</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Spaced Repetition Controls -->
+        <section class="repetition-controls mb-5 flex gap-2">
+          <button class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border transition-colors" style="border-color:var(--en-border);color:var(--state-error)">
+            <i data-lucide="x" class="h-4 w-4"></i>
+            <span class="text-[14px] font-medium">不认识</span>
+          </button>
+          <button class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border transition-colors" style="border-color:var(--en-border);color:var(--state-warning)">
+            <i data-lucide="minus" class="h-4 w-4"></i>
+            <span class="text-[14px] font-medium">模糊</span>
+          </button>
+          <button class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md transition-colors" style="background:var(--en-primary);color:var(--en-primary-foreground)">
+            <i data-lucide="check" class="h-4 w-4"></i>
+            <span class="text-[14px] font-medium">认识</span>
+          </button>
+        </section>
+
+        <!-- Word List -->
+        <section class="mb-4">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-[15px] font-semibold" style="color:var(--en-foreground)">全部单词</h3>
+            <span class="nums text-[13px]" style="color:var(--en-muted-foreground)">30</span>
+          </div>
+          <div class="word-chips flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <!-- Completed words -->
+            <div class="word-chip shrink-0 items-center gap-1 rounded-md" style="background:var(--en-primary-50);min-width:80px;padding:8px 12px">
+              <i data-lucide="check" class="h-3 w-3" style="color:var(--en-primary)"></i>
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-primary)">gratification</span>
+            </div>
+            <div class="word-chip shrink-0 items-center gap-1 rounded-md" style="background:var(--en-primary-50);min-width:80px;padding:8px 12px">
+              <i data-lucide="check" class="h-3 w-3" style="color:var(--en-primary)"></i>
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-primary)">rational</span>
+            </div>
+            <!-- Current word -->
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-primary);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] font-medium whitespace-nowrap" style="color:var(--en-primary-foreground)">procrastination</span>
+            </div>
+            <!-- Upcoming words -->
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-muted);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-muted-foreground)">deadline</span>
+            </div>
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-muted);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-muted-foreground)">panic</span>
+            </div>
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-muted);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-muted-foreground)">productivity</span>
+            </div>
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-muted);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-muted-foreground)">conscious</span>
+            </div>
+            <div class="word-chip shrink-0 items-center rounded-md" style="background:var(--en-muted);min-width:80px;padding:8px 12px">
+              <span class="text-[13px] whitespace-nowrap" style="color:var(--en-muted-foreground)">landscape</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <nav data-mobile-nav="global" class="sticky bottom-0 w-full bg-card border-t border-border" style="height:56px"><div class="w-full max-w-md mx-auto grid grid-cols-3 h-full"><button data-nav-key="articles" data-active="true" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-primary"><i data-lucide="library" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">文章</span></button><button data-nav-key="discover" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground"><i data-lucide="compass" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">发现</span></button><button data-nav-key="mine" data-dom-id="cta-ai-config" class="flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground"><i data-lucide="user" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap">我的</span></button></div></nav>
+    </main>
+    <style id="critical-layout">
+      /* Header — sticky top bar */
+      .wp-header {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; justify-content: space-between;
+        height: 56px; padding: 0 16px;
+        background: var(--en-card);
+        border-bottom: 1px solid var(--en-border);
+      }
+      .wp-back-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 8px;
+        color: var(--en-foreground);
+        transition: background-color 0.15s ease;
+      }
+      .wp-back-btn:hover { background: var(--en-muted); }
+      .wp-back-btn:active { background: var(--en-neutral-200); }
+      .wp-back-btn:focus-visible { outline: 2px solid var(--en-ring); outline-offset: 2px; }
+
+      /* Content wrapper */
+      .wp-content {
+        max-width: 448px; margin: 0 auto; width: 100%;
+        padding: 16px 16px 24px;
+      }
+
+      /* Progress bar */
+      .progress-bar {
+        height: 6px; width: 100%;
+        border-radius: 9999px;
+        background: var(--en-muted);
+        overflow: hidden;
+      }
+      .progress-bar > div {
+        height: 100%; border-radius: 9999px;
+        background: var(--en-primary);
+      }
+
+      /* Flashcard */
+      .flashcard {
+        background: var(--en-card);
+        border: 1px solid var(--en-border);
+        border-radius: 8px;
+        padding: 24px;
+        min-height: 280px;
+      }
+      .flashcard-back {
+        background: var(--en-card);
+        border: 1px solid var(--en-border);
+        border-radius: 8px;
+        padding: 24px;
+      }
+
+      /* Repetition controls */
+      .repetition-controls {
+        display: flex; gap: 8px;
+      }
+      .repetition-controls > button {
+        flex: 1; height: 44px;
+        display: flex; align-items: center; justify-content: center;
+        gap: 6px; border-radius: 8px;
+        border: 1px solid var(--en-border);
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+      .repetition-controls > button:hover { background: var(--en-muted); }
+      .repetition-controls > button:active { background: var(--en-neutral-200); }
+      .repetition-controls > button:focus-visible { outline: 2px solid var(--en-ring); outline-offset: 2px; }
+      .repetition-controls > button:last-child {
+        background: var(--en-primary);
+        color: var(--en-primary-foreground);
+        border-color: var(--en-primary);
+      }
+      .repetition-controls > button:last-child:hover { background: var(--en-primary-700); }
+      .repetition-controls > button:last-child:active { background: var(--en-primary-800); }
+
+      /* Word chips */
+      .word-chips {
+        display: flex; gap: 8px;
+        overflow-x: auto;
+        -ms-overflow-style: none; scrollbar-width: none;
+        padding-bottom: 4px;
+      }
+      .word-chips::-webkit-scrollbar { display: none; }
+      .word-chip {
+        flex-shrink: 0; min-width: 80px;
+        padding: 8px 12px; border-radius: 8px;
+        display: inline-flex; align-items: center;
+        white-space: nowrap;
+      }
+
+      /* Bottom navigation */
+      .wp-bottom-nav {
+        position: sticky; bottom: 0;
+        width: 100%; height: 56px;
+        background: var(--en-card);
+        border-top: 1px solid var(--en-border);
+      }
+      .wp-bottom-nav > div {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        height: 100%; max-width: 448px; margin: 0 auto;
+      }
+      .wp-bottom-nav button {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 2px; padding: 0 4px; height: 100%;
+        border: none; background: none; cursor: pointer;
+      }
+
+      /* Memory curve pulse animation */
+      .pulse-ring {
+        transform-origin: center;
+        transform-box: fill-box;
+        animation: wp-pulse 1.8s ease-out infinite;
+      }
+      @keyframes wp-pulse {
+        0%   { transform: scale(1);   opacity: 0.6; }
+        100% { transform: scale(2.4); opacity: 0; }
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .pulse-ring { animation: none; opacity: 0; }
+        .repetition-controls > button,
+        .wp-back-btn { transition: none; }
+      }
+    </style>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

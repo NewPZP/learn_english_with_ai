@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精听训练</title>
+    <style id="theme-vars">
+/* ============================================================
+   AI English Learning App — Brand CSS
+   Style: Fresh Modern Education (清新现代教育风)
+   Primary hue: Teal
+   ============================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+  /* Brand primary scale (teal) */
+  --en-primary-50: #f0fdfa;
+  --en-primary-100: #ccfbf1;
+  --en-primary-200: #99f6e4;
+  --en-primary-300: #5eead4;
+  --en-primary-400: #2dd4bf;
+  --en-primary-500: #14b8a6;
+  --en-primary-600: #0d9488;
+  --en-primary-700: #0f766e;
+  --en-primary-800: #115e59;
+  --en-primary-900: #134e4a;
+
+  /* Neutral scale (slate) */
+  --en-neutral-50: #f8fafc;
+  --en-neutral-100: #f1f5f9;
+  --en-neutral-200: #e2e8f0;
+  --en-neutral-300: #cbd5e1;
+  --en-neutral-400: #94a3b8;
+  --en-neutral-500: #64748b;
+  --en-neutral-600: #475569;
+  --en-neutral-700: #334155;
+  --en-neutral-800: #1e293b;
+  --en-neutral-900: #0f172a;
+
+  /* State colors (semantic only) */
+  --state-success: #16a34a;
+  --state-success-light: #dcfce7;
+  --state-warning: #d97706;
+  --state-warning-light: #fef3c7;
+  --state-error: #dc2626;
+  --state-error-light: #fee2e2;
+  --state-info: #2563eb;
+  --state-info-light: #dbeafe;
+
+  /* Radius scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --en-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --en-font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* ---- Semantic aliases (light mode) ---- */
+  --en-background: #ffffff;
+  --en-foreground: #0f172a;
+  --en-card: #ffffff;
+  --en-card-foreground: #0f172a;
+  --en-popover: #ffffff;
+  --en-popover-foreground: #0f172a;
+  --en-primary: #0d9488;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #f1f5f9;
+  --en-muted-foreground: #64748b;
+  --en-border: #e2e8f0;
+  --en-input: #e2e8f0;
+  --en-ring: #0d9488;
+
+  /* Radius aliases */
+  --en-radius-small: 4px;
+  --en-radius-medium: 8px;
+  --en-radius-large: 16px;
+
+  /* Shadows — static surfaces only, alpha <= 0.05 */
+  --en-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  /* Floating layers — deeper elevation allowed */
+  --en-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.18);
+  --en-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.30);
+}
+
+/* ---- Dark mode semantic aliases ---- */
+html.dark {
+  --en-background: #0f172a;
+  --en-foreground: #f8fafc;
+  --en-card: #1e293b;
+  --en-card-foreground: #f8fafc;
+  --en-popover: #1e293b;
+  --en-popover-foreground: #f8fafc;
+  --en-primary: #14b8a6;
+  --en-primary-foreground: #ffffff;
+  --en-muted: #1e293b;
+  --en-muted-foreground: #94a3b8;
+  --en-border: #334155;
+  --en-input: #334155;
+  --en-ring: #14b8a6;
+
+  --en-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 1px rgba(0, 0, 0, 0.10);
+  --en-shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.40);
+  --en-shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.50);
+}
+
+/* ---- Base typography ---- */
+body {
+  font-family: var(--en-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular nums for data/metrics */
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Tailwind theme mapping ---- */
+@theme inline {
+  --color-background: var(--en-background);
+  --color-foreground: var(--en-foreground);
+  --color-card: var(--en-card);
+  --color-card-foreground: var(--en-card-foreground);
+  --color-popover: var(--en-popover);
+  --color-popover-foreground: var(--en-popover-foreground);
+  --color-primary: var(--en-primary);
+  --color-primary-foreground: var(--en-primary-foreground);
+  --color-muted: var(--en-muted);
+  --color-muted-foreground: var(--en-muted-foreground);
+  --color-border: var(--en-border);
+  --color-input: var(--en-input);
+  --color-ring: var(--en-ring);
+
+  --color-primary-50: var(--en-primary-50);
+  --color-primary-100: var(--en-primary-100);
+  --color-primary-200: var(--en-primary-200);
+  --color-primary-300: var(--en-primary-300);
+  --color-primary-400: var(--en-primary-400);
+  --color-primary-500: var(--en-primary-500);
+  --color-primary-600: var(--en-primary-600);
+  --color-primary-700: var(--en-primary-700);
+  --color-primary-800: var(--en-primary-800);
+  --color-primary-900: var(--en-primary-900);
+
+  --color-neutral-50: var(--en-neutral-50);
+  --color-neutral-100: var(--en-neutral-100);
+  --color-neutral-200: var(--en-neutral-200);
+  --color-neutral-300: var(--en-neutral-300);
+  --color-neutral-400: var(--en-neutral-400);
+  --color-neutral-500: var(--en-neutral-500);
+  --color-neutral-600: var(--en-neutral-600);
+  --color-neutral-700: var(--en-neutral-700);
+  --color-neutral-800: var(--en-neutral-800);
+  --color-neutral-900: var(--en-neutral-900);
+
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-error: var(--state-error);
+  --color-state-info: var(--state-info);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --font-sans: var(--en-font-sans);
+  --font-mono: var(--en-font-mono);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--en-background);
+    --color-foreground: var(--en-foreground);
+    --color-card: var(--en-card);
+    --color-card-foreground: var(--en-card-foreground);
+    --color-popover: var(--en-popover);
+    --color-popover-foreground: var(--en-popover-foreground);
+    --color-primary: var(--en-primary);
+    --color-primary-foreground: var(--en-primary-foreground);
+    --color-muted: var(--en-muted);
+    --color-muted-foreground: var(--en-muted-foreground);
+    --color-border: var(--en-border);
+    --color-input: var(--en-input);
+    --color-ring: var(--en-ring);
+    --color-primary-50: var(--en-primary-50);
+    --color-primary-100: var(--en-primary-100);
+    --color-primary-200: var(--en-primary-200);
+    --color-primary-300: var(--en-primary-300);
+    --color-primary-400: var(--en-primary-400);
+    --color-primary-500: var(--en-primary-500);
+    --color-primary-600: var(--en-primary-600);
+    --color-primary-700: var(--en-primary-700);
+    --color-primary-800: var(--en-primary-800);
+    --color-primary-900: var(--en-primary-900);
+    --color-neutral-50: var(--en-neutral-50);
+    --color-neutral-100: var(--en-neutral-100);
+    --color-neutral-200: var(--en-neutral-200);
+    --color-neutral-300: var(--en-neutral-300);
+    --color-neutral-400: var(--en-neutral-400);
+    --color-neutral-500: var(--en-neutral-500);
+    --color-neutral-600: var(--en-neutral-600);
+    --color-neutral-700: var(--en-neutral-700);
+    --color-neutral-800: var(--en-neutral-800);
+    --color-neutral-900: var(--en-neutral-900);
+    --color-state-success: var(--state-success);
+    --color-state-warning: var(--state-warning);
+    --color-state-error: var(--state-error);
+    --color-state-info: var(--state-info);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-full: var(--radius-full);
+  }
+  @layer base {
+    body { background: var(--en-background); color: var(--en-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--en-background); }
+      .text-background { color: var(--en-background); }
+      .border-background { border-color: var(--en-background); }
+      .ring-background { --tw-ring-color: var(--en-background); }
+      .bg-foreground { background-color: var(--en-foreground); }
+      .text-foreground { color: var(--en-foreground); }
+      .border-foreground { border-color: var(--en-foreground); }
+      .ring-foreground { --tw-ring-color: var(--en-foreground); }
+      .bg-card { background-color: var(--en-card); }
+      .text-card { color: var(--en-card); }
+      .border-card { border-color: var(--en-card); }
+      .ring-card { --tw-ring-color: var(--en-card); }
+      .bg-card-foreground { background-color: var(--en-card-foreground); }
+      .text-card-foreground { color: var(--en-card-foreground); }
+      .border-card-foreground { border-color: var(--en-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--en-card-foreground); }
+      .bg-popover { background-color: var(--en-popover); }
+      .text-popover { color: var(--en-popover); }
+      .border-popover { border-color: var(--en-popover); }
+      .ring-popover { --tw-ring-color: var(--en-popover); }
+      .bg-popover-foreground { background-color: var(--en-popover-foreground); }
+      .text-popover-foreground { color: var(--en-popover-foreground); }
+      .border-popover-foreground { border-color: var(--en-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--en-popover-foreground); }
+      .bg-primary { background-color: var(--en-primary); }
+      .text-primary { color: var(--en-primary); }
+      .border-primary { border-color: var(--en-primary); }
+      .ring-primary { --tw-ring-color: var(--en-primary); }
+      .bg-primary-foreground { background-color: var(--en-primary-foreground); }
+      .text-primary-foreground { color: var(--en-primary-foreground); }
+      .border-primary-foreground { border-color: var(--en-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--en-primary-foreground); }
+      .bg-muted { background-color: var(--en-muted); }
+      .text-muted { color: var(--en-muted); }
+      .border-muted { border-color: var(--en-muted); }
+      .ring-muted { --tw-ring-color: var(--en-muted); }
+      .bg-muted-foreground { background-color: var(--en-muted-foreground); }
+      .text-muted-foreground { color: var(--en-muted-foreground); }
+      .border-muted-foreground { border-color: var(--en-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--en-muted-foreground); }
+      .bg-border { background-color: var(--en-border); }
+      .text-border { color: var(--en-border); }
+      .border-border { border-color: var(--en-border); }
+      .ring-border { --tw-ring-color: var(--en-border); }
+      .bg-input { background-color: var(--en-input); }
+      .text-input { color: var(--en-input); }
+      .border-input { border-color: var(--en-input); }
+      .ring-input { --tw-ring-color: var(--en-input); }
+      .bg-ring { background-color: var(--en-ring); }
+      .text-ring { color: var(--en-ring); }
+      .border-ring { border-color: var(--en-ring); }
+      .ring-ring { --tw-ring-color: var(--en-ring); }
+      .bg-primary-50 { background-color: var(--en-primary-50); }
+      .text-primary-50 { color: var(--en-primary-50); }
+      .border-primary-50 { border-color: var(--en-primary-50); }
+      .ring-primary-50 { --tw-ring-color: var(--en-primary-50); }
+      .bg-primary-100 { background-color: var(--en-primary-100); }
+      .text-primary-100 { color: var(--en-primary-100); }
+      .border-primary-100 { border-color: var(--en-primary-100); }
+      .ring-primary-100 { --tw-ring-color: var(--en-primary-100); }
+      .bg-primary-200 { background-color: var(--en-primary-200); }
+      .text-primary-200 { color: var(--en-primary-200); }
+      .border-primary-200 { border-color: var(--en-primary-200); }
+      .ring-primary-200 { --tw-ring-color: var(--en-primary-200); }
+      .bg-primary-300 { background-color: var(--en-primary-300); }
+      .text-primary-300 { color: var(--en-primary-300); }
+      .border-primary-300 { border-color: var(--en-primary-300); }
+      .ring-primary-300 { --tw-ring-color: var(--en-primary-300); }
+      .bg-primary-400 { background-color: var(--en-primary-400); }
+      .text-primary-400 { color: var(--en-primary-400); }
+      .border-primary-400 { border-color: var(--en-primary-400); }
+      .ring-primary-400 { --tw-ring-color: var(--en-primary-400); }
+      .bg-primary-500 { background-color: var(--en-primary-500); }
+      .text-primary-500 { color: var(--en-primary-500); }
+      .border-primary-500 { border-color: var(--en-primary-500); }
+      .ring-primary-500 { --tw-ring-color: var(--en-primary-500); }
+      .bg-primary-600 { background-color: var(--en-primary-600); }
+      .text-primary-600 { color: var(--en-primary-600); }
+      .border-primary-600 { border-color: var(--en-primary-600); }
+      .ring-primary-600 { --tw-ring-color: var(--en-primary-600); }
+      .bg-primary-700 { background-color: var(--en-primary-700); }
+      .text-primary-700 { color: var(--en-primary-700); }
+      .border-primary-700 { border-color: var(--en-primary-700); }
+      .ring-primary-700 { --tw-ring-color: var(--en-primary-700); }
+      .bg-primary-800 { background-color: var(--en-primary-800); }
+      .text-primary-800 { color: var(--en-primary-800); }
+      .border-primary-800 { border-color: var(--en-primary-800); }
+      .ring-primary-800 { --tw-ring-color: var(--en-primary-800); }
+      .bg-primary-900 { background-color: var(--en-primary-900); }
+      .text-primary-900 { color: var(--en-primary-900); }
+      .border-primary-900 { border-color: var(--en-primary-900); }
+      .ring-primary-900 { --tw-ring-color: var(--en-primary-900); }
+      .bg-neutral-50 { background-color: var(--en-neutral-50); }
+      .text-neutral-50 { color: var(--en-neutral-50); }
+      .border-neutral-50 { border-color: var(--en-neutral-50); }
+      .ring-neutral-50 { --tw-ring-color: var(--en-neutral-50); }
+      .bg-neutral-100 { background-color: var(--en-neutral-100); }
+      .text-neutral-100 { color: var(--en-neutral-100); }
+      .border-neutral-100 { border-color: var(--en-neutral-100); }
+      .ring-neutral-100 { --tw-ring-color: var(--en-neutral-100); }
+      .bg-neutral-200 { background-color: var(--en-neutral-200); }
+      .text-neutral-200 { color: var(--en-neutral-200); }
+      .border-neutral-200 { border-color: var(--en-neutral-200); }
+      .ring-neutral-200 { --tw-ring-color: var(--en-neutral-200); }
+      .bg-neutral-300 { background-color: var(--en-neutral-300); }
+      .text-neutral-300 { color: var(--en-neutral-300); }
+      .border-neutral-300 { border-color: var(--en-neutral-300); }
+      .ring-neutral-300 { --tw-ring-color: var(--en-neutral-300); }
+      .bg-neutral-400 { background-color: var(--en-neutral-400); }
+      .text-neutral-400 { color: var(--en-neutral-400); }
+      .border-neutral-400 { border-color: var(--en-neutral-400); }
+      .ring-neutral-400 { --tw-ring-color: var(--en-neutral-400); }
+      .bg-neutral-500 { background-color: var(--en-neutral-500); }
+      .text-neutral-500 { color: var(--en-neutral-500); }
+      .border-neutral-500 { border-color: var(--en-neutral-500); }
+      .ring-neutral-500 { --tw-ring-color: var(--en-neutral-500); }
+      .bg-neutral-600 { background-color: var(--en-neutral-600); }
+      .text-neutral-600 { color: var(--en-neutral-600); }
+      .border-neutral-600 { border-color: var(--en-neutral-600); }
+      .ring-neutral-600 { --tw-ring-color: var(--en-neutral-600); }
+      .bg-neutral-700 { background-color: var(--en-neutral-700); }
+      .text-neutral-700 { color: var(--en-neutral-700); }
+      .border-neutral-700 { border-color: var(--en-neutral-700); }
+      .ring-neutral-700 { --tw-ring-color: var(--en-neutral-700); }
+      .bg-neutral-800 { background-color: var(--en-neutral-800); }
+      .text-neutral-800 { color: var(--en-neutral-800); }
+      .border-neutral-800 { border-color: var(--en-neutral-800); }
+      .ring-neutral-800 { --tw-ring-color: var(--en-neutral-800); }
+      .bg-neutral-900 { background-color: var(--en-neutral-900); }
+      .text-neutral-900 { color: var(--en-neutral-900); }
+      .border-neutral-900 { border-color: var(--en-neutral-900); }
+      .ring-neutral-900 { --tw-ring-color: var(--en-neutral-900); }
+      .bg-state-success { background-color: var(--state-success); }
+      .text-state-success { color: var(--state-success); }
+      .border-state-success { border-color: var(--state-success); }
+      .ring-state-success { --tw-ring-color: var(--state-success); }
+      .bg-state-warning { background-color: var(--state-warning); }
+      .text-state-warning { color: var(--state-warning); }
+      .border-state-warning { border-color: var(--state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--state-warning); }
+      .bg-state-error { background-color: var(--state-error); }
+      .text-state-error { color: var(--state-error); }
+      .border-state-error { border-color: var(--state-error); }
+      .ring-state-error { --tw-ring-color: var(--state-error); }
+      .bg-state-info { background-color: var(--state-info); }
+      .text-state-info { color: var(--state-info); }
+      .border-state-info { border-color: var(--state-info); }
+      .ring-state-info { --tw-ring-color: var(--state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    <style id="critical-layout">
+      .content-stack { display: flex; flex-direction: column; gap: 20px; }
+      .stats-card { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 20px 24px; box-shadow: var(--en-shadow-1); }
+      .sentence-card { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 24px; box-shadow: var(--en-shadow-1); }
+      .dictation-section { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 24px; box-shadow: var(--en-shadow-1); }
+      .result-feedback { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 24px; box-shadow: var(--en-shadow-1); }
+      .tab-selector { display: flex; gap: 8px; }
+      .action-buttons { display: flex; gap: 12px; }
+      .action-buttons > button { flex: 1; }
+      .nav-controls { display: flex; gap: 12px; }
+      .nav-controls > button { flex: 1; }
+      .blank-input { display: inline-block; width: 120px; height: 32px; text-align: center; background: var(--en-primary-50); border: 1px solid var(--en-primary-200); border-radius: 6px; outline: none; font-family: inherit; font-size: 15px; color: var(--en-foreground); vertical-align: baseline; margin: 0 3px; padding: 0 8px; transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1); }
+      .blank-input::placeholder { color: var(--en-muted-foreground); }
+      .blank-input:focus { border-color: var(--en-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent); }
+      .btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1), border-color 150ms cubic-bezier(.2,.8,.2,1), opacity 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+      .btn-primary { background: var(--en-primary); color: var(--en-primary-foreground); }
+      .btn-primary:hover { background: var(--en-primary-700); }
+      .btn-primary:active { background: var(--en-primary-800); }
+      .btn-secondary { background: var(--en-card); color: var(--en-foreground); border: 1px solid var(--en-border); }
+      .btn-secondary:hover { background: var(--en-muted); }
+      .btn-secondary:active { opacity: 0.85; }
+      .tab-active { background: var(--en-primary); color: var(--en-primary-foreground); transition: background-color 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+      .tab-active:hover { background: var(--en-primary-700); }
+      .tab-inactive { background: transparent; color: var(--en-muted-foreground); border: 1px solid var(--en-border); transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+      .tab-inactive:hover { color: var(--en-foreground); background: var(--en-muted); }
+      .dictation-input { transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1); }
+      .dictation-input:focus { border-color: var(--en-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent); }
+      .audio-btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; border-radius: 8px; }
+      .audio-btn:hover { background: color-mix(in srgb, var(--en-primary) 10%, transparent); }
+      .translation-toggle { transition: color 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+      .translation-toggle:hover { color: var(--en-foreground); }
+      .icon-btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
+      .icon-btn:hover { background: var(--en-muted); }
+      .sidebar-nav-btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1); }
+      .sidebar-nav-btn:hover { background: var(--en-muted); }
+      .diff-pill { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; height: 32px; border-radius: 9999px; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1), border-color 150ms cubic-bezier(.2,.8,.2,1); }
+      .diff-active { background: var(--en-primary); color: var(--en-primary-foreground); border: 1px solid var(--en-primary); }
+      .diff-active:hover { background: var(--en-primary-700); }
+      .diff-inactive { background: transparent; color: var(--en-muted-foreground); border: 1px solid var(--en-border); }
+      .diff-inactive:hover { color: var(--en-foreground); background: var(--en-muted); }
+      .quiz-card { background: var(--en-card); border: 1px solid var(--en-border); border-radius: 12px; padding: 24px; box-shadow: var(--en-shadow-1); }
+      .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--en-border); background: var(--en-card); cursor: pointer; transition: border-color 150ms cubic-bezier(.2,.8,.2,1), background-color 150ms cubic-bezier(.2,.8,.2,1); font-size: 14px; color: var(--en-foreground); }
+      .quiz-option:hover { border-color: var(--en-primary-300); background: var(--en-primary-50); }
+      .quiz-option.selected { border-color: var(--en-primary); background: var(--en-primary-50); }
+      .quiz-option-label { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 9999px; background: var(--en-muted); color: var(--en-muted-foreground); font-size: 12px; font-weight: 600; flex-shrink: 0; }
+      .quiz-option.selected .quiz-option-label { background: var(--en-primary); color: var(--en-primary-foreground); }
+      .refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; height: 32px; border-radius: 9999px; border: 1px solid var(--en-border); background: var(--en-card); color: var(--en-muted-foreground); font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1); }
+      .refresh-btn:hover { border-color: var(--en-primary); color: var(--en-primary); }
+      .refresh-btn i { width: 14px; height: 14px; flex-shrink: 0; }
+      @media (prefers-reduced-motion: reduce) {
+        * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+      }
+    </style>
+    <aside class="sidebar-nav" style="width:240px;position:fixed;top:0;left:0;bottom:0;background:var(--en-card);border-right:1px solid var(--en-border);display:flex;flex-direction:column;z-index:40">
+      <div style="height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--en-border)">
+        <span style="font-size:18px;font-weight:700;color:var(--en-primary);letter-spacing:-0.02em">LinguaAI</span>
+      </div>
+      <nav style="flex:1;padding:12px;display:flex;flex-direction:column;gap:4px">
+        <button data-nav-key="articles" data-active="true" data-dom-id="back-article-list" class="sidebar-nav-btn" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:var(--en-primary-50);color:var(--en-primary);font-size:14px;font-weight:500;cursor:pointer">
+          <i data-lucide="library" style="width:20px;height:20px;flex-shrink:0"></i>
+          <span>文章</span>
+        </button>
+        <button data-nav-key="discover" class="sidebar-nav-btn" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer">
+          <i data-lucide="compass" style="width:20px;height:20px;flex-shrink:0"></i>
+          <span>发现</span>
+        </button>
+        <div class="nav-group" style="display:flex;flex-direction:column;gap:2px">
+          <div class="nav-group-label" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--en-muted-foreground)">
+            <i data-lucide="user" style="width:20px;height:20px;flex-shrink:0"></i>
+            <span>我的</span>
+            <i data-lucide="chevron-down" style="width:16px;height:16px;margin-left:auto;opacity:0.5"></i>
+          </div>
+          <button data-nav-key="ai-config" data-dom-id="cta-ai-config" class="sidebar-nav-btn" style="display:flex;align-items:center;gap:10px;padding:10px 12px 10px 42px;border-radius:8px;border:none;background:transparent;color:var(--en-muted-foreground);font-size:14px;font-weight:500;cursor:pointer">
+            <i data-lucide="settings" style="width:18px;height:18px;flex-shrink:0"></i>
+            <span>AI 配置</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+    <div style="margin-left:240px;min-height:100vh;background:var(--en-background)">
+      <header style="position:sticky;top:0;z-index:20;height:56px;background:var(--en-card);border-bottom:1px solid var(--en-border);display:flex;align-items:center;justify-content:space-between;padding:0 32px">
+        <a href="#" data-dom-id="back-article-list" class="icon-btn flex items-center justify-center w-9 h-9 rounded-md" style="color:var(--en-foreground)" aria-label="返回">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <h1 class="text-[16px] font-semibold" style="color:var(--en-foreground)">听力训练</h1>
+        <span class="text-[15px] font-medium nums" style="color:var(--en-primary)">5 / 15</span>
+      </header>
+      <div style="max-width:1200px;margin:0 auto;padding:24px 32px">
+        <div class="content-stack" style="max-width:800px;margin:0 auto">
+          <section class="stats-card">
+            <div class="w-full rounded-full overflow-hidden mb-4" style="height:8px;background:var(--en-muted)">
+              <div class="h-full rounded-full" style="width:33%;background:var(--en-primary)"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="flex items-center gap-2">
+                <i data-lucide="target" class="w-5 h-5 shrink-0" style="color:var(--state-success)"></i>
+                <span class="text-[14px]" style="color:var(--en-foreground)">正确率 85%</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="clock" class="w-5 h-5 shrink-0" style="color:var(--en-muted-foreground)"></i>
+                <span class="text-[14px]" style="color:var(--en-foreground)">用时 12分</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="flame" class="w-5 h-5 shrink-0" style="color:var(--state-warning)"></i>
+                <span class="text-[14px]" style="color:var(--en-foreground)">连续 3题</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="tab-selector">
+            <button data-tab-key="sentence" class="tab-active inline-flex items-center justify-center px-5 h-10 rounded-full text-[14px] font-medium whitespace-nowrap">逐句精听</button>
+            <button data-tab-key="quiz" class="tab-inactive inline-flex items-center justify-center px-5 h-10 rounded-full text-[14px] font-medium whitespace-nowrap">听力挑战</button>
+          </div>
+
+          <!-- 逐句精听 Panel -->
+          <div data-tab-panel="sentence" style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:500;color:var(--en-muted-foreground);white-space:nowrap">听写程度</span>
+              <div style="display:flex;gap:6px">
+                <button data-diff-key="full" class="diff-pill diff-inactive">全部听写</button>
+                <button data-diff-key="key" class="diff-pill diff-active">重要词语</button>
+                <button data-diff-key="new" class="diff-pill diff-inactive">仅生词</button>
+              </div>
+            </div>
+
+            <!-- 重要词语 (default) -->
+            <div data-diff-panel="key" class="sentence-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font-size:13px;font-weight:500;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">第 6 句</span>
+                <button class="audio-btn" style="display:flex;align-items:center;gap:8px" aria-label="播放音频">
+                  <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9999px;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">
+                    <i data-lucide="volume-high" style="width:20px;height:20px"></i>
+                  </span>
+                  <span style="font-size:13px;color:var(--en-muted-foreground)">点击播放</span>
+                </button>
+              </div>
+              <p style="font-size:16px;line-height:1.7;color:var(--en-foreground);margin:0">
+                The <input type="text" class="blank-input" value="result" /> of procrastination is not <input type="text" class="blank-input" placeholder="___" />, but the <input type="text" class="blank-input" placeholder="___" /> that builds over time.
+              </p>
+              <button class="translation-toggle" style="display:flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:var(--en-muted-foreground)">
+                <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+                <span>显示译文</span>
+              </button>
+            </div>
+
+            <!-- 全部听写 -->
+            <div data-diff-panel="full" class="sentence-card" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font-size:13px;font-weight:500;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">第 6 句</span>
+                <button class="audio-btn" style="display:flex;align-items:center;gap:8px" aria-label="播放音频">
+                  <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9999px;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">
+                    <i data-lucide="volume-high" style="width:20px;height:20px"></i>
+                  </span>
+                  <span style="font-size:13px;color:var(--en-muted-foreground)">点击播放</span>
+                </button>
+              </div>
+              <label style="display:block;font-size:13px;margin-bottom:8px;color:var(--en-muted-foreground)">听写完整句子</label>
+              <textarea class="dictation-input" style="width:100%;border-radius:8px;padding:12px;font-size:15px;resize:none;outline:none;min-height:96px;background:var(--en-background);border:1px solid var(--en-border);color:var(--en-foreground);box-sizing:border-box" placeholder="听写你听到的完整句子..."></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                <span style="font-size:12px;color:var(--en-muted-foreground)">0 字符</span>
+              </div>
+            </div>
+
+            <!-- 仅生词 -->
+            <div data-diff-panel="new" class="sentence-card" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font-size:13px;font-weight:500;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">第 6 句</span>
+                <button class="audio-btn" style="display:flex;align-items:center;gap:8px" aria-label="播放音频">
+                  <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:9999px;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary)">
+                    <i data-lucide="volume-high" style="width:20px;height:20px"></i>
+                  </span>
+                  <span style="font-size:13px;color:var(--en-muted-foreground)">点击播放</span>
+                </button>
+              </div>
+              <p style="font-size:16px;line-height:1.7;color:var(--en-foreground);margin:0">
+                The result of <input type="text" class="blank-input" placeholder="___" /> is not laziness, but the <input type="text" class="blank-input" placeholder="___" /> that builds over time.
+              </p>
+              <button class="translation-toggle" style="display:flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:var(--en-muted-foreground)">
+                <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+                <span>显示译文</span>
+              </button>
+            </div>
+
+            <div class="action-buttons">
+              <button class="btn btn-secondary inline-flex items-center justify-center gap-1.5 h-11 rounded-md text-[15px] font-medium">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>播放原文</span>
+              </button>
+              <button class="btn btn-primary inline-flex items-center justify-center gap-1.5 h-11 rounded-md text-[15px] font-medium">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>提交答案</span>
+              </button>
+            </div>
+
+            <div class="result-feedback">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="check-circle" class="w-5 h-5 shrink-0" style="color:var(--state-success)"></i>
+                <span class="text-[16px] font-semibold" style="color:var(--state-success)">正确!</span>
+                <span class="text-[14px]" style="color:var(--en-foreground)">2 / 3 空格正确</span>
+              </div>
+              <div class="flex flex-col gap-2.5">
+                <div class="flex items-center gap-2 text-[14px]">
+                  <span class="font-medium w-5 shrink-0" style="color:var(--en-muted-foreground)">1.</span>
+                  <span style="color:var(--state-success)">result</span>
+                  <i data-lucide="check" class="w-4 h-4 shrink-0" style="color:var(--state-success)"></i>
+                </div>
+                <div class="flex items-center gap-2 text-[14px] flex-wrap">
+                  <span class="font-medium w-5 shrink-0" style="color:var(--en-muted-foreground)">2.</span>
+                  <span class="line-through" style="color:var(--state-error)">effort</span>
+                  <span style="color:var(--en-muted-foreground)">&rarr;</span>
+                  <span style="color:var(--state-success)">laziness</span>
+                  <i data-lucide="check" class="w-4 h-4 shrink-0" style="color:var(--state-success)"></i>
+                </div>
+                <div class="flex items-center gap-2 text-[14px]">
+                  <span class="font-medium w-5 shrink-0" style="color:var(--en-muted-foreground)">3.</span>
+                  <span style="color:var(--state-success)">anxiety</span>
+                  <i data-lucide="check" class="w-4 h-4 shrink-0" style="color:var(--state-success)"></i>
+                </div>
+              </div>
+              <div class="rounded-md p-3 mt-4 text-[15px] leading-relaxed" style="background:color-mix(in srgb, var(--en-muted) 40%, transparent);color:var(--en-foreground)">
+                The result of procrastination is not laziness, but the anxiety that builds over time.
+              </div>
+            </div>
+
+            <div class="nav-controls">
+              <button class="btn btn-secondary inline-flex items-center justify-center gap-1 h-11 rounded-md text-[14px] font-medium">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                <span>上一句</span>
+              </button>
+              <button class="btn btn-primary inline-flex items-center justify-center gap-1 h-11 rounded-md text-[14px] font-medium">
+                <span>下一句</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 听力挑战 Panel -->
+          <div data-tab-panel="quiz" style="display:none;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:9999px;background:color-mix(in srgb, var(--en-primary) 10%, transparent);color:var(--en-primary);font-size:12px;font-weight:500">
+                  <i data-lucide="sparkles" style="width:14px;height:14px"></i>
+                  AI 智能出题
+                </span>
+                <span style="font-size:13px;color:var(--en-muted-foreground)">共 3 题</span>
+              </div>
+              <button class="refresh-btn" id="refresh-quiz">
+                <i data-lucide="refresh-cw"></i>
+                <span>刷新题库</span>
+              </button>
+            </div>
+
+            <div class="quiz-card">
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+                <span style="font-size:14px;font-weight:600;color:var(--en-primary);white-space:nowrap">Q1</span>
+                <p style="font-size:15px;font-weight:500;color:var(--en-foreground);line-height:1.5;margin:0">文章作者认为拖延的核心原因是什么？</p>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="quiz-option"><span class="quiz-option-label">A</span><span>缺乏时间管理能力</span></div>
+                <div class="quiz-option selected"><span class="quiz-option-label">B</span><span>大脑存在即时满足与长期规划的冲突</span></div>
+                <div class="quiz-option"><span class="quiz-option-label">C</span><span>对任务难度的高估</span></div>
+                <div class="quiz-option"><span class="quiz-option-label">D</span><span>外界干扰过多</span></div>
+              </div>
+            </div>
+
+            <div class="quiz-card">
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+                <span style="font-size:14px;font-weight:600;color:var(--en-primary);white-space:nowrap">Q2</span>
+                <p style="font-size:15px;font-weight:500;color:var(--en-foreground);line-height:1.5;margin:0">根据文章内容填空：The Instant Gratification Monkey cares only about ______.</p>
+              </div>
+              <input type="text" style="width:100%;height:44px;padding:0 14px;border-radius:8px;border:1px solid var(--en-border);background:var(--en-background);color:var(--en-foreground);font-size:15px;outline:none;box-sizing:border-box" placeholder="输入你的答案..." />
+            </div>
+
+            <div class="quiz-card">
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+                <span style="font-size:14px;font-weight:600;color:var(--en-primary);white-space:nowrap">Q3</span>
+                <p style="font-size:15px;font-weight:500;color:var(--en-foreground);line-height:1.5;margin:0">判断正误：Panic Monster 只在截止日期临近时才会出现。</p>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="quiz-option" style="flex:1;justify-content:center">
+                  <i data-lucide="check" style="width:16px;height:16px;color:var(--state-success)"></i>
+                  <span>正确</span>
+                </button>
+                <button class="quiz-option selected" style="flex:1;justify-content:center">
+                  <i data-lucide="x" style="width:16px;height:16px;color:var(--state-error)"></i>
+                  <span>错误</span>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary inline-flex items-center justify-center gap-1.5 h-11 rounded-md text-[15px] font-medium">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>提交全部答案</span>
+            </button>
+
+            <div class="result-feedback">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9999px;background:color-mix(in srgb, var(--state-success) 12%, transparent)">
+                  <i data-lucide="award" style="width:22px;height:22px;color:var(--state-success)"></i>
+                </span>
+                <div>
+                  <div style="font-size:16px;font-weight:600;color:var(--en-foreground)">2 / 3 正确</div>
+                  <div style="font-size:13px;color:var(--en-muted-foreground)">再接再厉！</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px">
+                  <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--state-success);flex-shrink:0"></i>
+                  <span style="font-weight:500;color:var(--en-muted-foreground);width:28px">Q1</span>
+                  <span style="color:var(--en-foreground)">回答正确</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap">
+                  <i data-lucide="x-circle" style="width:16px;height:16px;color:var(--state-error);flex-shrink:0"></i>
+                  <span style="font-weight:500;color:var(--en-muted-foreground);width:28px">Q2</span>
+                  <span style="color:var(--state-error);text-decoration:line-through">difficulty</span>
+                  <span style="color:var(--en-muted-foreground)">→</span>
+                  <span style="color:var(--state-success);font-weight:500">easy tasks</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px">
+                  <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--state-success);flex-shrink:0"></i>
+                  <span style="font-weight:500;color:var(--en-muted-foreground);width:28px">Q3</span>
+                  <span style="color:var(--en-foreground)">回答正确</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </main>
+    <script>
+      lucide.createIcons();
+
+      // Tab switching: 逐句精听 / 听力挑战
+      (function () {
+        var tabs = document.querySelectorAll('[data-tab-key]');
+        var panels = document.querySelectorAll('[data-tab-panel]');
+        tabs.forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            var key = tab.getAttribute('data-tab-key');
+            tabs.forEach(function (t) {
+              if (t.getAttribute('data-tab-key') === key) {
+                t.className = 'tab-active inline-flex items-center justify-center px-5 h-10 rounded-full text-[14px] font-medium whitespace-nowrap';
+              } else {
+                t.className = 'tab-inactive inline-flex items-center justify-center px-5 h-10 rounded-full text-[14px] font-medium whitespace-nowrap';
+              }
+            });
+            panels.forEach(function (panel) {
+              if (panel.getAttribute('data-tab-panel') === key) {
+                panel.style.display = 'flex';
+              } else {
+                panel.style.display = 'none';
+              }
+            });
+            lucide.createIcons();
+          });
+        });
+      })();
+
+      // Difficulty switching: 全部听写 / 重要词语 / 仅生词
+      (function () {
+        var pills = document.querySelectorAll('[data-diff-key]');
+        var panels = document.querySelectorAll('[data-diff-panel]');
+        pills.forEach(function (pill) {
+          pill.addEventListener('click', function () {
+            var key = pill.getAttribute('data-diff-key');
+            pills.forEach(function (p) {
+              p.className = (p.getAttribute('data-diff-key') === key) ? 'diff-pill diff-active' : 'diff-pill diff-inactive';
+            });
+            panels.forEach(function (panel) {
+              panel.style.display = (panel.getAttribute('data-diff-panel') === key) ? '' : 'none';
+            });
+          });
+        });
+      })();
+
+      // Quiz option selection
+      (function () {
+        document.querySelectorAll('.quiz-option').forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            var parent = opt.parentElement;
+            parent.querySelectorAll('.quiz-option').forEach(function (s) { s.classList.remove('selected'); });
+            opt.classList.add('selected');
+          });
+        });
+      })();
+
+      // Refresh quiz button
+      (function () {
+        var btn = document.getElementById('refresh-quiz');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            var icon = btn.querySelector('i');
+            if (icon) {
+              icon.style.transition = 'transform 600ms ease';
+              icon.style.transform = 'rotate(360deg)';
+              setTimeout(function () { icon.style.transform = ''; icon.style.transition = ''; }, 600);
+            }
+          });
+        }
+      })();
+    </script>
+</body>
+</html>

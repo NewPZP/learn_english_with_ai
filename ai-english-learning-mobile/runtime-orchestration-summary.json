@@ -1,0 +1,1594 @@
+{
+  "schemaVersion": "1.0",
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.22.00.00.00",
+    "version_source": "skill-release-manifest.json",
+    "read_status": "ok"
+  },
+  "project": {
+    "resolvedLane": "complex_html_page",
+    "operation": "create",
+    "deviceType": "mobile",
+    "selectedIntentWorkflowRead": true,
+    "intentProfile": {
+      "caseFamily": "free_exploration",
+      "sourceType": "text"
+    },
+    "designRead": "Mobile learning app / self-learners / fresh educational tone / medium density / avoid cluttered card walls",
+    "designDials": {
+      "layoutVariance": 3,
+      "motionIntensity": 2,
+      "visualDensity": 3
+    },
+    "styleDefinitionBrief": "Fresh modern education app, white surfaces + teal primary, Inter + Noto Sans SC, clean card layout with progress indicators, Duolingo-meets-Notion feel.",
+    "contextReadScope": "lane-contracts + dispatch-index + shared-kernel + quality-gate + artifact-validation + delivery-evidence + visual-experience + visual-checkpoint",
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-experience-guidelines.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-checkpoint-protocol.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      }
+    ],
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 2,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ]
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressNextAction": "proceed-to-dispatch-or-readiness"
+    },
+    "cssPreflightEvidence": {
+      "command": "node apply-html-head-contract.mjs colors_and_type.css .preflight/preflight.html --title=Preflight --lang=zh --prefix=en",
+      "exitCode": 0,
+      "themeVarsPresent": true,
+      "semanticTokenFallbackPresent": true,
+      "tailwindCdnPresent": true,
+      "htmlClassLight": true
+    },
+    "sharedProjectShellContract": {
+      "radiusScale": {
+        "sm": 4,
+        "md": 8,
+        "lg": 16,
+        "full": 9999
+      },
+      "surfaceDepthModel": "border-led static surfaces; shadow alpha <= 0.05; shadow-2 for floating layers only",
+      "typographySystem": "Inter, Noto Sans SC, PingFang SC, Microsoft YaHei, system-ui",
+      "mobileNavigation": {
+        "applies": true,
+        "type": "bottom-tab",
+        "items": [
+          {
+            "key": "articles",
+            "label": "文章",
+            "icon": "library"
+          },
+          {
+            "key": "discover",
+            "label": "发现",
+            "icon": "compass"
+          },
+          {
+            "key": "mine",
+            "label": "我的",
+            "icon": "user"
+          }
+        ],
+        "heightPx": 56,
+        "position": "flow-bottom",
+        "activeState": "primary icon+label color only; geometry stays identical",
+        "structure": {
+          "navTag": "nav",
+          "navClass": "sticky bottom-0 w-full bg-card border-t border-border",
+          "innerClass": "w-full max-w-md mx-auto grid grid-cols-3 h-full",
+          "itemTag": "button",
+          "itemClass": "flex flex-col items-center justify-center gap-0.5 px-1 h-full",
+          "iconClass": "w-5 h-5 shrink-0",
+          "labelClass": "text-[11px] leading-none whitespace-nowrap",
+          "activeRule": "only color/font-weight/data-active may change; no class changes that affect layout",
+          "markerAttr": "data-mobile-nav=\"global\"",
+          "canonicalHtmlByKey": {
+            "articles": "<nav data-mobile-nav=\"global\" class=\"sticky bottom-0 w-full bg-card border-t border-border\" style=\"height:56px\"><div class=\"w-full max-w-md mx-auto grid grid-cols-3 h-full\"><button data-nav-key=\"articles\" data-active=\"true\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-primary\"><i data-lucide=\"library\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">文章</span></button><button data-nav-key=\"discover\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"compass\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">发现</span></button><button data-nav-key=\"mine\" data-dom-id=\"cta-ai-config\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"user\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">我的</span></button></div></nav>",
+            "mine": "<nav data-mobile-nav=\"global\" class=\"sticky bottom-0 w-full bg-card border-t border-border\" style=\"height:56px\"><div class=\"w-full max-w-md mx-auto grid grid-cols-3 h-full\"><button data-nav-key=\"articles\" data-dom-id=\"back-article-list\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"library\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">文章</span></button><button data-nav-key=\"discover\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"compass\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">发现</span></button><button data-nav-key=\"mine\" data-active=\"true\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-primary\"><i data-lucide=\"user\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">我的</span></button></div></nav>"
+          }
+        }
+      }
+    },
+    "mobileNavigation": {
+      "applies": true,
+      "type": "bottom-tab",
+      "items": [
+        {
+          "key": "articles",
+          "label": "文章",
+          "icon": "library"
+        },
+        {
+          "key": "discover",
+          "label": "发现",
+          "icon": "compass"
+        },
+        {
+          "key": "mine",
+          "label": "我的",
+          "icon": "user"
+        }
+      ],
+      "heightPx": 56,
+      "position": "flow-bottom",
+      "activeState": "primary icon+label color only; geometry stays identical",
+      "structure": {
+        "navTag": "nav",
+        "navClass": "sticky bottom-0 w-full bg-card border-t border-border",
+        "innerClass": "w-full max-w-md mx-auto grid grid-cols-3 h-full",
+        "itemTag": "button",
+        "itemClass": "flex flex-col items-center justify-center gap-0.5 px-1 h-full",
+        "iconClass": "w-5 h-5 shrink-0",
+        "labelClass": "text-[11px] leading-none whitespace-nowrap",
+        "activeRule": "only color/font-weight/data-active may change; no class changes that affect layout",
+        "markerAttr": "data-mobile-nav=\"global\"",
+        "canonicalHtmlByKey": {
+          "articles": "<nav data-mobile-nav=\"global\" class=\"sticky bottom-0 w-full bg-card border-t border-border\" style=\"height:56px\"><div class=\"w-full max-w-md mx-auto grid grid-cols-3 h-full\"><button data-nav-key=\"articles\" data-active=\"true\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-primary\"><i data-lucide=\"library\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">文章</span></button><button data-nav-key=\"discover\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"compass\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">发现</span></button><button data-nav-key=\"mine\" class=\"flex flex-col items-center justify-center gap-0.5 px-1 h-full text-muted-foreground\"><i data-lucide=\"user\" class=\"w-5 h-5 shrink-0\"></i><span class=\"text-[11px] leading-none whitespace-nowrap\">我的</span></button></div></nav>"
+        }
+      }
+    },
+    "generationTree": {
+      "root": {
+        "nodeId": "gen-project-shell",
+        "kind": "project-shell",
+        "pageIds": [
+          "page-article-list",
+          "page-import-article",
+          "page-word-preview",
+          "page-podcast",
+          "page-intensive-listening"
+        ],
+        "output": null,
+        "sharedRegions": [
+          "colors_and_type.css (brand CSS, design tokens, typography, radius, shadow, mobile navigation canonical HTML)"
+        ],
+        "privateRegions": [],
+        "mutableSlots": [],
+        "status": "generated",
+        "children": [
+          {
+            "nodeId": "page-article-list",
+            "kind": "page-leaf",
+            "pageIds": [
+              "page-article-list"
+            ],
+            "output": "pages/article-list.html",
+            "sharedRegions": [],
+            "privateRegions": [
+              "app header",
+              "article cards with progress",
+              "import FAB",
+              "bottom navigation"
+            ],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "page-import-article",
+            "kind": "page-leaf",
+            "pageIds": [
+              "page-import-article"
+            ],
+            "output": "pages/import-article.html",
+            "sharedRegions": [],
+            "privateRegions": [
+              "import header with back",
+              "text paste area",
+              "AI processing steps",
+              "vocabulary preview",
+              "save button"
+            ],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "page-word-preview",
+            "kind": "page-leaf",
+            "pageIds": [
+              "page-word-preview"
+            ],
+            "output": "pages/word-preview.html",
+            "sharedRegions": [],
+            "privateRegions": [
+              "learning header with progress",
+              "flashcard front/back",
+              "memory curve indicator",
+              "spaced repetition controls",
+              "word list sidebar"
+            ],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "page-podcast",
+            "kind": "page-leaf",
+            "pageIds": [
+              "page-podcast"
+            ],
+            "output": "pages/podcast.html",
+            "sharedRegions": [],
+            "privateRegions": [
+              "player header with back",
+              "article info",
+              "subtitle display",
+              "audio controls",
+              "progress bar",
+              "sentence list"
+            ],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "page-intensive-listening",
+            "kind": "page-leaf",
+            "pageIds": [
+              "page-intensive-listening"
+            ],
+            "output": "pages/intensive-listening.html",
+            "sharedRegions": [],
+            "privateRegions": [
+              "training header with progress",
+              "mode selector tabs",
+              "sentence display with blanks",
+              "dictation input",
+              "check answer button",
+              "result feedback",
+              "accuracy score"
+            ],
+            "mutableSlots": [],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      }
+    },
+    "dispatchPreflightManifest": [
+      {
+        "recorded_at": "2026-08-11T06:29:19.387Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "complex_html_page",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "nodeId": "page-article-list",
+        "htmlSrc": "pages/article-list.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/article-list.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/article-list.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-article-list' --html-src='pages/article-list.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/article-list.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/article-list.html' --title='文章列表' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "ai-english-learning-mobile.design": "03bc2b41561c0d405f3362a5b6305483efc64d82e75d6b5871ee4e382481f51b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md",
+            "visual-experience/visual-checkpoint-protocol.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "articles",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.articles",
+          "structureHash": "bff6390667d36f68cc6805bfe506cc09cf9b904d0f3597468e13d7089374c970",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-11T06:29:19.387Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "complex_html_page",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "nodeId": "page-import-article",
+        "htmlSrc": "pages/import-article.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/import-article.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/import-article.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-import-article' --html-src='pages/import-article.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/import-article.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/import-article.html' --title='导入文章' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "ai-english-learning-mobile.design": "03bc2b41561c0d405f3362a5b6305483efc64d82e75d6b5871ee4e382481f51b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md",
+            "visual-experience/visual-checkpoint-protocol.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "articles",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.articles",
+          "structureHash": "bff6390667d36f68cc6805bfe506cc09cf9b904d0f3597468e13d7089374c970",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-11T06:29:19.387Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "complex_html_page",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "nodeId": "page-word-preview",
+        "htmlSrc": "pages/word-preview.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/word-preview.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/word-preview.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-word-preview' --html-src='pages/word-preview.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/word-preview.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/word-preview.html' --title='单词预习' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "ai-english-learning-mobile.design": "03bc2b41561c0d405f3362a5b6305483efc64d82e75d6b5871ee4e382481f51b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md",
+            "visual-experience/visual-checkpoint-protocol.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "articles",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.articles",
+          "structureHash": "bff6390667d36f68cc6805bfe506cc09cf9b904d0f3597468e13d7089374c970",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-11T06:29:19.387Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "complex_html_page",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "nodeId": "page-podcast",
+        "htmlSrc": "pages/podcast.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/podcast.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/podcast.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-podcast' --html-src='pages/podcast.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/podcast.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/podcast.html' --title='播客模式' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "ai-english-learning-mobile.design": "03bc2b41561c0d405f3362a5b6305483efc64d82e75d6b5871ee4e382481f51b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md",
+            "visual-experience/visual-checkpoint-protocol.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "articles",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.articles",
+          "structureHash": "bff6390667d36f68cc6805bfe506cc09cf9b904d0f3597468e13d7089374c970",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-11T06:29:19.387Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "complex_html_page",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "nodeId": "page-intensive-listening",
+        "htmlSrc": "pages/intensive-listening.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/intensive-listening.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/intensive-listening.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-intensive-listening' --html-src='pages/intensive-listening.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/intensive-listening.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/intensive-listening.html' --title='精听训练' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "ai-english-learning-mobile.design": "03bc2b41561c0d405f3362a5b6305483efc64d82e75d6b5871ee4e382481f51b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md",
+            "visual-experience/visual-checkpoint-protocol.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "articles",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.articles",
+          "structureHash": "bff6390667d36f68cc6805bfe506cc09cf9b904d0f3597468e13d7089374c970",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-12T06:30:00.000Z",
+        "generatedBy": "main-agent-manual-entry",
+        "packetType": "ComplexPagePacket",
+        "laneContract": {
+          "resolvedLane": "existing_edit_add_comparison",
+          "packetType": "ComplexPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+          "dispatchContract": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+        "nodeId": "page-ai-config",
+        "htmlSrc": "pages/ai-config.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/ai-config.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/ai-config.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile' --node-id='page-ai-config' --html-src='pages/ai-config.html' --status=completed --changed-files=pages/ai-config.html --trace-digest=ai-config-dispatch-manual --tool-ledger-json={}"
+          }
+        },
+        "cssFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css",
+        "htmlFilePath": "/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/ai-config.html",
+        "brandPrefix": "en",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/panzhipiao/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/colors_and_type.css' '/Users/panzhipiao/workspace/learn_english_with_ai/ai-english-learning-mobile/pages/ai-config.html' --title='AI 配置' --lang='zh-CN' --prefix='en'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {},
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": true,
+          "appliesToThisPage": true,
+          "activeKey": "mine",
+          "contractPresent": true,
+          "structurePresent": true,
+          "canonicalHtmlIncluded": true,
+          "canonicalHtmlSource": "sharedProjectShellContract.mobileNavigation.structure.canonicalHtmlByKey.mine",
+          "structureHash": "manual-entry",
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      }
+    ],
+    "validationHistory": [
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "f35b8f07cb32995588f7c927e324eb5088d50440e3e2581ff53b450c96f72af2",
+        "checkedAt": "2026-08-11T07:13:09.314Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 10,
+        "repairPlanHints": [
+          "mobile-navigation-consistency",
+          "mobile-navigation-consistency"
+        ],
+        "errorSignatures": [
+          {
+            "errorClass": "artifact-readiness",
+            "normalized": "[design-file] Validation failed for .design file batch: ======================================== [FAIL] Validation failed ---------------------------------------- Found 9 issues: 1. [data[0].devMetadata.interactions[0].targetPageId] must be a non-empty string 2. [data[0].devMetadata.interactions[1].targetPageId] must be a non-empty string 3. [data[0].devMetadata.interactions[2].targetPageId] must be a non-empty string 4. [data[0].devMetadata.interactions[3].targetPageId] must be a non-empty string 5. [data[1].devMetadata.interactions[0].targetPageId] must be a non-empty string 6. [data[1].devMetadata.interactions[1].targetPageId] must be a non-empty string 7. [data[2].devMetadata.interactions[0].targetPageId] must be a non-empty string 8. [data[3].devMetadata.interactions[0].targetPageId] must be a non-empty string 9. [data[4].devMetadata.interactions[0].targetPageId] must be a non-empty string ========================================",
+            "signature": "40596146ca087ae97fd9bb7be5dc3f325d798bfaaeab31c8675c1ba8632a18b8"
+          },
+          {
+            "errorClass": "dispatch-preflight-or-ownership",
+            "normalized": "[dispatch-changed-files] project.expectedDispatches[] is required when dispatchPreflightManifest[] exists",
+            "signature": "1863095a5236c379a633d22a8424261bfcde770ff9ab246147a2326cba87f6fd"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav labels must include whitespace-nowrap/truncate so Chinese tab labels do not wrap. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "0800132f661c375d619b06f5f391fbad2d3b18e3fc061d3da8426aee9d1601c5"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav height missing does not match mobileNavigation.heightPx 56px. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "ae1eb025e3057badc1f15a5273946cef49c51968a254f58d5c6ffa5a3ebe9af4"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav grid class missing does not match item count (grid-cols-3). Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "9227d0b90550418e979c72a200c227fb17a3ad06da3282a497b20c6f41d5058f"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav root is missing contract geometry class(es): sticky, bottom-0, w-full. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "10ea04e0aea6730501eb7e855ebf256ece3e8163aea975d1278c113f69814bb0"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav inner wrapper is missing contract geometry class(es): w-full, max-w-md, grid, grid-cols-3, h-full. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "cc2e56dd4c7a1de00f816a93b97ec217f51c39b27d940517704d15d81075951f"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav item is missing contract geometry class(es): flex, flex-col, items-center, justify-center, gap-0.5, px-1, h-full. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "db451cc2ddd5837b6f23df0bdc8139498a14eea90cbee5908aa6686449be75f9"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] pages/podcast.html: mobile nav labelClass contract requires whitespace-nowrap/truncate. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "687cae368d79df1cfadab019d3bd1f6f288b7433fe39ddf7221bbeeb9b6eb3fd"
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "normalized": "[mobile-navigation-consistency] mobile pages with global nav must keep the same data-nav-key item order, positioning, height, and structural geometry. pages/article-list.html: articles|discover|mine::sticky::56::tag=button::item=flex.flex-col.gap-0.5.h-full.items-center.justify-center.px-1::icon=icon:h-5.shrink-0.w-5::nowrap=true::grid=grid-cols-3::max=true::full=true/true; pages/podcast.html: articles|discover|mine::flow::auto::tag=button::item=nav-item::icon=::nowrap=false::grid=none::max=false::full=false/false. Use data-dom-id only for click wiring. Repair: rebuild the Page Packet with Mobile Navigation Contract and copy canonicalNavHtml. If this is post-validation repair, run repair-mobile-navigation-flow.mjs once; do not patch individual span/data-dom-id/class fragments.",
+            "signature": "648e17fddcb0cdf73c07ed3e64820dc50f3a3f022db1252f1673d5b055028dbb"
+          }
+        ],
+        "terminalState": null
+      }
+    ],
+    "validationRepairLedger": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "f35b8f07cb32995588f7c927e324eb5088d50440e3e2581ff53b450c96f72af2",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-11T07:13:45.897Z",
+        "repairEntryStatus": "started-awaiting-owner-batch-repair",
+        "ownerTriage": [
+          {
+            "owner": "main-agent",
+            "errorClass": "mobile-navigation-consistency",
+            "affectedFiles": [
+              "pages/podcast.html"
+            ],
+            "repairScope": "all-pages-with-mobile-nav",
+            "strategy": "run_repair_mobile_navigation_once"
+          },
+          {
+            "owner": "main-agent",
+            "errorClass": "mobile-navigation-consistency",
+            "affectedFiles": [
+              "pages/article-list.html"
+            ],
+            "repairScope": "all-pages-with-mobile-nav",
+            "strategy": "run_repair_mobile_navigation_once"
+          }
+        ],
+        "repairPlanHints": [
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "owner": "main-agent",
+            "repairScope": "all-pages-with-mobile-nav",
+            "strategy": "run_repair_mobile_navigation_once",
+            "affectedFiles": [
+              "pages/podcast.html"
+            ],
+            "repairReportPath": "mobile-nav-repair-report.json",
+            "repairAlreadyAttempted": false,
+            "allowSourceRead": "no-full-html-read",
+            "maxValidationRuns": 3
+          },
+          {
+            "errorClass": "mobile-navigation-consistency",
+            "owner": "main-agent",
+            "repairScope": "all-pages-with-mobile-nav",
+            "strategy": "run_repair_mobile_navigation_once",
+            "affectedFiles": [
+              "pages/article-list.html"
+            ],
+            "repairReportPath": "mobile-nav-repair-report.json",
+            "repairAlreadyAttempted": false,
+            "allowSourceRead": "no-full-html-read",
+            "maxValidationRuns": 3
+          }
+        ],
+        "repairActions": [],
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null,
+        "blockedReason": null
+      }
+    ],
+    "visualQualityCheckpoints": [
+      {
+        "checkpointId": "vq-anchor",
+        "dimension": "visual-anchor",
+        "expected": "teal primary accent on clean white surfaces; article cards are the primary visual anchor on the list page",
+        "evidenceTarget": "pages/article-list.html#primary-region"
+      },
+      {
+        "checkpointId": "vq-hierarchy",
+        "dimension": "information-hierarchy",
+        "expected": "article title, metadata, progress bars, and function buttons have clear visual priority",
+        "evidenceTarget": "pages/article-list.html#content"
+      },
+      {
+        "checkpointId": "vq-structure",
+        "dimension": "composition-structure",
+        "expected": "stacked card list with consistent spacing; learning pages use focused single-task layouts",
+        "evidenceTarget": "pages/article-list.html#layout"
+      },
+      {
+        "checkpointId": "vq-implementation",
+        "dimension": "implementation-strategy",
+        "expected": "CSS variable tokens for all colors/radii/shadows; responsive-safe static CSS for card grids and player controls",
+        "evidenceTarget": "pages/article-list.html#implementation"
+      }
+    ],
+    "readScopeLedger": [
+      {
+        "actor": "page-sub-agent",
+        "lane": "complex_html_page",
+        "path": "intent-workflows/intent-project-complex-build/complex-page-runtime.md",
+        "reason": "page runtime guide",
+        "scopeClass": "page-runtime",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-11T06:29:19.387Z",
+        "nodeId": "page-article-list",
+        "htmlSrc": "pages/article-list.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "complex_html_page",
+        "path": "intent-workflows/intent-project-complex-build/complex-page-dispatch-contract.md",
+        "reason": "dispatch contract",
+        "scopeClass": "dispatch-contract",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-11T06:29:19.387Z",
+        "nodeId": "page-article-list",
+        "htmlSrc": "pages/article-list.html"
+      }
+    ],
+    "repairEntryEvidence": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "f35b8f07cb32995588f7c927e324eb5088d50440e3e2581ff53b450c96f72af2",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-11T07:13:45.897Z",
+        "ledgerIndex": 0,
+        "ownerTriageCount": 2,
+        "repairActionCount": 0,
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null
+      }
+    ],
+    "expectedDispatches": [
+      {
+        "nodeId": "page-article-list",
+        "pageId": "page-article-list",
+        "targetPageId": "page-article-list",
+        "htmlSrc": "pages/article-list.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/article-list.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "article-list-dispatch-7f3a9c2e8b1d",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-11T07:15:06.775Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-import-article",
+        "pageId": "page-import-article",
+        "targetPageId": "page-import-article",
+        "htmlSrc": "pages/import-article.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/import-article.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "import-article-dispatch-4e8b1f7c2a9d",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-11T07:15:15.000Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-word-preview",
+        "pageId": "page-word-preview",
+        "targetPageId": "page-word-preview",
+        "htmlSrc": "pages/word-preview.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/word-preview.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "word-preview-dispatch-6c2e9a1b3f8d",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-11T07:15:22.075Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-podcast",
+        "pageId": "page-podcast",
+        "targetPageId": "page-podcast",
+        "htmlSrc": "pages/podcast.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/podcast.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "podcast-dispatch-9e3c7b2a5f1d",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-11T07:15:27.888Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-intensive-listening",
+        "pageId": "page-intensive-listening",
+        "targetPageId": "page-intensive-listening",
+        "htmlSrc": "pages/intensive-listening.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/intensive-listening.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "intensive-listening-dispatch-2a8f6c1e4b9d",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-11T07:15:38.010Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-ai-config",
+        "pageId": "page-ai-config",
+        "targetPageId": "page-ai-config",
+        "htmlSrc": "pages/ai-config.html",
+        "packetType": "ComplexPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/ai-config.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "ai-config-dispatch-manual",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-12T06:30:00.000Z",
+        "source": "main-agent-manual-entry"
+      }
+    ],
+    "mainAgentPostDispatchMutations": [
+      {
+        "path": "ai-english-learning-mobile.design",
+        "reason": "register",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-11T07:15:06.775Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ]
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "cssFilePath": "colors_and_type.css",
+    "brandPrefix": "en",
+    "styleConstraints": {
+      "radiusMax": 16,
+      "staticShadowAlphaMax": 0.05,
+      "primaryHue": "teal",
+      "noSecondaryOrAccent": true
+    },
+    "styleContinuityAnchors": {
+      "typographySystem": "Inter, Noto Sans SC, PingFang SC, Microsoft YaHei, system-ui",
+      "primaryColorScale": "teal-50 (#f0fdfa) to teal-900 (#134e4a)",
+      "radiusScale": "4px / 8px / 16px / 9999px",
+      "shadowModel": "shadow-1 alpha <= 0.05 for static; shadow-2 for floating layers",
+      "surfaceModel": "border-led; surface layering (bg > card > surface-2)",
+      "ctaStyle": "primary button: teal bg + white text; secondary: transparent + border"
+    },
+    "surfaceDepthModel": "border-led static surfaces; shadow alpha <= 0.05; shadow-2 for floating layers only",
+    "radiusScale": {
+      "sm": 4,
+      "md": 8,
+      "lg": 16,
+      "full": 9999
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-article-list",
+      "title": "文章列表",
+      "htmlSrc": "pages/article-list.html",
+      "pageIndex": 1,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "articles",
+      "visualNorthStar": "Clean card list with clear learning progress indicators and prominent function buttons for each learning mode",
+      "compositionPattern": "Stacked card list with progress mini-bars and function button row",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent card padding (16px), header height (56px), and bottom nav (56px)"
+      ],
+      "componentPlan": [
+        "Card",
+        "Button",
+        "Nav",
+        "Tag",
+        "Stats"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "density",
+        "mobile-card-layout"
+      ],
+      "domIdsRequired": [
+        "cta-import-article",
+        "cta-word-preview",
+        "cta-podcast",
+        "cta-intensive-listening"
+      ],
+      "wiringPlan": [
+        {
+          "domId": "cta-import-article",
+          "targetPageId": "page-import-article",
+          "hideEdge": false,
+          "transitionLabel": "导入文章"
+        },
+        {
+          "domId": "cta-word-preview",
+          "targetPageId": "page-word-preview",
+          "hideEdge": false,
+          "transitionLabel": "单词预习"
+        },
+        {
+          "domId": "cta-podcast",
+          "targetPageId": "page-podcast",
+          "hideEdge": true,
+          "transitionLabel": "播客"
+        },
+        {
+          "domId": "cta-intensive-listening",
+          "targetPageId": "page-intensive-listening",
+          "hideEdge": true,
+          "transitionLabel": "精听训练"
+        }
+      ],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "cta-podcast",
+          "targetPageId": "page-podcast",
+          "reason": "alternative learning mode"
+        },
+        {
+          "domId": "cta-intensive-listening",
+          "targetPageId": "page-intensive-listening",
+          "reason": "alternative learning mode"
+        }
+      ]
+    },
+    {
+      "nodeId": "page-import-article",
+      "title": "导入文章",
+      "htmlSrc": "pages/import-article.html",
+      "pageIndex": 2,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "articles",
+      "outsideMobileNavShell": false,
+      "visualNorthStar": "Clean import flow with clear AI processing status and vocabulary preview",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent header with back button pattern"
+      ],
+      "componentPlan": [
+        "Input",
+        "Button",
+        "Card",
+        "Tag"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "loading-state"
+      ],
+      "domIdsRequired": [
+        "back-article-list",
+        "cta-save-article"
+      ],
+      "wiringPlan": [],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "back-article-list",
+          "targetPageId": "page-article-list",
+          "reason": "back"
+        },
+        {
+          "domId": "cta-save-article",
+          "targetPageId": "page-article-list",
+          "reason": "save and return"
+        }
+      ]
+    },
+    {
+      "nodeId": "page-word-preview",
+      "title": "单词预习",
+      "htmlSrc": "pages/word-preview.html",
+      "pageIndex": 3,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "articles",
+      "outsideMobileNavShell": false,
+      "visualNorthStar": "Focused flashcard experience with memory curve progress and spaced repetition controls",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent header with back button pattern"
+      ],
+      "componentPlan": [
+        "Card",
+        "Button",
+        "Stats",
+        "Tag"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "card-flip-interaction",
+        "mobile-card-layout"
+      ],
+      "domIdsRequired": [
+        "back-article-list"
+      ],
+      "wiringPlan": [],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "back-article-list",
+          "targetPageId": "page-article-list",
+          "reason": "back"
+        }
+      ]
+    },
+    {
+      "nodeId": "page-podcast",
+      "title": "播客模式",
+      "htmlSrc": "pages/podcast.html",
+      "pageIndex": 4,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "articles",
+      "outsideMobileNavShell": false,
+      "visualNorthStar": "Immersive audio player with synced subtitles and read-along mode, like a music player for learning",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent header with back button pattern"
+      ],
+      "componentPlan": [
+        "Card",
+        "Button",
+        "Stats"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "subtitle-sync",
+        "player-controls"
+      ],
+      "domIdsRequired": [
+        "back-article-list"
+      ],
+      "wiringPlan": [],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "back-article-list",
+          "targetPageId": "page-article-list",
+          "reason": "back"
+        }
+      ]
+    },
+    {
+      "nodeId": "page-intensive-listening",
+      "title": "精听训练",
+      "htmlSrc": "pages/intensive-listening.html",
+      "pageIndex": 5,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "articles",
+      "outsideMobileNavShell": false,
+      "visualNorthStar": "Focused dictation training with clear feedback, fill-in-blank mode, and progress tracking",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent header with back button pattern"
+      ],
+      "componentPlan": [
+        "Input",
+        "Button",
+        "Card",
+        "Stats",
+        "Tag"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "form-validation",
+        "dictation-input"
+      ],
+      "domIdsRequired": [
+        "back-article-list"
+      ],
+      "wiringPlan": [],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "back-article-list",
+          "targetPageId": "page-article-list",
+          "reason": "back"
+        }
+      ]
+    },
+    {
+      "nodeId": "page-ai-config",
+      "title": "AI 配置",
+      "htmlSrc": "pages/ai-config.html",
+      "pageIndex": 6,
+      "pageType": "task-driven",
+      "deviceType": "mobile",
+      "viewportMode": "document-scroll",
+      "mobileNavigationActiveKey": "mine",
+      "outsideMobileNavShell": false,
+      "visualNorthStar": "Clean form-based configuration page with text and voice model settings cards",
+      "continuityAnchors": [
+        "Teal primary (#0D9488) on white/slate surfaces; single brand hue",
+        "Inter + Noto Sans SC font stack; 15px mobile base",
+        "8/16px radius scale; border-led surfaces with alpha <= 0.05 shadows",
+        "Consistent header with back button pattern"
+      ],
+      "componentPlan": [
+        "Input",
+        "Button",
+        "Card",
+        "Select",
+        "Tag"
+      ],
+      "imagePlan": [],
+      "qualityRisks": [
+        "form-validation"
+      ],
+      "domIdsRequired": [
+        "back-article-list"
+      ],
+      "wiringPlan": [],
+      "hiddenInteractionPlan": [
+        {
+          "domId": "back-article-list",
+          "targetPageId": "page-article-list",
+          "reason": "back"
+        }
+      ]
+    }
+  ]
+}
