@@ -328,13 +328,16 @@ describe('听力训练页 — 播放与 Tab', () => {
     expect(fake.currentTime).toBe(12)
   })
 
-  test('听力挑战 Tab 为占位', async () => {
+  test('听力挑战 Tab 挂载 QuizChallengeTab（AI 出题徽章 + 三题型）', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
     await user.click(screen.getByText('听力挑战'))
-    expect(screen.getByTestId('quiz-placeholder')).toBeInTheDocument()
+    expect(await screen.findByTestId('quiz-badge')).toHaveTextContent('AI 智能出题')
+    expect(screen.getByTestId('quiz-count')).toHaveTextContent('共 3 题')
+    expect(screen.getAllByTestId(/^quiz-card-\d+$/)).toHaveLength(3)
+    // 逐句精听面板卸载
     expect(screen.queryByTestId('sentence-card')).not.toBeInTheDocument()
   })
 })

@@ -385,31 +385,62 @@ export const MOCK_SENTENCES: Sentence[] = [
   },
 ]
 
-/** 三题型智能出题示例（取自原型听力挑战面板） */
-export const MOCK_QUIZZES: Quiz[] = [
-  {
-    type: 'single-choice',
-    question: '文章作者认为拖延的核心原因是什么？',
-    options: [
-      '缺乏时间管理能力',
-      '大脑存在即时满足与长期规划的冲突',
-      '对任务难度的高估',
-      '外界干扰过多',
-    ],
-    answer: '大脑存在即时满足与长期规划的冲突',
-    explanation: '文章将拖延的根源描述为即时满足猴子与理性决策者之间的冲突。',
-  },
-  {
-    type: 'fill-blank',
-    question: '根据文章内容填空：The Instant Gratification Monkey cares only about ______.',
-    answer: 'easy and fun',
-    explanation: '即时满足猴子只关心 easy and fun（轻松与有趣）。',
-  },
-  {
-    type: 'true-false',
-    question: '判断正误：Panic Monster 只在截止日期临近时才会出现。',
-    answer: false,
-    explanation:
-      '除截止日期临近外，公开出丑、职业灾难等可怕后果也会唤醒 Panic Monster，故该说法错误。',
-  },
+/**
+ * 预设题库（两套轮换）：每次 generateQuiz 轮换取下一套，
+ * 支撑「刷新题库」在 mock 下生成新题组。每套均含三题型。
+ */
+export const MOCK_QUIZZES_SETS: Quiz[][] = [
+  [
+    {
+      type: 'single-choice',
+      question: '文章作者认为拖延的核心原因是什么？',
+      options: [
+        '缺乏时间管理能力',
+        '大脑存在即时满足与长期规划的冲突',
+        '对任务难度的高估',
+        '外界干扰过多',
+      ],
+      answer: '大脑存在即时满足与长期规划的冲突',
+      explanation: '文章将拖延的根源描述为即时满足猴子与理性决策者之间的冲突。',
+    },
+    {
+      type: 'fill-blank',
+      question: '根据文章内容填空：The Instant Gratification Monkey cares only about ______.',
+      answer: 'easy and fun',
+      explanation: '即时满足猴子只关心 easy and fun（轻松与有趣）。',
+    },
+    {
+      type: 'true-false',
+      question: '判断正误：Panic Monster 只在截止日期临近时才会出现。',
+      answer: false,
+      explanation:
+        '除截止日期临近外，公开出丑、职业灾难等可怕后果也会唤醒 Panic Monster，故该说法错误。',
+    },
+  ],
+  [
+    {
+      type: 'single-choice',
+      question: 'Panic Monster 在大脑里扮演什么角色？',
+      options: [
+        '帮助制定长期计划',
+        '吓跑即时满足猴子，让理性决策者回到正轨',
+        '提高任务的趣味性',
+        '消除所有截止日期',
+      ],
+      answer: '吓跑即时满足猴子，让理性决策者回到正轨',
+      explanation: 'Panic Monster 是唯一能让即时满足猴子害怕的存在，它出现时猴子会逃走。',
+    },
+    {
+      type: 'fill-blank',
+      question: '根据文章内容填空：The ______ is the only thing that scares the Instant Gratification Monkey.',
+      answer: 'Panic Monster',
+      explanation: '文中说明 Panic Monster 是唯一能吓跑即时满足猴子的存在。',
+    },
+    {
+      type: 'true-false',
+      question: '判断正误：作者认为只有“拖延症患者”才会拖延。',
+      answer: false,
+      explanation: '作者结尾指出每个人的大脑里都住着即时满足猴子，人人都会在某些事情上拖延。',
+    },
+  ],
 ]

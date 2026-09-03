@@ -5,7 +5,7 @@
  * 真实 LLM/TTS 供应商接入时替换为对应实现，接口不变
  */
 import type { TextModelConfig, VoiceModelConfig } from '../aiConfig'
-import { MOCK_PHRASES, MOCK_QUIZZES, MOCK_SENTENCES, MOCK_WORDS } from './mockData'
+import { MOCK_PHRASES, MOCK_QUIZZES_SETS, MOCK_SENTENCES, MOCK_WORDS } from './mockData'
 import type {
   PhraseEntry,
   Quiz,
@@ -29,6 +29,8 @@ function clone<T>(data: T): T {
 
 export class MockTextAdapter implements TextAiAdapter {
   readonly config: TextModelConfig
+  /** 出题轮换游标：每次调用取下一套预设题库（新实例从第一套开始） */
+  private quizCursor = 0
 
   constructor(config: TextModelConfig) {
     this.config = config
@@ -51,7 +53,9 @@ export class MockTextAdapter implements TextAiAdapter {
 
   async generateQuiz(content: string): Promise<Quiz[]> {
     assertNonEmptyText(content, '文章内容')
-    return clone(MOCK_QUIZZES)
+    const set = clone(MOCK_QUIZZES_SETS[this.quizCursor % MOCK_QUIZZES_SETS.length])
+    this.quizCursor += 1
+    return set
   }
 }
 

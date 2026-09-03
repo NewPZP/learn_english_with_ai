@@ -15,6 +15,7 @@ import {
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle } from '../lib/articles'
 import { useSentencePlayer, type AudioFactory } from '../lib/audio/useSentencePlayer'
+import { QuizChallengeTab, type GenerateQuiz } from './QuizChallengeTab'
 import {
   buildSentenceDictation,
   DICTATION_DIFFICULTY_LABELS,
@@ -36,12 +37,18 @@ interface ListeningStats {
 }
 
 /**
- * 听力训练页 · 逐句精听 Tab（工单 #9）
- * 挖空由文章生词/重点短语数据驱动（三档难度），逐字母输入自动前进/退格回退；
+ * 听力训练页（工单 #9 逐句精听 + 工单 #10 听力挑战）
+ * 逐句精听：挖空由文章生词/重点短语数据驱动（三档难度），逐字母输入自动前进/退格回退；
  * 提交后逐空判分（忽略大小写与空格），统计卡与顶栏进度随作答更新。
- * 音频复用 useSentencePlayer（工单 #8 的句子级播放组件）；听力挑战 Tab 为下一工单占位。
+ * 听力挑战：AI 智能出题三题型（QuizChallengeTab），音频复用 useSentencePlayer。
  */
-export function IntensiveListeningPage({ createAudio }: { createAudio?: AudioFactory }) {
+export function IntensiveListeningPage({
+  createAudio,
+  generateQuiz,
+}: {
+  createAudio?: AudioFactory
+  generateQuiz?: GenerateQuiz
+}) {
   const { id } = useParams<{ id: string }>()
   const article = useMemo(() => (id ? getArticle(id) : undefined), [id])
   const processing = article?.processing
@@ -221,10 +228,7 @@ export function IntensiveListeningPage({ createAudio }: { createAudio?: AudioFac
           </div>
 
           {activeTab === 'quiz' ? (
-            <section className="section-card" data-testid="quiz-placeholder">
-              <p className="placeholder-title">听力挑战</p>
-              <p className="placeholder-hint">AI 智能出题训练，由下一工单实现</p>
-            </section>
+            <QuizChallengeTab content={article.content} generateQuiz={generateQuiz} />
           ) : (
             <>
               {/* 听写难度三档 */}

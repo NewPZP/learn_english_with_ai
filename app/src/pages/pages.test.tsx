@@ -405,4 +405,60 @@ describe('导入 → 单词预习完整链路', () => {
     expect(screen.getByTestId('feedback-summary')).toHaveTextContent('1 / 1 空格正确')
     expect(screen.getByTestId('stat-streak')).toHaveTextContent('连续 1句')
   })
+
+  test('E2E：导入并处理 → 听力挑战 → 作答三题型 → 提交判分 → 刷新题库轮换', async () => {
+    const user = userEvent.setup()
+    renderAtRoute('/articles')
+
+    // 导入并等待处理完成
+    await user.click(screen.getByRole('link', { name: '导入文章' }))
+    await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
+    await user.click(screen.getByRole('button', { name: /完成导入/ }))
+    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+
+    // 进入听力训练，切到听力挑战 Tab
+    await user.click(screen.getByRole('link', { name: '文章' }))
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /听力训练/ }))
+    await user.click(screen.getByText('听力挑战'))
+
+    // AI 出题徽章 + 三题型渲染
+    expect(await screen.findByTestId('quiz-badge')).toHaveTextContent('AI 智能出题')
+    expect(screen.getByTestId('quiz-count')).toHaveTextContent('共 3 题')
+    expect(screen.getByText('文章作者认为拖延的核心原因是什么？')).toBeInTheDocument()
+
+    // 未答完阻止提交
+    expect(screen.getByTestId('submit-quiz')).toBeDisabled()
+    expect(screen.getByTestId('unanswered-hint')).toHaveTextContent('3 题未作答')
+
+    // 作答：单选正确 B、填空错误（大小写容错下 'hard work' 判错）、判断答对（错误）
+    await user.click(screen.getByTestId('quiz-option-0-1'))
+    await user.type(screen.getByTestId('quiz-fill-1'), 'hard work')
+    await user.click(screen.getByTestId('quiz-tf-2-false'))
+    await user.click(screen.getByTestId('submit-quiz'))
+
+    // 整卷判分：单选对 + 填空错 + 判断对 = 2/3，错题划线作答 → 正确答案
+    expect(screen.getByTestId('quiz-score')).toHaveTextContent('2 / 3 正确')
+    expect(screen.getByTestId('quiz-comment')).toHaveTextContent('再接再厉！')
+    expect(screen.getByTestId('quiz-feedback-0')).toHaveAttribute('data-correct', 'true')
+    expect(screen.getByTestId('quiz-feedback-1')).toHaveAttribute('data-correct', 'false')
+    expect(screen.getByTestId('quiz-feedback-2')).toHaveAttribute('data-correct', 'true')
+    expect(screen.getByTestId('quiz-feedback-1')).toHaveTextContent('hard work')
+    expect(screen.getByTestId('quiz-feedback-1')).toHaveTextContent('easy and fun')
+
+    // 刷新题库：轮换到第二套题组，作答与判分重置
+    await user.click(screen.getByTestId('refresh-quiz'))
+    expect(await screen.findByText('Panic Monster 在大脑里扮演什么角色？')).toBeInTheDocument()
+    expect(screen.getByTestId('quiz-fill-1')).toHaveValue('')
+    expect(screen.queryByTestId('quiz-feedback')).not.toBeInTheDocument()
+    expect(screen.getByTestId('submit-quiz')).toBeDisabled()
+
+    // 新题组全对提交（单选 B、填空 Panic Monster、判断答「错误」）
+    await user.click(screen.getByTestId('quiz-option-0-1'))
+    await user.type(screen.getByTestId('quiz-fill-1'), 'panic monster')
+    await user.click(screen.getByTestId('quiz-tf-2-false'))
+    await user.click(screen.getByTestId('submit-quiz'))
+    expect(screen.getByTestId('quiz-score')).toHaveTextContent('3 / 3 正确')
+    expect(screen.getByTestId('quiz-comment')).toHaveTextContent('完美！')
+  })
 })

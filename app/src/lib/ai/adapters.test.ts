@@ -118,7 +118,26 @@ describe('mock 文字适配器返回结构', () => {
 
   test('相同输入返回相同结果（确定性，可作测试夹具）', async () => {
     expect(await adapter.extractWords(CONTENT)).toEqual(await adapter.extractWords(CONTENT))
-    expect(await adapter.generateQuiz(CONTENT)).toEqual(await adapter.generateQuiz(CONTENT))
+    expect(await adapter.splitSentences(CONTENT)).toEqual(await adapter.splitSentences(CONTENT))
+  })
+
+  test('generateQuiz 轮换预设题库（新实例从第一套开始，循环取用）', async () => {
+    const fresh = new MockTextAdapter(defaultTextConfig)
+    const first = await fresh.generateQuiz(CONTENT)
+    const second = await fresh.generateQuiz(CONTENT)
+    const third = await fresh.generateQuiz(CONTENT)
+
+    // 轮换出新题组，且两套题面不同
+    expect(second).not.toEqual(first)
+    expect(third).toEqual(first)
+    expect(first[0].question).toBe('文章作者认为拖延的核心原因是什么？')
+    expect(second[0].question).toBe('Panic Monster 在大脑里扮演什么角色？')
+    // 两套均含三题型
+    for (const set of [first, second]) {
+      expect(new Set(set.map((q) => q.type))).toEqual(
+        new Set(['single-choice', 'fill-blank', 'true-false']),
+      )
+    }
   })
 
   test('返回的是深拷贝，调用方修改不影响后续调用', async () => {
