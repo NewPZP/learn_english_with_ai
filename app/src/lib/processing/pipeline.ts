@@ -42,6 +42,24 @@ export interface PipelineAdapters {
 
 export const STEP_ORDER: readonly StepId[] = ['words', 'phrases', 'audio'] as const
 
+/**
+ * 将句级时间轴等比缩放到实际语音时长。
+ * 文本分句给出的时间轴是估算值，TTS 返回的 durationMs 才是真实音源时长；
+ * 等比缩放保证字幕高亮、进度条与句级跳听都在真实时长范围内。
+ */
+export function fitSentencesToDuration(sentences: Sentence[], durationMs: number): Sentence[] {
+  if (sentences.length === 0 || durationMs <= 0) return sentences
+  const lastEnd = sentences[sentences.length - 1].endMs
+  if (lastEnd <= 0) return sentences
+  const scale = durationMs / lastEnd
+  if (Math.abs(scale - 1) < 1e-9) return sentences
+  return sentences.map((sentence) => ({
+    ...sentence,
+    startMs: Math.round(sentence.startMs * scale),
+    endMs: Math.round(sentence.endMs * scale),
+  }))
+}
+
 export const STEP_TITLES: Record<StepId, string> = {
   words: '提取关键词汇',
   phrases: '提取重点短语',
@@ -111,9 +129,11 @@ export async function runPipeline(
         state.phrases = await adapters.text.extractPhrases(content)
         state.steps[step] = { status: 'done', summary: `已提取 ${state.phrases.length} 个短语` }
       } else {
-        // 语音步骤同时产出句级分句（时间轴供播客字幕/逐句精听消费）
+        // 语音步骤同时产出句级分句（时间轴供播客字幕/逐句精听消费），
+        // 并将估算时间轴等比缩放到 TTS 真实时长
         state.sentences = await adapters.text.splitSentences(content)
         state.audio = await adapters.voice.synthesize(content)
+        state.sentences = fitSentencesToDuration(state.sentences, state.audio.durationMs)
         const seconds = Math.round(state.audio.durationMs / 1000)
         state.steps[step] = { status: 'done', summary: `语音已生成（约 ${seconds} 秒）` }
       }

@@ -3,6 +3,7 @@
 @import './styles/ai-config.css';
 @import './styles/articles.css';
 @import './styles/word-preview.css';
+@import './styles/podcast.css';
 
 * {
   margin: 0;

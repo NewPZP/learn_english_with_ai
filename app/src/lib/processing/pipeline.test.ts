@@ -101,6 +101,8 @@ describe('三步依次流转', () => {
     expect(result.phrases).toHaveLength(1)
     expect(result.sentences).toHaveLength(1)
     expect(result.audio?.durationMs).toBe(1500)
+    // 估算时间轴等比缩放到 TTS 真实时长（1000 → 1500）
+    expect(result.sentences).toEqual([{ text: 's', startMs: 0, endMs: 1500 }])
   })
 
   test('每步经历 running：onStateChange 发出 6 次快照（3 步 × running+done）', async () => {

@@ -97,12 +97,14 @@ describe('导入 → 列表完整流程', () => {
     expect(screen.getByText('instant gratification')).toBeInTheDocument()
     expect(screen.getByText('即时满足')).toBeInTheDocument()
 
-    // 处理产物持久化并与文章关联
+    // 处理产物持久化并与文章关联（含整篇语音音源，供播客/精听消费）
     const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored).toHaveLength(1)
     expect(stored[0].processing.words).toHaveLength(32)
     expect(stored[0].processing.phrases).toHaveLength(8)
     expect(stored[0].processing.sentences.length).toBeGreaterThanOrEqual(5)
+    expect(stored[0].processing.audio.audioUrl).toMatch(/^data:audio\/wav;base64,/)
+    expect(stored[0].processing.audio.durationMs).toBeGreaterThan(0)
 
     // 经侧边栏返回列表，新卡片出现（卡片标题为首句推导）
     await user.click(screen.getByRole('link', { name: '文章' }))
@@ -308,5 +310,43 @@ describe('导入 → 单词预习完整链路', () => {
     const articleId = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')[0].id
     expect(Object.values(store[articleId])).toHaveLength(1)
     expect(Object.values(store[articleId])[0]).toMatchObject({ rating: 'known', stage: 1 })
+  })
+
+  test('E2E：导入并处理 → 卡片进入播客 → 播放/倍速/点句操作', async () => {
+    const user = userEvent.setup()
+    renderAtRoute('/articles')
+
+    // 导入并等待处理完成（音源 + 时间轴已持久化）
+    await user.click(screen.getByRole('link', { name: '导入文章' }))
+    await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
+    await user.click(screen.getByRole('button', { name: /完成导入/ }))
+    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+
+    // 回列表进入播客模式
+    await user.click(screen.getByRole('link', { name: '文章' }))
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /播客/ }))
+
+    // 信息卡与字幕区渲染，句子列表与字幕同步高亮首句
+    expect(screen.getByTestId('podcast-info-card')).toBeInTheDocument()
+    expect(screen.getByTestId('subtitle-area')).toBeInTheDocument()
+    expect(screen.getByTestId('sentence-list')).toBeInTheDocument()
+    expect(screen.getByTestId('subtitle-line-0').className).toContain('current')
+
+    // 播放/暂停切换（jsdom 下媒体播放不可用，状态乐观推进）
+    await user.click(screen.getByTestId('play-pause'))
+    expect(screen.getByTestId('play-pause')).toHaveAttribute('aria-label', '暂停')
+    await user.click(screen.getByTestId('play-pause'))
+    expect(screen.getByTestId('play-pause')).toHaveAttribute('aria-label', '播放')
+
+    // 倍速循环与点句跳听
+    await user.click(screen.getByTestId('speed-button'))
+    expect(screen.getByTestId('speed-button')).toHaveTextContent('1.5x')
+    await user.click(screen.getByTestId('sentence-row-1'))
+    expect(screen.getByTestId('subtitle-line-1').className).toContain('current')
+
+    // 句子列表折叠
+    await user.click(screen.getByTestId('sentence-list-toggle'))
+    expect(screen.queryByTestId('sentence-list')).not.toBeInTheDocument()
   })
 })

@@ -2,7 +2,7 @@
  * 文章领域模型与本地持久化
  * AI 处理产物通过 attachProcessing 挂到 Article.processing（由「AI 处理管道」工单产出）
  */
-import type { PhraseEntry, Sentence, WordEntry } from './ai/types'
+import type { PhraseEntry, Sentence, TtsResult, WordEntry } from './ai/types'
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 
@@ -11,6 +11,8 @@ export interface ArticleProcessing {
   words: WordEntry[]
   phrases: PhraseEntry[]
   sentences: Sentence[]
+  /** 整篇 TTS 语音产物（播客/精听音源）；早期数据可能缺失 */
+  audio?: TtsResult
 }
 
 export interface Article {
@@ -107,7 +109,7 @@ export function attachProcessing(articleId: string, processing: ArticleProcessin
   const target = articles.find((a) => a.id === articleId)
   if (!target) return undefined
   target.processing = processing
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(articles))
+  persist(articles)
   return target
 }
 

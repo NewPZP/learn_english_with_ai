@@ -97,6 +97,7 @@ export function ImportArticlePage({ adapters }: { adapters?: PipelineAdapters })
           words: result.words,
           phrases: result.phrases,
           sentences: result.sentences,
+          audio: result.audio ?? undefined,
         })
       }
     } finally {
