@@ -1,9 +1,17 @@
 /**
  * 文章领域模型与本地持久化
- * AI 处理产物（生词/短语/语音）由「AI 处理管道」工单挂到 Article.processing
+ * AI 处理产物通过 attachProcessing 挂到 Article.processing（由「AI 处理管道」工单产出）
  */
+import type { PhraseEntry, Sentence, WordEntry } from './ai/types'
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
+
+/** AI 处理产物：供单词预习 / 播客 / 逐句精听等后续页面消费 */
+export interface ArticleProcessing {
+  words: WordEntry[]
+  phrases: PhraseEntry[]
+  sentences: Sentence[]
+}
 
 export interface Article {
   id: string
@@ -13,6 +21,8 @@ export interface Article {
   wordCount: number
   difficulty: Difficulty
   createdAt: string // ISO 日期（yyyy-mm-dd）
+  /** AI 处理管道完成后写入；未处理的文章缺失该字段 */
+  processing?: ArticleProcessing
 }
 
 export const MAX_ARTICLE_CHARS = 50000
@@ -68,6 +78,10 @@ export function loadArticles(): Article[] {
   }
 }
 
+function persist(articles: Article[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(articles))
+}
+
 export function saveArticle(content: string, source: string): Article {
   const article: Article = {
     id: generateId(),
@@ -79,12 +93,22 @@ export function saveArticle(content: string, source: string): Article {
     createdAt: new Date().toISOString().slice(0, 10),
   }
   const articles = loadArticles()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([article, ...articles]))
+  persist([article, ...articles])
   return article
 }
 
 export function getArticle(id: string): Article | undefined {
   return loadArticles().find((a) => a.id === id)
+}
+
+/** 将 AI 处理产物持久化并关联到文章；返回更新后的文章（找不到时返回 undefined） */
+export function attachProcessing(articleId: string, processing: ArticleProcessing): Article | undefined {
+  const articles = loadArticles()
+  const target = articles.find((a) => a.id === articleId)
+  if (!target) return undefined
+  target.processing = processing
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(articles))
+  return target
 }
 
 export function clearArticles(): void {

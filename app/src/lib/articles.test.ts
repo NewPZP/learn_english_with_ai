@@ -3,6 +3,7 @@ import {
   loadArticles,
   saveArticle,
   getArticle,
+  attachProcessing,
   clearArticles,
   countWords,
   estimateDifficulty,
@@ -88,5 +89,57 @@ describe('文章持久化', () => {
     saveArticle('text', '粘贴文本')
     clearArticles()
     expect(loadArticles()).toEqual([])
+  })
+})
+
+describe('AI 处理产物持久化', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  const PROCESSING = {
+    words: [
+      {
+        word: 'procrastination',
+        phonetic: '/prəˌkræstɪˈneɪʃən/',
+        partOfSpeech: 'n.',
+        definition: 'The act of delaying tasks',
+        translation: '拖延症',
+        example: 'His procrastination led to panic.',
+        synonyms: ['delay'],
+      },
+    ],
+    phrases: [
+      { phrase: 'instant gratification', definition: 'Immediate pleasure', translation: '即时满足', example: 'e' },
+    ],
+    sentences: [{ text: 'So I want to start with a story.', startMs: 0, endMs: 8000 }],
+  }
+
+  test('attachProcessing 关联产物到文章并持久化', () => {
+    const article = saveArticle('Some content.', '粘贴文本')
+    const updated = attachProcessing(article.id, PROCESSING)
+
+    expect(updated?.processing).toEqual(PROCESSING)
+    expect(getArticle(article.id)?.processing).toEqual(PROCESSING)
+  })
+
+  test('未处理的文章没有 processing 字段', () => {
+    const article = saveArticle('Some content.', '粘贴文本')
+    expect(getArticle(article.id)?.processing).toBeUndefined()
+  })
+
+  test('文章不存在时返回 undefined 且不写入', () => {
+    expect(attachProcessing('nonexistent', PROCESSING)).toBeUndefined()
+    expect(loadArticles()).toEqual([])
+  })
+
+  test('不影响其他文章', () => {
+    const a = saveArticle('First article.', '粘贴文本')
+    const b = saveArticle('Second article.', '粘贴文本')
+    attachProcessing(a.id, PROCESSING)
+
+    const articles = loadArticles()
+    expect(articles.find((x) => x.id === b.id)?.processing).toBeUndefined()
+    expect(articles.find((x) => x.id === a.id)?.processing).toEqual(PROCESSING)
   })
 })
