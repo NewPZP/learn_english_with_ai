@@ -47,13 +47,13 @@ describe('AI 配置存储', () => {
 
 describe('mock 连接测试', () => {
   test('API Key 为空时返回失败', async () => {
-    const result = await testConnection({ apiKey: '', baseUrl: 'https://api.x.com' })
+    const result = await testConnection({ apiKey: '' })
     expect(result.ok).toBe(false)
     expect(result.message).toBe('API Key 未填写')
   })
 
   test('API Key 非空时返回成功与延迟', async () => {
-    const result = await testConnection({ apiKey: 'sk-x', baseUrl: 'https://api.x.com' })
+    const result = await testConnection({ apiKey: 'sk-x' })
     expect(result.ok).toBe(true)
     expect(result.latencyMs).toBeGreaterThan(0)
   })

@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Type, AudioLines } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import {
-  ApiKeyInput,
   ConfigBadge,
   ConnectionStatusBar,
+  EndpointFields,
   FieldLabel,
   PanelActions,
   RangeField,
@@ -67,39 +67,14 @@ export function AiConfigPage() {
               <ConfigBadge connected={textStatus?.ok ?? false} />
             </div>
 
-            <div className="form-group">
-              <FieldLabel htmlFor="text-api-key">API Key</FieldLabel>
-              <ApiKeyInput
-                id="text-api-key"
-                value={config.text.apiKey}
-                onChange={(apiKey) => updateText({ apiKey })}
-              />
-            </div>
-
-            <div className="form-group">
-              <FieldLabel htmlFor="text-base-url" optional>Base URL</FieldLabel>
-              <input
-                id="text-base-url"
-                type="text"
-                className="form-input"
-                placeholder="https://api.openai.com/v1"
-                value={config.text.baseUrl}
-                onChange={(e) => updateText({ baseUrl: e.target.value })}
-              />
-            </div>
+            <EndpointFields
+              prefix="text-"
+              modelPlaceholder="gpt-4o"
+              endpoint={config.text}
+              onChange={updateText}
+            />
 
             <div className="form-row">
-              <div className="form-group">
-                <FieldLabel htmlFor="text-model-name">模型名称</FieldLabel>
-                <input
-                  id="text-model-name"
-                  type="text"
-                  className="form-input"
-                  placeholder="gpt-4o"
-                  value={config.text.modelName}
-                  onChange={(e) => updateText({ modelName: e.target.value })}
-                />
-              </div>
               <div className="form-group">
                 <FieldLabel htmlFor="text-max-tokens">Max Tokens</FieldLabel>
                 <input
@@ -109,7 +84,10 @@ export function AiConfigPage() {
                   min={1}
                   max={128000}
                   value={config.text.maxTokens}
-                  onChange={(e) => updateText({ maxTokens: parseInt(e.target.value || '0', 10) })}
+                  onChange={(e) => {
+                    const parsed = parseInt(e.target.value, 10)
+                    updateText({ maxTokens: Number.isNaN(parsed) ? 1 : Math.max(1, parsed) })
+                  }}
                 />
               </div>
             </div>
@@ -129,7 +107,6 @@ export function AiConfigPage() {
               testId="text-test-btn"
               saveId="text-save-btn"
               apiKey={config.text.apiKey}
-              baseUrl={config.text.baseUrl}
               onSave={() => saveTextConfig(config.text)}
               onTested={setTextStatus}
             />
@@ -149,39 +126,14 @@ export function AiConfigPage() {
               <ConfigBadge connected={voiceStatus?.ok ?? false} />
             </div>
 
-            <div className="form-group">
-              <FieldLabel htmlFor="voice-api-key">API Key</FieldLabel>
-              <ApiKeyInput
-                id="voice-api-key"
-                value={config.voice.apiKey}
-                onChange={(apiKey) => updateVoice({ apiKey })}
-              />
-            </div>
-
-            <div className="form-group">
-              <FieldLabel htmlFor="voice-base-url" optional>Base URL</FieldLabel>
-              <input
-                id="voice-base-url"
-                type="text"
-                className="form-input"
-                placeholder="https://api.openai.com/v1"
-                value={config.voice.baseUrl}
-                onChange={(e) => updateVoice({ baseUrl: e.target.value })}
-              />
-            </div>
+            <EndpointFields
+              prefix="voice-"
+              modelPlaceholder="tts-1"
+              endpoint={config.voice}
+              onChange={updateVoice}
+            />
 
             <div className="form-row">
-              <div className="form-group">
-                <FieldLabel htmlFor="voice-model-name">模型名称</FieldLabel>
-                <input
-                  id="voice-model-name"
-                  type="text"
-                  className="form-input"
-                  placeholder="tts-1"
-                  value={config.voice.modelName}
-                  onChange={(e) => updateVoice({ modelName: e.target.value })}
-                />
-              </div>
               <div className="form-group">
                 <FieldLabel htmlFor="voice-type">语音类型</FieldLabel>
                 <select
@@ -195,9 +147,6 @@ export function AiConfigPage() {
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div className="form-row">
               <div className="form-group">
                 <FieldLabel htmlFor="audio-format">音频格式</FieldLabel>
                 <select
@@ -211,23 +160,23 @@ export function AiConfigPage() {
                   ))}
                 </select>
               </div>
-              <RangeField
-                id="voice-speed-slider"
-                label="语速"
-                min={0.5}
-                max={2}
-                step={0.1}
-                value={config.voice.speed}
-                format={(v) => `${v.toFixed(1)}x`}
-                onChange={(speed) => updateVoice({ speed })}
-              />
             </div>
+
+            <RangeField
+              id="voice-speed-slider"
+              label="语速"
+              min={0.5}
+              max={2}
+              step={0.1}
+              value={config.voice.speed}
+              format={(v) => `${v.toFixed(1)}x`}
+              onChange={(speed) => updateVoice({ speed })}
+            />
 
             <PanelActions
               testId="voice-test-btn"
               saveId="voice-save-btn"
               apiKey={config.voice.apiKey}
-              baseUrl={config.voice.baseUrl}
               onSave={() => saveVoiceConfig(config.voice)}
               onTested={setVoiceStatus}
             />
