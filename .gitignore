@@ -1,4 +1,6 @@
 .DS_Store
+.agents/
+.trae/
 *.log
 npm-debug.log*
 .pnpm-debug.log*

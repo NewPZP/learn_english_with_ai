@@ -406,6 +406,7 @@ body {
       .blank-input { display: inline-block; width: 120px; height: 32px; text-align: center; background: var(--en-primary-50); border: 1px solid var(--en-primary-200); border-radius: 6px; outline: none; font-family: inherit; font-size: 15px; color: var(--en-foreground); vertical-align: baseline; margin: 0 3px; padding: 0 8px; transition: border-color 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms cubic-bezier(.2,.8,.2,1); }
       .blank-input::placeholder { color: var(--en-muted-foreground); }
       .blank-input:focus { border-color: var(--en-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent); }
+      .blank-input.auto-width { width: auto !important; min-width: 28px; max-width: 180px; }
       .btn { transition: background-color 150ms cubic-bezier(.2,.8,.2,1), color 150ms cubic-bezier(.2,.8,.2,1), border-color 150ms cubic-bezier(.2,.8,.2,1), opacity 150ms cubic-bezier(.2,.8,.2,1); cursor: pointer; }
       .btn-primary { background: var(--en-primary); color: var(--en-primary-foreground); }
       .btn-primary:hover { background: var(--en-primary-700); }
@@ -548,11 +549,13 @@ body {
                   <span style="font-size:13px;color:var(--en-muted-foreground)">点击播放</span>
                 </button>
               </div>
-              <label style="display:block;font-size:13px;margin-bottom:8px;color:var(--en-muted-foreground)">听写完整句子</label>
-              <textarea class="dictation-input" style="width:100%;border-radius:8px;padding:12px;font-size:15px;resize:none;outline:none;min-height:96px;background:var(--en-background);border:1px solid var(--en-border);color:var(--en-foreground);box-sizing:border-box" placeholder="听写你听到的完整句子..."></textarea>
-              <div style="display:flex;justify-content:flex-end;margin-top:8px">
-                <span style="font-size:12px;color:var(--en-muted-foreground)">0 字符</span>
-              </div>
+              <p style="font-size:16px;line-height:1.7;color:var(--en-foreground);margin:0">
+                <input type="text" class="blank-input auto-width" size="3" placeholder="___" /> <input type="text" class="blank-input auto-width" size="6" placeholder="___" /> <input type="text" class="blank-input auto-width" size="2" placeholder="___" /> <input type="text" class="blank-input auto-width" size="15" placeholder="___" /> <input type="text" class="blank-input auto-width" size="2" placeholder="___" /> <input type="text" class="blank-input auto-width" size="3" placeholder="___" /> <input type="text" class="blank-input auto-width" size="8" placeholder="___" />, <input type="text" class="blank-input auto-width" size="3" placeholder="___" /> <input type="text" class="blank-input auto-width" size="3" placeholder="___" /> <input type="text" class="blank-input auto-width" size="7" placeholder="___" /> <input type="text" class="blank-input auto-width" size="4" placeholder="___" /> <input type="text" class="blank-input auto-width" size="6" placeholder="___" /> <input type="text" class="blank-input auto-width" size="4" placeholder="___" /> <input type="text" class="blank-input auto-width" size="4" placeholder="___" />.
+              </p>
+              <button class="translation-toggle" style="display:flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:var(--en-muted-foreground)">
+                <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+                <span>显示译文</span>
+              </button>
             </div>
 
             <!-- 仅生词 -->
@@ -576,10 +579,6 @@ body {
             </div>
 
             <div class="action-buttons">
-              <button class="btn btn-secondary inline-flex items-center justify-center gap-1.5 h-11 rounded-md text-[15px] font-medium">
-                <i data-lucide="play" class="w-4 h-4"></i>
-                <span>播放原文</span>
-              </button>
               <button class="btn btn-primary inline-flex items-center justify-center gap-1.5 h-11 rounded-md text-[15px] font-medium">
                 <i data-lucide="check" class="w-4 h-4"></i>
                 <span>提交答案</span>
