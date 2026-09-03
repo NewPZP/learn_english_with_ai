@@ -1,0 +1,215 @@
+/* ============================================================
+   LinguaAI 应用壳布局 — 桌面版（1440px 基准）
+   左固定侧边栏 240px + 内容区 max-width 1200px 居中
+   ============================================================ */
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--en-background);
+}
+
+/* ---- Sidebar Navigation (fixed, 240px) ---- */
+.sidebar-nav {
+  width: 240px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--en-card);
+  border-right: 1px solid var(--en-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+
+.sidebar-brand {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--en-border);
+}
+
+.sidebar-brand-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--en-primary);
+  letter-spacing: -0.02em;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--en-muted-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms cubic-bezier(.2, .8, .2, 1), color 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.sidebar-nav-btn:hover {
+  background: var(--en-muted);
+}
+
+/* Active state (NavLink sets aria-current="page"): primary tint + primary text */
+.sidebar-nav-btn[aria-current="page"] {
+  background: var(--en-primary-50);
+  color: var(--en-primary);
+}
+
+.sidebar-nav-btn:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+.sidebar-nav-btn .nav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* "我的" group */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--en-muted-foreground);
+}
+
+.nav-group-label .nav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.nav-group-label .chevron {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+.nav-group-item {
+  padding-left: 42px;
+}
+
+.nav-group-item .nav-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- Content Area ---- */
+.app-content {
+  margin-left: 240px;
+  min-height: 100vh;
+  background: var(--en-background);
+}
+
+.app-content-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+/* ---- Page top bar (56px sticky) ---- */
+.page-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 56px;
+  background: var(--en-card);
+  border-bottom: 1px solid var(--en-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.page-topbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+.page-topbar-progress {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--en-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--en-foreground);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.icon-btn:hover {
+  background: var(--en-muted);
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+/* ---- Skeleton page placeholder ---- */
+.page-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 8px;
+  color: var(--en-muted-foreground);
+}
+
+.page-skeleton-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+.page-skeleton-hint {
+  font-size: 13px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-nav-btn {
+    transition: none;
+  }
+}
