@@ -1,0 +1,457 @@
+/* ============================================================
+   听力训练页（逐句精听） — 源自原型 intensive-listening-dictation.html
+   ============================================================ */
+
+/* ---- 页面纵向堆叠（统计卡 / Tab / 难度 / 句卡 / 反馈 / 导航） ---- */
+.listening-stack {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---- 统计卡 ---- */
+.stats-progress-track {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--en-muted);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.stats-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--en-primary);
+  transition: width 200ms ease;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--en-foreground);
+  white-space: nowrap;
+}
+
+.stat-item svg {
+  color: var(--en-muted-foreground);
+  flex-shrink: 0;
+}
+
+.stat-item:first-child svg {
+  color: var(--state-success);
+}
+
+.stat-item:last-child svg {
+  color: var(--state-warning);
+}
+
+/* ---- Tab 切换 ---- */
+.listening-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.listening-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.listening-tab.tab-active {
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.listening-tab.tab-active:hover {
+  background: var(--en-primary-700);
+}
+
+.listening-tab.tab-inactive {
+  background: transparent;
+  color: var(--en-muted-foreground);
+  border: 1px solid var(--en-border);
+}
+
+.listening-tab.tab-inactive:hover {
+  color: var(--en-foreground);
+  background: var(--en-muted);
+}
+
+.listening-tab:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+/* ---- 听写难度三档 ---- */
+.difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.difficulty-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--en-muted-foreground);
+  white-space: nowrap;
+}
+
+.difficulty-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.diff-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.diff-pill.diff-active {
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+  border: 1px solid var(--en-primary);
+}
+
+.diff-pill.diff-active:hover {
+  background: var(--en-primary-700);
+}
+
+.diff-pill.diff-inactive {
+  background: transparent;
+  color: var(--en-muted-foreground);
+  border: 1px solid var(--en-border);
+}
+
+.diff-pill.diff-inactive:hover {
+  color: var(--en-foreground);
+  background: var(--en-muted);
+}
+
+.diff-pill:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+/* ---- 句子卡片 ---- */
+.sentence-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sentence-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--en-primary) 10%, transparent);
+  color: var(--en-primary);
+}
+
+.audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  transition: background-color 150ms ease;
+}
+
+.audio-btn:hover {
+  background: color-mix(in srgb, var(--en-primary) 10%, transparent);
+}
+
+.audio-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--en-primary) 10%, transparent);
+  color: var(--en-primary);
+}
+
+.dictation-text {
+  font-size: 16px;
+  line-height: 2.4;
+  color: var(--en-foreground);
+  margin: 0;
+}
+
+.dictation-empty {
+  font-size: 14px;
+  color: var(--en-muted-foreground);
+  margin: 0;
+}
+
+/* ---- 挖空与逐字母输入 ---- */
+.word-blank {
+  display: inline-flex;
+  align-items: flex-start;
+  position: relative;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.word-letters {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.letter-box {
+  width: 28px;
+  height: 32px;
+  text-align: center;
+  background: var(--en-primary-50);
+  border: 1px solid var(--en-primary-200);
+  border-radius: var(--radius-sm);
+  outline: none;
+  font-family: var(--en-font-mono);
+  font-size: 15px;
+  color: var(--en-foreground);
+  padding: 0;
+  transition: border-color 100ms ease, color 100ms ease;
+}
+
+.letter-box:focus {
+  border-color: var(--en-ring);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--en-ring) 15%, transparent);
+}
+
+.letter-box.correct {
+  color: var(--state-success);
+}
+
+.letter-box.wrong {
+  color: var(--state-error);
+  border-color: var(--state-error);
+  text-decoration: line-through;
+}
+
+.word-status {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--en-primary-foreground);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.word-status.show {
+  opacity: 1;
+}
+
+.word-status.correct {
+  background: var(--state-success);
+}
+
+.word-status.wrong {
+  background: var(--state-error);
+}
+
+/* ---- 译文折叠 ---- */
+.translation-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  padding: 0;
+  transition: color 150ms ease;
+}
+
+.translation-toggle:hover {
+  color: var(--en-foreground);
+}
+
+.translation-toggle .chevron {
+  transition: transform 150ms ease;
+}
+
+.translation-toggle .chevron-open {
+  transform: rotate(90deg);
+}
+
+.translation-text {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--en-muted-foreground);
+}
+
+/* ---- 操作按钮行 ---- */
+.listening-actions,
+.listening-nav {
+  display: flex;
+  gap: 12px;
+}
+
+.listening-actions .btn,
+.listening-nav .btn {
+  flex: 1;
+}
+
+/* ---- 判分反馈 ---- */
+.feedback-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.feedback-icon-ok {
+  color: var(--state-success);
+  flex-shrink: 0;
+}
+
+.feedback-icon-partial {
+  color: var(--state-warning);
+  flex-shrink: 0;
+}
+
+.feedback-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feedback-title.ok {
+  color: var(--state-success);
+}
+
+.feedback-title.partial {
+  color: var(--state-warning);
+}
+
+.feedback-summary {
+  font-size: 14px;
+  color: var(--en-foreground);
+}
+
+.feedback-blanks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feedback-blank-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+.feedback-index {
+  width: 20px;
+  font-weight: 500;
+  color: var(--en-muted-foreground);
+  flex-shrink: 0;
+}
+
+.feedback-answer.ok {
+  color: var(--state-success);
+}
+
+.feedback-input-wrong {
+  color: var(--state-error);
+  text-decoration: line-through;
+}
+
+.feedback-arrow {
+  color: var(--en-muted-foreground);
+}
+
+.feedback-blank-row .hidden {
+  visibility: hidden;
+}
+
+.correct-sentence {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--en-muted) 40%, transparent);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--en-foreground);
+}
+
+/* ---- 听力挑战占位 ---- */
+.placeholder-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+.placeholder-hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+}
+
+/* ---- 窄屏 ---- */
+@media (max-width: 720px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .listening-actions,
+  .listening-nav {
+    flex-direction: column;
+  }
+}

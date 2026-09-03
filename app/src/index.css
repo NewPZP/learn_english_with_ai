@@ -4,6 +4,7 @@
 @import './styles/articles.css';
 @import './styles/word-preview.css';
 @import './styles/podcast.css';
+@import './styles/listening.css';
 
 * {
   margin: 0;

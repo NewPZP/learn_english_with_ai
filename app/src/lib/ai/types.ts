@@ -33,6 +33,8 @@ export interface Sentence {
   text: string
   startMs: number
   endMs: number
+  /** 中文译文（逐句精听「显示译文」；早期数据可能缺失） */
+  translation?: string
 }
 
 /** 智能出题：单选 */

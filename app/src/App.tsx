@@ -4,7 +4,7 @@ import { ArticleListPage } from './pages/ArticleListPage'
 import { ImportArticlePage } from './pages/ImportArticlePage'
 import { WordPreviewPage } from './pages/WordPreviewPage'
 import { PodcastPage } from './pages/PodcastPage'
-import { IntensiveListeningPage } from './pages/studyPages'
+import { IntensiveListeningPage } from './pages/IntensiveListeningPage'
 import { AiConfigPage } from './pages/AiConfigPage'
 import { routes } from './routes'
 

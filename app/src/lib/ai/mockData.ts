@@ -351,17 +351,38 @@ export const MOCK_PHRASES: PhraseEntry[] = [
   },
 ]
 
-/** 句级分句与字幕示例（时间轴取自原型播客页） */
+/** 句级分句与字幕示例（时间轴取自原型播客页，译文供逐句精听消费） */
 export const MOCK_SENTENCES: Sentence[] = [
-  { text: 'So I want to start with a story about a guy.', startMs: 0, endMs: 8000 },
-  { text: 'He was a senior in college, and he was working on his thesis.', startMs: 8000, endMs: 20000 },
+  {
+    text: 'So I want to start with a story about a guy.',
+    startMs: 0,
+    endMs: 8000,
+    translation: '那么我想先讲一个关于一个小伙子的故事。',
+  },
+  {
+    text: 'He was a senior in college, and he was working on his thesis.',
+    startMs: 8000,
+    endMs: 20000,
+    translation: '他当时是大四学生，正在写毕业论文。',
+  },
   {
     text: 'And he had been working on it for months, and he just couldn\u2019t seem to finish it.',
     startMs: 20000,
     endMs: 35000,
+    translation: '他已经写了好几个月，却好像怎么也写不完。',
   },
-  { text: 'So finally, he decided to pull an all-nighter.', startMs: 35000, endMs: 45000 },
-  { text: 'And he got it done, and he graduated.', startMs: 45000, endMs: 51000 },
+  {
+    text: 'So finally, he decided to pull an all-nighter.',
+    startMs: 35000,
+    endMs: 45000,
+    translation: '所以最后，他决定通宵赶工。',
+  },
+  {
+    text: 'And he got it done, and he graduated.',
+    startMs: 45000,
+    endMs: 51000,
+    translation: '他最终完成了论文，也顺利毕业了。',
+  },
 ]
 
 /** 三题型智能出题示例（取自原型听力挑战面板） */

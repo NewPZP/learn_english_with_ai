@@ -349,4 +349,60 @@ describe('导入 → 单词预习完整链路', () => {
     await user.click(screen.getByTestId('sentence-list-toggle'))
     expect(screen.queryByTestId('sentence-list')).not.toBeInTheDocument()
   })
+
+  test('E2E：导入并处理 → 卡片进入听力训练 → 切换难度 → 逐字母输入 → 提交 → 判分反馈 → 下一句', async () => {
+    const user = userEvent.setup()
+    renderAtRoute('/articles')
+
+    // 导入并等待处理完成（分句 + 生词/短语 + 音源已持久化）
+    await user.click(screen.getByRole('link', { name: '导入文章' }))
+    await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
+    await user.click(screen.getByRole('button', { name: /完成导入/ }))
+    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+
+    // 回列表进入听力训练
+    await user.click(screen.getByRole('link', { name: '文章' }))
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /听力训练/ }))
+
+    // 默认难度「重要词语」：首句无命中词语 → 空态提示 + 提交禁用
+    expect(screen.getByTestId('topbar-progress')).toHaveTextContent('1 / 5')
+    expect(screen.getByTestId('dictation-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('submit-answer')).toBeDisabled()
+
+    // 切换难度「全部听写」：首句 11 个词元全部挖空
+    await user.click(screen.getByText('全部听写'))
+    expect(document.querySelectorAll('.word-blank')).toHaveLength(11)
+
+    // 逐字母输入首词 So（大写容错）并提交
+    await user.type(screen.getByTestId('letter-0-0'), 's')
+    await user.type(screen.getByTestId('letter-0-1'), 'O')
+    await user.click(screen.getByTestId('submit-answer'))
+    expect(screen.getByTestId('feedback-summary')).toHaveTextContent('1 / 11 空格正确')
+    expect(screen.getByTestId('stat-accuracy')).toHaveTextContent('正确率 9%')
+    expect(screen.getByTestId('stat-streak')).toHaveTextContent('连续 0句')
+    expect(screen.getByTestId('feedback-blank-0')).toHaveAttribute('data-correct', 'true')
+    // 未填空展示「未填」与正确答案
+    expect(screen.getByTestId('feedback-blank-1')).toHaveTextContent('（未填）')
+
+    // 下一句 + 切换「仅生词」：第二句仅 thesis 挖空（数据驱动）
+    await user.click(screen.getByTestId('next-sentence'))
+    expect(screen.getByTestId('topbar-progress')).toHaveTextContent('2 / 5')
+    await user.click(screen.getByText('仅生词'))
+    expect(document.querySelectorAll('.word-blank')).toHaveLength(1)
+    expect(screen.getByTestId('letter-0-0')).toBeInTheDocument()
+
+    // 显示译文展开
+    await user.click(screen.getByTestId('translation-toggle'))
+    expect(screen.getByTestId('translation-text')).toHaveTextContent('他当时是大四学生，正在写毕业论文。')
+
+    // 输入 thesis 全对 → 完美反馈 + 连续答对
+    for (let i = 0; i < 'thesis'.length; i++) {
+      await user.type(screen.getByTestId(`letter-0-${i}`), 'thesis'[i])
+    }
+    await user.click(screen.getByTestId('submit-answer'))
+    expect(screen.getByTestId('feedback-title')).toHaveTextContent('完美！')
+    expect(screen.getByTestId('feedback-summary')).toHaveTextContent('1 / 1 空格正确')
+    expect(screen.getByTestId('stat-streak')).toHaveTextContent('连续 1句')
+  })
 })
