@@ -2,11 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { ArticleListPage } from './pages/ArticleListPage'
 import { ImportArticlePage } from './pages/ImportArticlePage'
-import {
-  WordPreviewPage,
-  PodcastPage,
-  IntensiveListeningPage,
-} from './pages/studyPages'
+import { WordPreviewPage } from './pages/WordPreviewPage'
+import { PodcastPage, IntensiveListeningPage } from './pages/studyPages'
 import { AiConfigPage } from './pages/AiConfigPage'
 import { routes } from './routes'
 

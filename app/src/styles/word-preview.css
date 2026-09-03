@@ -1,0 +1,407 @@
+/* ============================================================
+   单词预习页 — 源自原型 word-preview.html
+   ============================================================ */
+
+/* 顶栏右侧进度数字 */
+.topbar-progress {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--en-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- 双栏布局（左 65% / 右 35%） ---- */
+.wp-columns {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.wp-left-col {
+  flex: 65;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wp-right-col {
+  flex: 35;
+  min-width: 0;
+}
+
+/* ---- 进度条与统计 ---- */
+.progress-bar {
+  height: 6px;
+  width: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--en-muted);
+  overflow: hidden;
+}
+
+.progress-bar > div {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--en-primary);
+  transition: width 200ms ease;
+}
+
+.progress-stats {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+}
+
+.stat-to-review {
+  color: var(--state-warning);
+}
+
+/* ---- 记忆曲线 ---- */
+.curve-caption {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+}
+
+.curve-svg {
+  width: 100%;
+  overflow: visible;
+}
+
+.pulse-ring {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: wp-pulse 1.8s ease-out infinite;
+}
+
+@keyframes wp-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* ---- 闪卡 ---- */
+.flashcard {
+  background: var(--en-card);
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  min-height: 240px;
+}
+
+.flashcard-front-body {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.flashcard-word {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--en-foreground);
+}
+
+.flashcard-phonetic {
+  margin-top: 8px;
+  font-size: 16px;
+  color: var(--en-muted-foreground);
+}
+
+.flashcard-pos {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--en-primary);
+}
+
+.flashcard-hint {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--en-muted-foreground);
+}
+
+.flashcard-back-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flashcard-back-body > div + div {
+  border-top: 1px solid var(--en-border);
+  padding-top: 12px;
+}
+
+.flashcard-back-body dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--en-muted-foreground);
+}
+
+.flashcard-back-body dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--en-foreground);
+}
+
+.flashcard-back-body .flashcard-example {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--en-muted-foreground);
+}
+
+.flashcard-back-body .flashcard-translation {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--en-primary);
+}
+
+.completion-card .flashcard-phonetic {
+  font-size: 14px;
+}
+
+.completion-card .flashcard-hint {
+  margin-top: 8px;
+}
+
+/* ---- 三档自评按钮 ---- */
+.repetition-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.repetition-btn {
+  flex: 1;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--en-border);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.repetition-btn:hover:not(:disabled) {
+  background-color: var(--en-muted);
+}
+
+.repetition-btn:active:not(:disabled) {
+  background-color: var(--en-neutral-200);
+}
+
+.repetition-btn:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+.repetition-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.repetition-btn.rate-unknown {
+  color: var(--state-error);
+}
+
+.repetition-btn.rate-fuzzy {
+  color: var(--state-warning);
+}
+
+.repetition-btn.rate-known {
+  background-color: var(--en-primary);
+  color: var(--en-primary-foreground);
+  border-color: var(--en-primary);
+}
+
+.repetition-btn.rate-known:hover:not(:disabled) {
+  background-color: var(--en-primary-700);
+}
+
+.repetition-btn.rate-known:active:not(:disabled) {
+  background-color: var(--en-primary-800);
+}
+
+/* ---- 右栏单词列表（粘性定位） ---- */
+.word-list-sticky {
+  position: sticky;
+  top: 80px;
+}
+
+.word-list-header {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.word-list-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+.word-list-header .nums {
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.word-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.word-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.word-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.word-list::-webkit-scrollbar-thumb {
+  background: var(--en-border);
+  border-radius: var(--radius-full);
+}
+
+.word-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.word-row.is-completed {
+  background-color: var(--en-primary-50);
+}
+
+.word-row.is-completed .word-indicator {
+  background-color: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.word-row.is-completed .word-row-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--en-primary);
+}
+
+.word-row.is-current {
+  background-color: var(--en-primary);
+}
+
+.word-row.is-current .word-indicator {
+  background-color: var(--en-primary-foreground);
+  opacity: 0.3;
+}
+
+.word-row.is-current .word-row-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--en-primary-foreground);
+}
+
+.word-row.is-upcoming {
+  background-color: var(--en-muted);
+}
+
+.word-row.is-upcoming .word-indicator {
+  border: 1.5px solid var(--en-neutral-300);
+}
+
+.word-row.is-upcoming .word-row-text {
+  font-size: 14px;
+  color: var(--en-muted-foreground);
+}
+
+.word-row.is-completed:hover {
+  background-color: var(--en-primary-100);
+}
+
+.word-row.is-upcoming:hover {
+  background-color: var(--en-neutral-200);
+}
+
+.word-row:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 1px;
+}
+
+.word-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.word-row-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-ring {
+    animation: none;
+    opacity: 0;
+  }
+
+  .repetition-btn,
+  .word-row,
+  .progress-bar > div {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .wp-columns {
+    flex-direction: column;
+  }
+
+  .wp-left-col,
+  .wp-right-col {
+    flex: 1;
+    width: 100%;
+  }
+
+  .word-list {
+    max-height: 320px;
+  }
+}

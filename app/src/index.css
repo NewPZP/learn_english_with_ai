@@ -2,6 +2,7 @@
 @import './styles/app-shell.css';
 @import './styles/ai-config.css';
 @import './styles/articles.css';
+@import './styles/word-preview.css';
 
 * {
   margin: 0;

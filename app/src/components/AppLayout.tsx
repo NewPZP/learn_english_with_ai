@@ -19,7 +19,7 @@ export function AppLayout() {
 }
 
 /** 页面顶栏：返回按钮（back-article-list）+ 居中标题 + 右侧插槽 */
-export function PageTopbar({ title }: { title: string }) {
+export function PageTopbar({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <header className="page-topbar">
       <Link
@@ -31,7 +31,7 @@ export function PageTopbar({ title }: { title: string }) {
         <ArrowLeft size={20} />
       </Link>
       <h1 className="page-topbar-title">{title}</h1>
-      <span style={{ width: 36 }} />
+      {right ?? <span style={{ width: 36 }} />}
     </header>
   )
 }

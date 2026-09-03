@@ -193,6 +193,8 @@ describe('文章卡片', () => {
 
     await user.click(screen.getByRole('link', { name: /单词预习/ }))
     expect(screen.getByRole('heading', { name: '单词预习' })).toBeInTheDocument()
+    // 无处理产物 → 空态（骨架页已被真实页面替换）
+    expect(screen.getByTestId('word-preview-empty')).toBeInTheDocument()
 
     // 通过侧边栏返回文章列表，再验证播客入口
     await user.click(screen.getByRole('link', { name: '文章' }))
@@ -272,5 +274,39 @@ describe('导入 AI 处理管道（页面级）', () => {
     const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored[0].processing.words).toHaveLength(32)
     expect(stored[0].processing.phrases).toHaveLength(8)
+  })
+})
+
+describe('导入 → 单词预习完整链路', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('E2E：导入并处理 → 卡片进入单词预习 → 翻卡 → 自评 → 进度与复习计划持久化', async () => {
+    const user = userEvent.setup()
+    renderAtRoute('/articles')
+
+    await user.click(screen.getByRole('link', { name: '导入文章' }))
+    await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
+    await user.click(screen.getByRole('button', { name: /完成导入/ }))
+    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+
+    // 回列表，从卡片进入单词预习
+    await user.click(screen.getByRole('link', { name: '文章' }))
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /单词预习/ }))
+
+    // 32 个处理产物词全部进入预习
+    expect(screen.getByTestId('topbar-progress')).toHaveTextContent('0 / 32')
+    await user.click(screen.getByTestId('flashcard'))
+    expect(screen.getByTestId('flashcard-back')).toBeInTheDocument()
+
+    // 翻面后自评，进度推进、列表状态变化、复习计划持久化
+    await user.click(screen.getByTestId('rate-known'))
+    expect(screen.getByTestId('topbar-progress')).toHaveTextContent('1 / 32')
+    expect(screen.getByTestId('word-row-procrastination')).toHaveAttribute('data-state', 'completed')
+    expect(screen.getByTestId('word-row-procrastination')).toHaveTextContent('procrastination')
+    const store = JSON.parse(localStorage.getItem('linguaai.word_progress') ?? '{}')
+    const articleId = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')[0].id
+    expect(Object.values(store[articleId])).toHaveLength(1)
+    expect(Object.values(store[articleId])[0]).toMatchObject({ rating: 'known', stage: 1 })
   })
 })
