@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { App } from '../App'
@@ -53,7 +53,9 @@ describe('导入页', () => {
     const input = screen.getByLabelText('选择 .txt 文件')
     await user.upload(input, file)
 
-    expect(await screen.findByLabelText('粘贴文章内容')).toHaveValue('file content here')
+    // FileReader 异步读入，等待值生效
+    const textarea = screen.getByLabelText('粘贴文章内容')
+    await waitFor(() => expect(textarea).toHaveValue('file content here'))
   })
 })
 
