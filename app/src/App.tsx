@@ -6,8 +6,8 @@ import {
   WordPreviewPage,
   PodcastPage,
   IntensiveListeningPage,
-  AiConfigPage,
 } from './pages/studyPages'
+import { AiConfigPage } from './pages/AiConfigPage'
 import { routes } from './routes'
 
 /**

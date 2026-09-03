@@ -1,5 +1,6 @@
 @import './styles/tokens.css';
 @import './styles/app-shell.css';
+@import './styles/ai-config.css';
 
 * {
   margin: 0;

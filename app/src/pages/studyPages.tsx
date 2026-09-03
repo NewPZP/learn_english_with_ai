@@ -14,8 +14,3 @@ export function PodcastPage() {
 export function IntensiveListeningPage() {
   return <PageWithTopbarSkeleton title="听力训练" />
 }
-
-/** AI 配置页（骨架）：文字/声音模型表单由「AI 配置页」工单实现 */
-export function AiConfigPage() {
-  return <PageWithTopbarSkeleton title="AI 配置" />
-}

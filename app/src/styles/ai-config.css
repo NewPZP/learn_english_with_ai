@@ -1,0 +1,308 @@
+/* ============================================================
+   AI 配置页 — 源自原型 ai-config.html
+   ============================================================ */
+
+.ai-config-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.config-panel {
+  background: var(--en-card);
+  border: 1px solid var(--en-border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--en-shadow-1);
+  margin-bottom: 24px;
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.config-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.config-icon.text-model {
+  background: var(--en-primary-50);
+  color: var(--en-primary);
+}
+
+.config-icon.voice-model {
+  background: var(--state-warning-light);
+  color: var(--state-warning);
+}
+
+.config-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.config-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--en-foreground);
+  margin: 0;
+}
+
+.config-desc {
+  font-size: 12px;
+  color: var(--en-muted-foreground);
+  margin-top: 2px;
+}
+
+.config-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.config-badge.connected {
+  background: var(--state-success-light);
+  color: var(--state-success);
+}
+
+.config-badge.disconnected {
+  background: var(--en-muted);
+  color: var(--en-muted-foreground);
+}
+
+/* ---- Form ---- */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--en-muted-foreground);
+}
+
+.form-label .optional {
+  font-weight: 400;
+  color: var(--en-neutral-400);
+  margin-left: 4px;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--en-border);
+  border-radius: 8px;
+  background: var(--en-background);
+  color: var(--en-foreground);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 150ms cubic-bezier(.2, .8, .2, 1), box-shadow 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.form-input:focus {
+  border-color: var(--en-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent);
+}
+
+.form-input.password {
+  padding-right: 44px;
+}
+
+.toggle-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toggle-btn:hover {
+  color: var(--en-foreground);
+}
+
+.form-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 36px 0 14px;
+  border: 1px solid var(--en-border);
+  border-radius: 8px;
+  background: var(--en-background);
+  color: var(--en-foreground);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  border-color: var(--en-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--en-ring) 15%, transparent);
+}
+
+/* ---- Range slider ---- */
+.range-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.range-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--en-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.range-input {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--en-muted);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--en-primary);
+  cursor: pointer;
+  border: 2px solid var(--en-card);
+  box-shadow: var(--en-shadow-1);
+}
+
+.range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--en-primary);
+  cursor: pointer;
+  border: none;
+}
+
+/* ---- Actions & status ---- */
+.config-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.config-actions > * {
+  flex: 1;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.connection-status.ok {
+  background: var(--state-success-light);
+}
+
+.connection-status.warn {
+  background: var(--state-warning-light);
+}
+
+.connection-status.error {
+  background: var(--state-error-light);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.ok {
+  background: var(--state-success);
+}
+
+.status-dot.warn {
+  background: var(--state-warning);
+}
+
+.status-dot.error {
+  background: var(--state-error);
+}
+
+.status-message {
+  font-size: 14px;
+  color: var(--en-foreground);
+  font-weight: 500;
+}
+
+.status-detail {
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  margin-left: auto;
+}
+
+/* Spinner for testing state */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 0.01ms; }
+}
