@@ -245,6 +245,8 @@ describe('单词预习页 — 列表跳转与曲线联动', () => {
   test('跳回已评词时记忆曲线按其档位推进（节点 2 当前，节点 1 已完成）', async () => {
     const user = userEvent.setup()
     seedArticle()
+    // 下次复习时间设为未来（相对运行时钟动态计算，保证「未到期」语义稳定）
+    const future = new Date(Date.now() + 86_400_000).toISOString()
     localStorage.setItem(
       'linguaai.word_progress',
       JSON.stringify({
@@ -254,7 +256,7 @@ describe('单词预习页 — 列表跳转与曲线联动', () => {
             rating: 'known',
             stage: 1,
             ratedAt: '2026-09-03T10:00:00.000Z',
-            nextReviewAt: '2026-09-05T10:00:00.000Z',
+            nextReviewAt: future,
           },
         },
       }),
@@ -269,5 +271,32 @@ describe('单词预习页 — 列表跳转与曲线联动', () => {
     expect(screen.getByTestId('curve-node-0')).toHaveAttribute('data-status', 'completed')
     expect(screen.getByTestId('curve-node-1')).toHaveAttribute('data-status', 'current')
     expect(screen.getByTestId('curve-node-2')).toHaveAttribute('data-status', 'upcoming')
+  })
+
+  test('下次复习时间已过 → 对应节点标记「到期」（应复习）', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    localStorage.setItem(
+      'linguaai.word_progress',
+      JSON.stringify({
+        a1: {
+          procrastination: {
+            word: 'procrastination',
+            rating: 'known',
+            stage: 2,
+            ratedAt: '2026-09-03T10:00:00.000Z',
+            nextReviewAt: new Date(Date.now() - 86_400_000).toISOString(),
+          },
+        },
+      }),
+    )
+    renderPage()
+
+    // 跳到已评词：节点 0/1 已完成，节点 2 到期（下次复习时间已过），其后待复习
+    await user.click(screen.getByTestId('word-row-procrastination'))
+    expect(screen.getByTestId('curve-node-0')).toHaveAttribute('data-status', 'completed')
+    expect(screen.getByTestId('curve-node-1')).toHaveAttribute('data-status', 'completed')
+    expect(screen.getByTestId('curve-node-2')).toHaveAttribute('data-status', 'due')
+    expect(screen.getByTestId('curve-node-3')).toHaveAttribute('data-status', 'upcoming')
   })
 })

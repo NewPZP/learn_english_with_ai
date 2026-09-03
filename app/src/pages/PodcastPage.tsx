@@ -21,6 +21,8 @@ import {
   useSentencePlayer,
   type AudioFactory,
 } from '../lib/audio/useSentencePlayer'
+import { savePodcastProgress } from '../lib/studyProgress'
+import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
 
 /** 倍速显示文案：1 → 1.0x */
 function speedLabel(rate: number): string {
@@ -45,6 +47,23 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
     durationMs: audio?.durationMs ?? 0,
     createAudio,
   })
+
+  useStudyTimeTracker()
+
+  /**
+   * 收听进度持久化：记录最远收听位置（回拖重听不回退进度）
+   * 位置每次变化即保存，供文章列表卡片回显播客百分比
+   */
+  const furthestMsRef = useRef(0)
+  // 路由参数变化不重挂载（如浏览器前进/后退），切换文章时重置最远位置
+  useEffect(() => {
+    furthestMsRef.current = 0
+  }, [id])
+  useEffect(() => {
+    if (!id) return
+    furthestMsRef.current = Math.max(furthestMsRef.current, player.currentTimeMs)
+    savePodcastProgress(id, furthestMsRef.current, audio?.durationMs ?? 0)
+  }, [id, player.currentTimeMs, audio?.durationMs])
 
   /** 跟读模式开关：仅 UI 状态（录音功能由后续工单接入） */
   const [readAlong, setReadAlong] = useState(false)

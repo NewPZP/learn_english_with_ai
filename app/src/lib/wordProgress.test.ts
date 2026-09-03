@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import {
   computeStats,
+  curveNodeStatuses,
   loadWordProgress,
   rateWord,
   nextStage,
@@ -47,6 +48,74 @@ describe('下次复习时间调度', () => {
 
   test('档位 4 认识后停留在 15 天间隔', () => {
     expect(scheduleNext('known', 4, NOW)).toEqual({ stage: 4, nextReviewAt: daysLater(15) })
+  })
+})
+
+describe('记忆曲线节点状态（与调度记录对齐）', () => {
+  const NOW = new Date('2026-09-03T10:00:00')
+  const record = (stage: number, nextReviewAt: string): WordProgressRecord => ({
+    word: 'w',
+    rating: stage > 0 ? 'known' : 'fuzzy',
+    stage,
+    ratedAt: '2026-09-01T10:00:00.000Z',
+    nextReviewAt,
+  })
+
+  test('未评词从节点 0 起步，其余待复习', () => {
+    expect(curveNodeStatuses(undefined, NOW)).toEqual([
+      'current',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ])
+  })
+
+  test('已通过节点已完成，下次复习未到期为当前', () => {
+    expect(curveNodeStatuses(record(2, daysLater(4)), NOW)).toEqual([
+      'completed',
+      'completed',
+      'current',
+      'upcoming',
+      'upcoming',
+    ])
+  })
+
+  test('下次复习时间已过 → 到期（应复习）', () => {
+    expect(curveNodeStatuses(record(1, daysLater(-1)), NOW)).toEqual([
+      'completed',
+      'due',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ])
+  })
+
+  test('档位 0 未到期 → 节点 0 当前；到期 → 节点 0 到期', () => {
+    expect(curveNodeStatuses(record(0, daysLater(1)), NOW)).toEqual([
+      'current',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ])
+    expect(curveNodeStatuses(record(0, daysLater(-1)), NOW)).toEqual([
+      'due',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ])
+  })
+
+  test('最高档位到期 → 节点 4 到期', () => {
+    expect(curveNodeStatuses(record(4, daysLater(-1)), NOW)).toEqual([
+      'completed',
+      'completed',
+      'completed',
+      'completed',
+      'due',
+    ])
   })
 })
 

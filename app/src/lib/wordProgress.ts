@@ -62,6 +62,32 @@ export function scheduleNext(
   return { stage: next, nextReviewAt: due.toISOString() }
 }
 
+/* ---- 记忆曲线状态（与调度记录对齐） ---- */
+
+/** 曲线节点状态：已完成（✓）/ 当前（未到期）/ 到期（应复习）/ 待复习（未来节点） */
+export type CurveNodeStatus = 'completed' | 'current' | 'due' | 'upcoming'
+
+/**
+ * 由单词调度记录推导记忆曲线 5 个节点的状态：
+ * 下标 < stage → 已完成（该轮复习已通过）；
+ * 下标 = stage → 下次复习节点：nextReviewAt 已过 → 到期，否则 → 当前；
+ * 下标 > stage → 待复习。未评词从节点 0 起步（current）
+ */
+export function curveNodeStatuses(
+  record: WordProgressRecord | undefined,
+  now: Date = new Date(),
+): CurveNodeStatus[] {
+  const stage = record?.stage ?? 0
+  return REVIEW_INTERVAL_DAYS.map((_, i) => {
+    if (i < stage) return 'completed'
+    if (i === stage) {
+      if (!record) return 'current'
+      return new Date(record.nextReviewAt).getTime() <= now.getTime() ? 'due' : 'current'
+    }
+    return 'upcoming'
+  })
+}
+
 /* ---- 统计 ---- */
 
 export interface ProgressStats {

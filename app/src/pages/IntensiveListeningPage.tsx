@@ -15,6 +15,8 @@ import {
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle } from '../lib/articles'
 import { useSentencePlayer, type AudioFactory } from '../lib/audio/useSentencePlayer'
+import { markSentenceCompleted } from '../lib/studyProgress'
+import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
 import { QuizChallengeTab, type GenerateQuiz } from './QuizChallengeTab'
 import {
   buildSentenceDictation,
@@ -61,6 +63,8 @@ export function IntensiveListeningPage({
     durationMs: audio?.durationMs ?? 0,
     createAudio,
   })
+
+  useStudyTimeTracker()
 
   const [activeTab, setActiveTab] = useState<'sentence' | 'quiz'>('sentence')
   const [difficulty, setDifficulty] = useState<DictationDifficulty>('key')
@@ -142,6 +146,8 @@ export function IntensiveListeningPage({
       correctBlanks: prev.correctBlanks + graded.correctCount,
       streak: graded.allCorrect ? prev.streak + 1 : 0,
     }))
+    // 已提交作答即计入精听进度（供文章列表卡片回显 x/y）
+    if (id) markSentenceCompleted(id, sentenceIndex)
     startedAtRef.current ||= Date.now()
     setElapsedMs(Date.now() - startedAtRef.current)
   }

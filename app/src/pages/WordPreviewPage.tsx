@@ -6,14 +6,17 @@ import { getArticle } from '../lib/articles'
 import type { WordEntry } from '../lib/ai'
 import {
   computeStats,
+  curveNodeStatuses,
   loadWordProgress,
   rateWord,
   MEMORY_CURVE_LABELS,
   MAX_STAGE,
   RATING_LABELS,
+  type CurveNodeStatus,
   type SelfRating,
   type WordProgressRecord,
 } from '../lib/wordProgress'
+import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
 
 /* ---- 记忆曲线几何（节点坐标与节点间贝塞尔路径，源自原型 word-preview.html） ---- */
 
@@ -41,10 +44,17 @@ function pathUpTo(nodeIndex: number): string {
 
 const FULL_CURVE_PATH = pathUpTo(MAX_STAGE)
 
-/** 曲线节点状态：已完成（实心✓）/ 当前（脉冲）/ 待复习（空心） */
-type CurveNodeStatus = 'completed' | 'current' | 'upcoming'
+/** 到期节点脉冲圈与填充色（提示应复习） */
+const DUE_COLOR = 'var(--state-warning)'
 
-function MemoryCurve({ currentNode }: { currentNode: number }) {
+/**
+ * 记忆曲线：节点状态由调度记录推导（curveNodeStatuses）
+ * 已完成（实心✓）/ 当前（脉冲）/ 到期（警示色脉冲）/ 待复习（空心）
+ */
+function MemoryCurve({ statuses }: { statuses: CurveNodeStatus[] }) {
+  // 实线覆盖最前面的连续已完成节点（全 completed 时贯穿全程）
+  const firstActive = statuses.findIndex((s) => s !== 'completed')
+  const solidNodes = firstActive === -1 ? statuses.length : firstActive
   return (
     <section className="section-card" data-testid="memory-curve">
       <p className="curve-caption">记忆曲线</p>
@@ -60,15 +70,15 @@ function MemoryCurve({ currentNode }: { currentNode: number }) {
         />
         {/* 已完成段实线覆盖 */}
         <path
-          d={pathUpTo(currentNode)}
+          d={pathUpTo(solidNodes)}
           fill="none"
           stroke="var(--en-primary)"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         {CURVE_NODES.map((node, i) => {
-          const status: CurveNodeStatus =
-            i < currentNode ? 'completed' : i === currentNode ? 'current' : 'upcoming'
+          const status = statuses[i]
+          const due = status === 'due'
           return (
             <g
               key={MEMORY_CURVE_LABELS[i]}
@@ -76,12 +86,18 @@ function MemoryCurve({ currentNode }: { currentNode: number }) {
               data-testid={`curve-node-${i}`}
               data-status={status}
             >
-              {status === 'current' && (
-                <circle className="pulse-ring" r="7" fill="none" stroke="var(--en-primary)" strokeWidth="2" />
+              {(status === 'current' || due) && (
+                <circle
+                  className="pulse-ring"
+                  r="7"
+                  fill="none"
+                  stroke={due ? DUE_COLOR : 'var(--en-primary)'}
+                  strokeWidth="2"
+                />
               )}
               <circle
                 r="7"
-                fill={status === 'upcoming' ? 'var(--en-card)' : 'var(--en-primary)'}
+                fill={status === 'upcoming' ? 'var(--en-card)' : due ? DUE_COLOR : 'var(--en-primary)'}
                 stroke="var(--en-border)"
                 strokeWidth={status === 'upcoming' ? 2 : 0}
               />
@@ -95,12 +111,23 @@ function MemoryCurve({ currentNode }: { currentNode: number }) {
                   strokeLinejoin="round"
                 />
               )}
+              {due && (
+                <text y="3.5" textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--en-card)">
+                  !
+                </text>
+              )}
               <text
                 y={106 - node.y}
                 textAnchor="middle"
                 fontSize="10"
-                fill={status === 'current' ? 'var(--en-primary)' : 'var(--en-muted-foreground)'}
-                fontWeight={status === 'current' ? 600 : 400}
+                fill={
+                  status === 'upcoming'
+                    ? 'var(--en-muted-foreground)'
+                    : due
+                      ? DUE_COLOR
+                      : 'var(--en-primary)'
+                }
+                fontWeight={status === 'current' || due ? 600 : 400}
               >
                 {MEMORY_CURVE_LABELS[i]}
               </text>
@@ -221,12 +248,16 @@ export function WordPreviewPage() {
   /** 本轮自评全部完成 → 展示完成卡；从列表跳转可回到闪卡 */
   const [showCompletion, setShowCompletion] = useState(false)
 
+  useStudyTimeTracker()
+
   const stats = computeStats(records, words.map((w) => w.word))
   const completedAll = words.length > 0 && stats.rated >= stats.total
   const currentWord = words[currentIndex]
 
-  /** 当前曲线节点 = 当前词的复习档位（未评过为 0） */
-  const currentNode = Math.min(currentWord ? (records[currentWord.word]?.stage ?? 0) : 0, MAX_STAGE)
+  /** 曲线节点状态 = 当前词的调度记录推导（到期/已完成与真实复习计划对齐）；全部学完则全程完成 */
+  const curveStatuses: CurveNodeStatus[] = completedAll
+    ? MEMORY_CURVE_LABELS.map(() => 'completed')
+    : curveNodeStatuses(currentWord ? records[currentWord.word] : undefined)
 
   const handleRate = (rating: SelfRating) => {
     if (!id || !currentWord) return
@@ -287,8 +318,7 @@ export function WordPreviewPage() {
               </div>
             </section>
 
-            {/* 全部完成后实线贯穿全部 5 个节点 */}
-            <MemoryCurve currentNode={completedAll ? MAX_STAGE + 1 : currentNode} />
+            <MemoryCurve statuses={curveStatuses} />
 
             {showCompletion ? (
               <div className="flashcard completion-card" data-testid="completion-card">

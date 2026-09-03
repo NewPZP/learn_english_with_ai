@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, BookOpen, Headphones, Ear, FileText } from 'lucide-react'
 import { loadArticles, type Article } from '../lib/articles'
+import { computeArticleProgress, getTodayStudyMs, type ModeProgress } from '../lib/studyProgress'
 import { routes } from '../routes'
 
 const difficultyClass: Record<Article['difficulty'], string> = {
@@ -10,23 +11,37 @@ const difficultyClass: Record<Article['difficulty'], string> = {
   Advanced: 'badge advanced',
 }
 
-/** 卡片内单个进度行（当前为 0% 占位，真实进度由「学习进度闭环」工单接入） */
-function ProgressRow({ label, value }: { label: string; value: string }) {
-  const percent = parseInt(value, 10)
+/** 卡片内单个进度行：数值文案（x/y 或 百分比）与进度条填充比例一致 */
+function ProgressRow({
+  label,
+  testId,
+  value,
+  progress,
+}: {
+  label: string
+  testId: string
+  value: string
+  progress: ModeProgress
+}) {
   return (
-    <div className="progress-item">
+    <div className="progress-item" data-testid={testId}>
       <div className="progress-label-row">
         <span className="progress-label">{label}</span>
         <span className="progress-value">{value}</span>
       </div>
       <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${percent}%` }} />
+        <div
+          className="progress-fill"
+          style={{ width: `${progress.percent}%` }}
+          data-testid={`${testId}-fill`}
+        />
       </div>
     </div>
   )
 }
 
 function ArticleCard({ article }: { article: Article }) {
+  const progress = computeArticleProgress(article)
   return (
     <article className="article-card">
       <div className="card-title-row">
@@ -39,9 +54,24 @@ function ArticleCard({ article }: { article: Article }) {
       </p>
 
       <div className="progress-section">
-        <ProgressRow label="单词预习" value="0%" />
-        <ProgressRow label="播客" value="0%" />
-        <ProgressRow label="听力训练" value="0%" />
+        <ProgressRow
+          label="单词预习"
+          testId="card-progress-words"
+          value={`${progress.words.done}/${progress.words.total}`}
+          progress={progress.words}
+        />
+        <ProgressRow
+          label="播客"
+          testId="card-progress-podcast"
+          value={`${progress.podcast.percent}%`}
+          progress={progress.podcast}
+        />
+        <ProgressRow
+          label="听力训练"
+          testId="card-progress-listening"
+          value={`${progress.listening.done}/${progress.listening.total}`}
+          progress={progress.listening}
+        />
       </div>
 
       <div className="btn-row">
@@ -76,10 +106,12 @@ function ArticleCard({ article }: { article: Article }) {
 
 /**
  * 文章列表页：统计栏 + 双列卡片网格 + 空态
- * 「今日学习分钟数」由「学习进度闭环」工单接入，当前显示 0
+ * 卡片回显三模式真实进度（单词预习 x/y、播客百分比、听力训练 x/y），
+ * 统计栏「今日学习分钟数」来自当日累计学习时长（跨天归零）
  */
 export function ArticleListPage() {
   const [articles] = useState(() => loadArticles())
+  const todayMinutes = Math.floor(getTodayStudyMs() / 60_000)
 
   return (
     <div className="app-content-inner">
@@ -94,7 +126,7 @@ export function ArticleListPage() {
       <div className="stats-bar">
         <span>已导入 {articles.length} 篇</span>
         <span className="dot" />
-        <span>今日学习 0 分钟</span>
+        <span data-testid="today-study-minutes">今日学习 {todayMinutes} 分钟</span>
       </div>
 
       {articles.length === 0 ? (

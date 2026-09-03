@@ -8,6 +8,7 @@ import { ArticleListPage } from './ArticleListPage'
 import { defaultTextConfig, defaultVoiceConfig } from '../lib/aiConfig'
 import { MockTextAdapter, MockVoiceAdapter } from '../lib/ai/mockAdapters'
 import type { PipelineAdapters } from '../lib/processing/pipeline'
+import { dateKey } from '../lib/studyProgress'
 
 function renderAtRoute(route: string) {
   window.history.replaceState({}, '', route)
@@ -460,5 +461,129 @@ describe('导入 → 单词预习完整链路', () => {
     await user.click(screen.getByTestId('submit-quiz'))
     expect(screen.getByTestId('quiz-score')).toHaveTextContent('3 / 3 正确')
     expect(screen.getByTestId('quiz-comment')).toHaveTextContent('完美！')
+  })
+})
+
+describe('学习进度闭环（工单 #11）', () => {
+  beforeEach(() => localStorage.clear())
+
+  /** 种子文章：3 词 + 2 句（时间轴 0-10s）+ 音源，驱动三模式学习行为 */
+  function seedProcessedArticle() {
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Progress Article',
+          source: '粘贴文本',
+          content: 'The quick brown fox jumps. Then it rests.',
+          wordCount: 8,
+          difficulty: 'Beginner',
+          createdAt: '2026-09-03',
+          processing: {
+            words: [
+              {
+                word: 'procrastination',
+                phonetic: '/prəˌkræstɪˈneɪʃən/',
+                partOfSpeech: 'n.',
+                definition: 'Delaying tasks',
+                translation: '拖延症',
+                example: 'Procrastination is bad.',
+                synonyms: ['delay'],
+              },
+              {
+                word: 'rational',
+                phonetic: '/ˈræʃənl/',
+                partOfSpeech: 'adj.',
+                definition: 'Based on reason',
+                translation: '理性的',
+                example: 'A rational choice.',
+                synonyms: ['logical'],
+              },
+              {
+                word: 'deadline',
+                phonetic: '/ˈdedlaɪn/',
+                partOfSpeech: 'n.',
+                definition: 'The latest time',
+                translation: '截止日期',
+                example: 'The deadline is near.',
+                synonyms: ['due date'],
+              },
+            ],
+            phrases: [],
+            sentences: [
+              { text: 'The quick brown fox jumps.', startMs: 0, endMs: 5000 },
+              { text: 'Then it rests.', startMs: 5000, endMs: 10000 },
+            ],
+            audio: { audioUrl: 'mock://a1.wav', mimeType: 'audio/wav', durationMs: 10000 },
+          },
+        },
+      ]),
+    )
+  }
+
+  test('E2E：完成预习/播客/精听行为 → 返回列表 → 卡片进度正确回显', async () => {
+    const user = userEvent.setup()
+    seedProcessedArticle()
+    renderAtRoute('/articles')
+
+    // 初始卡片进度全 0
+    expect(screen.getByTestId('card-progress-words')).toHaveTextContent('0/3')
+    expect(screen.getByTestId('card-progress-podcast')).toHaveTextContent('0%')
+    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('0/2')
+
+    // 1) 单词预习：自评首词「认识」→ 1/3
+    await user.click(screen.getByRole('link', { name: /单词预习/ }))
+    await user.click(screen.getByTestId('rate-known'))
+    await user.click(screen.getByRole('link', { name: '返回文章列表' }))
+
+    // 2) 播客：拖动进度条到 5s/10s → 50%
+    await user.click(screen.getByRole('link', { name: /播客/ }))
+    fireEvent.change(screen.getByTestId('progress-slider'), { target: { value: '5000' } })
+    await user.click(screen.getByRole('link', { name: '返回文章列表' }))
+
+    // 3) 听力训练：提交首句作答 → 1/2
+    await user.click(screen.getByRole('link', { name: /听力训练/ }))
+    await user.click(screen.getByText('全部听写'))
+    await user.type(screen.getByTestId('letter-0-0'), 't')
+    await user.click(screen.getByTestId('submit-answer'))
+    await user.click(screen.getByRole('link', { name: '返回文章列表' }))
+
+    // 返回列表：三模式进度回显真实数据，进度条填充与数值一致
+    expect(await screen.findByTestId('card-progress-words')).toHaveTextContent('1/3')
+    expect(screen.getByTestId('card-progress-words-fill')).toHaveStyle({ width: '33%' })
+    expect(screen.getByTestId('card-progress-podcast')).toHaveTextContent('50%')
+    expect(screen.getByTestId('card-progress-podcast-fill')).toHaveStyle({ width: '50%' })
+    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('1/2')
+    expect(screen.getByTestId('card-progress-listening-fill')).toHaveStyle({ width: '50%' })
+  })
+
+  test('今日学习分钟数按当天累计显示，跨天归零', () => {
+    localStorage.setItem('linguaai.articles', '[]')
+
+    // 当日累计 5 分钟
+    localStorage.setItem(
+      'linguaai.study_time',
+      JSON.stringify({ date: dateKey(), ms: 5 * 60_000 }),
+    )
+    const { unmount } = render(
+      <BrowserRouter>
+        <ArticleListPage />
+      </BrowserRouter>,
+    )
+    expect(screen.getByTestId('today-study-minutes')).toHaveTextContent('今日学习 5 分钟')
+
+    // 存储日期非今日（跨天）→ 归零
+    unmount()
+    localStorage.setItem(
+      'linguaai.study_time',
+      JSON.stringify({ date: '2000-01-01', ms: 5 * 60_000 }),
+    )
+    render(
+      <BrowserRouter>
+        <ArticleListPage />
+      </BrowserRouter>,
+    )
+    expect(screen.getByTestId('today-study-minutes')).toHaveTextContent('今日学习 0 分钟')
   })
 })
