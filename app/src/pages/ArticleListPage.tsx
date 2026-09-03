@@ -1,21 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Plus, BookOpen, Headphones, Ear } from 'lucide-react'
-
-const modeEntryStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 5,
-  height: 40,
-  padding: '0 16px',
-  borderRadius: 8,
-  border: '1px solid var(--en-border)',
-  backgroundColor: 'transparent',
-  color: 'var(--en-foreground)',
-  fontSize: 13,
-  fontWeight: 500,
-  textDecoration: 'none',
-} as const
+import { routes } from '../routes'
 
 /**
  * 文章列表页（骨架）
@@ -44,16 +29,7 @@ export function ArticleListPage() {
         >
           文章列表
         </h1>
-        <Link
-          to="/articles/import"
-          data-dom-id="cta-import-article"
-          style={{
-            ...modeEntryStyle,
-            border: '1px solid var(--en-primary)',
-            backgroundColor: 'var(--en-primary)',
-            color: 'var(--en-primary-foreground)',
-          }}
-        >
+        <Link to={routes.articleImport} data-dom-id="cta-import-article" className="btn btn-primary">
           <Plus size={18} />
           <span>导入文章</span>
         </Link>
@@ -67,15 +43,19 @@ export function ArticleListPage() {
 
         {/* 学习模式入口锚点预留（真实入口位于文章卡片内，目标页面为骨架） */}
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <Link to="/articles/1/words" data-dom-id="cta-word-preview" style={modeEntryStyle}>
+          <Link to={routes.articleWords(1)} data-dom-id="cta-word-preview" className="btn btn-sm">
             <BookOpen size={16} />
             <span>单词预习</span>
           </Link>
-          <Link to="/articles/1/podcast" data-dom-id="cta-podcast" style={modeEntryStyle}>
+          <Link to={routes.articlePodcast(1)} data-dom-id="cta-podcast" className="btn btn-sm">
             <Headphones size={16} />
             <span>播客</span>
           </Link>
-          <Link to="/articles/1/listening" data-dom-id="cta-intensive-listening" style={modeEntryStyle}>
+          <Link
+            to={routes.articleListening(1)}
+            data-dom-id="cta-intensive-listening"
+            className="btn btn-sm"
+          >
             <Ear size={16} />
             <span>听力训练</span>
           </Link>

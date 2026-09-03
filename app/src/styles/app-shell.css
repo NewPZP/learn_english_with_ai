@@ -186,6 +186,54 @@
   outline-offset: 2px;
 }
 
+/* ---- Button ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--en-border);
+  background: transparent;
+  color: var(--en-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.btn:hover {
+  background: var(--en-muted);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+/* Primary variant */
+.btn-primary {
+  border-color: var(--en-primary);
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.btn-primary:hover {
+  background: var(--en-primary-600);
+}
+
+/* Compact variant (mode entries inside cards) */
+.btn-sm {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  gap: 5px;
+}
+
 /* ---- Skeleton page placeholder ---- */
 .page-skeleton {
   display: flex;

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { Library, Compass, User, Settings, ChevronDown } from 'lucide-react'
+import { routes } from '../routes'
 
 /**
  * 左侧固定侧边栏导航（240px）
@@ -15,7 +16,7 @@ export function SidebarNav() {
       </div>
       <nav className="sidebar-menu" aria-label="主导航">
         <NavLink
-          to="/articles"
+          to={routes.articles}
           className="sidebar-nav-btn"
           data-dom-id="back-article-list"
         >
@@ -33,7 +34,7 @@ export function SidebarNav() {
             <ChevronDown className="chevron" />
           </div>
           <NavLink
-            to="/ai-config"
+            to={routes.aiConfig}
             className="sidebar-nav-btn nav-group-item"
             data-dom-id="cta-ai-config"
           >

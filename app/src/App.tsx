@@ -8,6 +8,7 @@ import {
   IntensiveListeningPage,
   AiConfigPage,
 } from './pages/studyPages'
+import { routes } from './routes'
 
 /**
  * 路由表（7 页面）：
@@ -24,14 +25,14 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/articles" replace />} />
-          <Route path="/articles" element={<ArticleListPage />} />
-          <Route path="/articles/import" element={<ImportArticlePage />} />
+          <Route path="/" element={<Navigate to={routes.articles} replace />} />
+          <Route path={routes.articles} element={<ArticleListPage />} />
+          <Route path={routes.articleImport} element={<ImportArticlePage />} />
           <Route path="/articles/:id/words" element={<WordPreviewPage />} />
           <Route path="/articles/:id/podcast" element={<PodcastPage />} />
           <Route path="/articles/:id/listening" element={<IntensiveListeningPage />} />
-          <Route path="/ai-config" element={<AiConfigPage />} />
-          <Route path="*" element={<Navigate to="/articles" replace />} />
+          <Route path={routes.aiConfig} element={<AiConfigPage />} />
+          <Route path="*" element={<Navigate to={routes.articles} replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
