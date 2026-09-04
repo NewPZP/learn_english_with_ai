@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { AiConfigPage } from './AiConfigPage'
+import { loadAiConfig, saveProviderMode } from '../lib/aiConfig'
 
 function renderPage() {
   return render(
@@ -154,5 +155,59 @@ describe('AI 配置页 — 交互', () => {
 
     expect(screen.getByLabelText('API Key', { selector: '#voice-api-key' })).toHaveValue('vk-only')
     expect(screen.getByLabelText('API Key', { selector: '#text-api-key' })).toHaveValue('')
+  })
+})
+
+describe('AI 配置页 — 数据来源切换', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('默认 mock 模式：Mock 按钮选中，徽章与提示对应', () => {
+    renderPage()
+
+    expect(screen.getByTestId('provider-mock')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('provider-real')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByTestId('provider-badge')).toHaveTextContent('Mock 演示')
+    expect(screen.getByTestId('provider-hint')).toHaveTextContent('无需 API Key')
+  })
+
+  test('切换到真实 AI：立即持久化，徽章/提示/按钮状态联动', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderPage()
+
+    await user.click(screen.getByTestId('provider-real'))
+
+    expect(screen.getByTestId('provider-real')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('provider-badge')).toHaveTextContent('真实 AI')
+    expect(screen.getByTestId('provider-hint')).toHaveTextContent('自动回落到演示数据')
+
+    // 重新挂载后模式保持 real（持久化生效）
+    unmount()
+    renderPage()
+    expect(screen.getByTestId('provider-real')).toHaveAttribute('aria-pressed', 'true')
+    expect(loadAiConfig().provider).toBe('real')
+  })
+
+  test('切换模式不影响已保存的模型配置', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.type(screen.getByLabelText('API Key', { selector: '#text-api-key' }), 'sk-keep')
+    await user.click(screen.getAllByRole('button', { name: '保存配置' })[0])
+    await user.click(screen.getByTestId('provider-real'))
+
+    const config = loadAiConfig()
+    expect(config.provider).toBe('real')
+    expect(config.text.apiKey).toBe('sk-keep')
+  })
+
+  test('切回 Mock：状态回退并持久化', async () => {
+    const user = userEvent.setup()
+    saveProviderMode('real')
+    renderPage()
+
+    await user.click(screen.getByTestId('provider-mock'))
+
+    expect(screen.getByTestId('provider-mock')).toHaveAttribute('aria-pressed', 'true')
+    expect(loadAiConfig().provider).toBe('mock')
   })
 })

@@ -2,12 +2,14 @@ import { describe, test, expect, beforeEach } from 'vitest'
 import {
   defaultTextConfig,
   defaultVoiceConfig,
+  saveProviderMode,
   saveTextConfig,
   saveVoiceConfig,
   type VoiceModelConfig,
 } from '../aiConfig'
 import { getTextAdapter, getVoiceAdapter } from './index'
 import { MockTextAdapter, MockVoiceAdapter } from './mockAdapters'
+import { OpenAiTextAdapter, OpenAiVoiceAdapter } from './realAdapters'
 import type { Quiz, TextAiAdapter, VoiceAiAdapter } from './types'
 
 /**
@@ -225,5 +227,45 @@ describe('工厂与配置传递', () => {
     const voice: VoiceAiAdapter = getVoiceAdapter()
     expect(text).toBeDefined()
     expect(voice).toBeDefined()
+  })
+})
+
+describe('mock / real 切换（工厂路由）', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('real 模式且文字模型已填 Key → OpenAI 真实适配器', () => {
+    saveProviderMode('real')
+    saveTextConfig({ ...defaultTextConfig, apiKey: 'sk-real' })
+
+    expect(getTextAdapter()).toBeInstanceOf(OpenAiTextAdapter)
+  })
+
+  test('real 模式且声音模型已填 Key → OpenAI 真实适配器', () => {
+    saveProviderMode('real')
+    saveVoiceConfig({ ...defaultVoiceConfig, apiKey: 'vk-real' })
+
+    expect(getVoiceAdapter()).toBeInstanceOf(OpenAiVoiceAdapter)
+  })
+
+  test('real 模式但未填 Key → 自动回落 Mock（避免误发必然失败的请求）', () => {
+    saveProviderMode('real')
+
+    expect(getTextAdapter()).toBeInstanceOf(MockTextAdapter)
+    expect(getVoiceAdapter()).toBeInstanceOf(MockVoiceAdapter)
+  })
+
+  test('mock 模式始终构造 Mock（即使已填 Key）', () => {
+    saveProviderMode('mock')
+    saveTextConfig({ ...defaultTextConfig, apiKey: 'sk-unused' })
+    saveVoiceConfig({ ...defaultVoiceConfig, apiKey: 'vk-unused' })
+
+    expect(getTextAdapter()).toBeInstanceOf(MockTextAdapter)
+    expect(getVoiceAdapter()).toBeInstanceOf(MockVoiceAdapter)
+  })
+
+  test('显式传入的配置参与路由：real 模式下带 Key 的显式配置 → 真实适配器', () => {
+    saveProviderMode('real')
+    const adapter = getTextAdapter({ ...defaultTextConfig, apiKey: 'sk-explicit' })
+    expect(adapter).toBeInstanceOf(OpenAiTextAdapter)
   })
 })

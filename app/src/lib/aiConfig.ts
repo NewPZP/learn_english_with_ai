@@ -9,6 +9,9 @@
 export type VoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
 export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac'
 
+/** 数据来源模式：mock 演示数据 / 真实 AI 接口（OpenAI 兼容） */
+export type ProviderMode = 'mock' | 'real'
+
 /** 两个模型共享的端点配置（Data Clump 收敛） */
 export interface ModelEndpoint {
   apiKey: string
@@ -30,6 +33,8 @@ export interface VoiceModelConfig extends ModelEndpoint {
 }
 
 export interface AiConfig {
+  /** 数据来源模式（全局）：mock / real；real 下未填 Key 的模型自动回落 mock */
+  provider: ProviderMode
   text: TextModelConfig
   voice: VoiceModelConfig
 }
@@ -54,7 +59,7 @@ export const defaultVoiceConfig: VoiceModelConfig = {
 const STORAGE_KEY = 'linguaai.ai-config'
 
 function defaultConfig(): AiConfig {
-  return { text: { ...defaultTextConfig }, voice: { ...defaultVoiceConfig } }
+  return { provider: 'mock', text: { ...defaultTextConfig }, voice: { ...defaultVoiceConfig } }
 }
 
 export function loadAiConfig(): AiConfig {
@@ -63,6 +68,7 @@ export function loadAiConfig(): AiConfig {
     if (!raw) return defaultConfig()
     const parsed = JSON.parse(raw) as Partial<AiConfig>
     return {
+      provider: parsed.provider === 'real' ? 'real' : 'mock',
       text: { ...defaultTextConfig, ...parsed.text },
       voice: { ...defaultVoiceConfig, ...parsed.voice },
     }
@@ -90,6 +96,12 @@ export function saveVoiceConfig(config: VoiceModelConfig): void {
   saveSection('voice', config)
 }
 
+/** 切换数据来源模式（立即持久化，不影响已保存的模型配置） */
+export function saveProviderMode(provider: ProviderMode): void {
+  const current = loadAiConfig()
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, provider }))
+}
+
 /** 连接测试结果 */
 export interface ConnectionTestResult {
   ok: boolean
@@ -98,17 +110,16 @@ export interface ConnectionTestResult {
 }
 
 /**
- * Mock 连接测试：模拟网络延迟后返回结果
- * 真实连通性由「AI 服务适配器层」工单接入
+ * Mock 连接测试：模拟网络延迟后返回结果（Key 非空即成功）
  */
-export async function testConnection(
-  config: Pick<ModelEndpoint, 'apiKey'>,
+async function testMockConnection(
+  endpoint: Pick<ModelEndpoint, 'apiKey'>,
 ): Promise<ConnectionTestResult> {
   const latencyMs = 180 + Math.floor(Math.random() * 320)
 
   await new Promise((resolve) => setTimeout(resolve, latencyMs))
 
-  if (!config.apiKey.trim()) {
+  if (!endpoint.apiKey.trim()) {
     return {
       ok: false,
       latencyMs,
@@ -120,4 +131,40 @@ export async function testConnection(
     latencyMs,
     message: '连接正常',
   }
+}
+
+/**
+ * 真实连接测试：GET {baseUrl}/models 验证端点与 Key 可用性
+ */
+async function testRealConnection(
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>,
+): Promise<ConnectionTestResult> {
+  if (!endpoint.apiKey.trim()) {
+    return { ok: false, latencyMs: 0, message: 'API Key 未填写' }
+  }
+  const start = Date.now()
+  try {
+    const response = await fetch(`${endpoint.baseUrl.replace(/\/+$/, '')}/models`, {
+      headers: { Authorization: `Bearer ${endpoint.apiKey}` },
+    })
+    const latencyMs = Date.now() - start
+    if (!response.ok) {
+      return { ok: false, latencyMs, message: `服务返回 HTTP ${response.status}` }
+    }
+    return { ok: true, latencyMs, message: '连接正常' }
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      message: err instanceof Error ? err.message : '网络请求失败',
+    }
+  }
+}
+
+/** 连接测试入口：按数据来源模式分流（mock 模拟 / real 真实请求） */
+export async function testConnection(
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>,
+  mode: ProviderMode = 'mock',
+): Promise<ConnectionTestResult> {
+  return mode === 'real' ? testRealConnection(endpoint) : testMockConnection(endpoint)
 }

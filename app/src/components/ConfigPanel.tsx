@@ -4,6 +4,7 @@ import {
   testConnection,
   type ConnectionTestResult,
   type ModelEndpoint,
+  type ProviderMode,
 } from '../lib/aiConfig'
 
 /* ---- 小控件 ---- */
@@ -170,18 +171,19 @@ export function RangeField({
 interface PanelActionsProps {
   testId: string
   saveId: string
-  apiKey: string
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>
+  mode: ProviderMode
   onSave: () => void
   onTested: (result: ConnectionTestResult) => void
 }
 
-export function PanelActions({ testId, saveId, apiKey, onSave, onTested }: PanelActionsProps) {
+export function PanelActions({ testId, saveId, endpoint, mode, onSave, onTested }: PanelActionsProps) {
   const [testing, setTesting] = useState(false)
 
   const handleTest = async () => {
     setTesting(true)
     try {
-      const result = await testConnection({ apiKey })
+      const result = await testConnection(endpoint, mode)
       onTested(result)
     } finally {
       setTesting(false)

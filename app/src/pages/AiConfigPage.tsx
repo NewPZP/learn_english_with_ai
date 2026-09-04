@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Type, AudioLines } from 'lucide-react'
+import { Type, AudioLines, Database, FlaskConical, Zap } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import {
   ConfigBadge,
@@ -11,11 +11,13 @@ import {
 } from '../components/ConfigPanel'
 import {
   loadAiConfig,
+  saveProviderMode,
   saveTextConfig,
   saveVoiceConfig,
   type AiConfig,
   type AudioFormat,
   type ConnectionTestResult,
+  type ProviderMode,
   type VoiceType,
 } from '../lib/aiConfig'
 
@@ -36,8 +38,8 @@ const AUDIO_FORMATS: { value: AudioFormat; label: string }[] = [
 ]
 
 /**
- * AI 配置页：文字/声音模型双面板
- * 每面板独立测试连接（mock 延迟）与保存（localStorage 持久化）
+ * AI 配置页：数据来源切换 + 文字/声音模型双面板
+ * 数据来源全局生效并立即持久化；real 模式下未填 Key 的模型自动回落 mock
  */
 export function AiConfigPage() {
   const [config, setConfig] = useState<AiConfig>(() => loadAiConfig())
@@ -49,11 +51,64 @@ export function AiConfigPage() {
   const updateVoice = (patch: Partial<AiConfig['voice']>) =>
     setConfig((c) => ({ ...c, voice: { ...c.voice, ...patch } }))
 
+  /** 数据来源切换：立即持久化（模式是全局开关，无需走「保存配置」） */
+  const switchProvider = (mode: ProviderMode) => {
+    setConfig((c) => (c.provider === mode ? c : { ...c, provider: mode }))
+    saveProviderMode(mode)
+  }
+
+  const isReal = config.provider === 'real'
+
   return (
     <>
       <PageTopbar title="AI 配置" />
       <div className="app-content-inner">
         <div className="ai-config-container">
+          {/* ====== 数据来源切换 ====== */}
+          <section className="config-panel" aria-labelledby="provider-title" data-testid="provider-panel">
+            <div className="config-header">
+              <div className="config-icon provider-mode">
+                <Database size={22} />
+              </div>
+              <div className="config-title-wrap">
+                <h2 className="config-title" id="provider-title">数据来源</h2>
+                <p className="config-desc">切换演示数据与真实 AI 接口（全局生效，立即保存）</p>
+              </div>
+              <span className={`provider-badge ${config.provider}`} data-testid="provider-badge">
+                {isReal ? '真实 AI' : 'Mock 演示'}
+              </span>
+            </div>
+
+            <div className="provider-switch" role="group" aria-label="数据来源切换">
+              <button
+                type="button"
+                className="provider-option"
+                data-testid="provider-mock"
+                aria-pressed={!isReal}
+                onClick={() => switchProvider('mock')}
+              >
+                <FlaskConical size={16} />
+                <span>Mock 演示数据</span>
+              </button>
+              <button
+                type="button"
+                className="provider-option"
+                data-testid="provider-real"
+                aria-pressed={isReal}
+                onClick={() => switchProvider('real')}
+              >
+                <Zap size={16} />
+                <span>真实 AI 接口</span>
+              </button>
+            </div>
+
+            <p className="provider-hint" data-testid="provider-hint">
+              {isReal
+                ? '调用下方配置的 OpenAI 兼容接口处理你的文章；未填写 API Key 的模型将自动回落到演示数据。'
+                : '使用内置演示数据（固定生词表与提示音音频），无需 API Key，适合体验完整学习流程。'}
+            </p>
+          </section>
+
           {/* ====== 文字模型配置 ====== */}
           <section className="config-panel" aria-labelledby="text-model-title">
             <div className="config-header">
@@ -106,7 +161,8 @@ export function AiConfigPage() {
             <PanelActions
               testId="text-test-btn"
               saveId="text-save-btn"
-              apiKey={config.text.apiKey}
+              endpoint={config.text}
+              mode={config.provider}
               onSave={() => saveTextConfig(config.text)}
               onTested={setTextStatus}
             />
@@ -176,7 +232,8 @@ export function AiConfigPage() {
             <PanelActions
               testId="voice-test-btn"
               saveId="voice-save-btn"
-              apiKey={config.voice.apiKey}
+              endpoint={config.voice}
+              mode={config.provider}
               onSave={() => saveVoiceConfig(config.voice)}
               onTested={setVoiceStatus}
             />

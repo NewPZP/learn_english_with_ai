@@ -306,3 +306,71 @@
 @media (prefers-reduced-motion: reduce) {
   .spin { animation-duration: 0.01ms; }
 }
+
+/* ---- 数据来源切换（mock / real） ---- */
+.config-icon.provider-mode {
+  background: var(--en-primary-50);
+  color: var(--en-primary);
+}
+
+.provider-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.provider-badge.mock {
+  background: var(--en-muted);
+  color: var(--en-muted-foreground);
+}
+
+.provider-badge.real {
+  background: var(--state-success-light);
+  color: var(--state-success);
+}
+
+.provider-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.provider-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--en-border);
+  background: var(--en-card);
+  color: var(--en-muted-foreground);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.provider-option:hover {
+  border-color: var(--en-primary);
+  color: var(--en-primary);
+}
+
+.provider-option[aria-pressed='true'] {
+  border-color: var(--en-primary);
+  background: var(--en-primary-50);
+  color: var(--en-primary);
+  font-weight: 600;
+}
+
+.provider-hint {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--en-muted-foreground);
+  margin: 0;
+}
