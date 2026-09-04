@@ -6,6 +6,7 @@
  * 依赖注入：fetch 与音源时长探测均可在构造时替换（测试接缝，jsdom 不触发真实网络）
  */
 import type { TextModelConfig, VoiceModelConfig } from '../aiConfig'
+import { proxied } from './devProxy'
 import type {
   PhraseEntry,
   Quiz,
@@ -126,7 +127,7 @@ export class OpenAiTextAdapter implements TextAiAdapter {
 
   /** 发起对话补全请求并宽松解析 JSON 输出 */
   private async chatJson(content: string, instruction: string): Promise<unknown> {
-    const response = await this.fetchImpl(`${trimSlash(this.config.baseUrl)}/chat/completions`, {
+    const response = await this.fetchImpl(proxied(`${trimSlash(this.config.baseUrl)}/chat/completions`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -337,7 +338,7 @@ export class OpenAiVoiceAdapter implements VoiceAiAdapter {
 
   /** 单块语音合成请求（OpenAI /audio/speech） */
   private async requestSpeech(chunk: string): Promise<Blob> {
-    const response = await this.fetchImpl(`${trimSlash(this.config.baseUrl)}/audio/speech`, {
+    const response = await this.fetchImpl(proxied(`${trimSlash(this.config.baseUrl)}/audio/speech`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

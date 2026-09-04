@@ -5,6 +5,7 @@
  * 存储说明：当前使用 localStorage 明文存储（Web 应用可行方案）；
  * 桌面壳打包后可升级为 Electron safeStorage 等系统级安全存储。
  */
+import { proxied } from './ai/devProxy'
 
 export type VoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
 export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac'
@@ -135,6 +136,7 @@ async function testMockConnection(
 
 /**
  * 真实连接测试：GET {baseUrl}/models 验证端点与 Key 可用性
+ * 开发模式下经 /dev-proxy 同源代理转发，绕过浏览器 CORS 限制
  */
 async function testRealConnection(
   endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>,
@@ -144,7 +146,7 @@ async function testRealConnection(
   }
   const start = Date.now()
   try {
-    const response = await fetch(`${endpoint.baseUrl.replace(/\/+$/, '')}/models`, {
+    const response = await fetch(proxied(`${endpoint.baseUrl.replace(/\/+$/, '')}/models`), {
       headers: { Authorization: `Bearer ${endpoint.apiKey}` },
     })
     const latencyMs = Date.now() - start
