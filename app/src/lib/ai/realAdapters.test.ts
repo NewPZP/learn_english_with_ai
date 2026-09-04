@@ -336,8 +336,22 @@ describe('OpenAI 声音适配器', () => {
 })
 
 describe('火山豆包 TTS 适配器', () => {
-  /** 火山成功响应：流式音频以 audio content-type 返回 */
-  function volcanoSpeechResponse(): Response {
+  /** 火山真实响应：JSON 包裹 base64 音频 {"code":0,"message":"","data":"<base64>"} */
+  function volcanoJsonResponse(base64Audio?: string): Response {
+    // 用一个伪 mp3 二进制（ID3 头 + 几个字节）做 base64，验证解码链路
+    const fakeAudio = base64Audio ?? btoa(String.fromCharCode(0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00))
+    return {
+      ok: true,
+      status: 200,
+      // 火山实际返回 text/plain，body 为 JSON
+      headers: new Headers({ 'content-type': 'text/plain; charset=utf-8' }),
+      text: async () => JSON.stringify({ code: 0, message: '', data: fakeAudio }),
+      blob: async () => new Blob(),
+    } as unknown as Response
+  }
+
+  /** 非 JSON 二进制响应（fallback 场景，content-type 为 audio） */
+  function volcanoBinaryResponse(): Response {
     return {
       ok: true,
       status: 200,
@@ -358,7 +372,7 @@ describe('火山豆包 TTS 适配器', () => {
         protocol: 'volcano',
         apiKey: 'volcano-key',
         baseUrl: 'https://openspeech.bytedance.com/',
-        modelName: 'seed-tts-2.0',
+        modelName: 'seed-tts-2.0-standard',
         voiceType: 'zh_female_cancan_mars_bigtts',
         audioFormat: 'mp3',
         speed: 1.2,
@@ -376,7 +390,7 @@ describe('火山豆包 TTS 适配器', () => {
   })
 
   test('synthesize 请求 unidirectional 端点，携带火山鉴权头与嵌套请求体', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const fetchMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
     const adapter = volcanoAdapter(fetchMock)
 
     const result = await adapter.synthesize('Hello volcano.')
@@ -397,6 +411,8 @@ describe('火山豆包 TTS 适配器', () => {
       text: 'Hello volcano.',
       speaker: 'zh_female_cancan_mars_bigtts',
     })
+    // 普通音色不传 model 字段（用服务端默认值）
+    expect(body.req_params.model).toBeUndefined()
     expect(body.req_params.audio_params).toEqual({
       format: 'mp3',
       sample_rate: 24000,
@@ -408,20 +424,51 @@ describe('火山豆包 TTS 适配器', () => {
     expect(result.durationMs).toBe(8888)
   })
 
+  test('ICL 复刻音色：X-Api-Resource-Id=seed-icl-2.0 且请求体携带 model 字段', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
+    const adapter = volcanoAdapter(fetchMock, 0, {
+      voiceType: 'ICL_uranus_en_male_kevin_mccallister_tob',
+      modelName: 'seed-tts-2.0-standard',
+    })
+
+    await adapter.synthesize('Hello.')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const headers = init.headers as Record<string, string>
+    expect(headers['X-Api-Resource-Id']).toBe('seed-icl-2.0')
+
+    const body = JSON.parse(String(init.body))
+    expect(body.req_params.speaker).toBe('ICL_uranus_en_male_kevin_mccallister_tob')
+    // model 字段固定为模型版本 seed-icl-2.0，不使用用户配置的 modelName
+    expect(body.req_params.model).toBe('seed-icl-2.0')
+  })
+
+  test('ogg_opus 格式使用 48000 采样率（火山限制）', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
+    const adapter = volcanoAdapter(fetchMock, 0, { audioFormat: 'opus' })
+
+    await adapter.synthesize('Hello.')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(String(init.body))
+    expect(body.req_params.audio_params.format).toBe('ogg_opus')
+    expect(body.req_params.audio_params.sample_rate).toBe(48000)
+  })
+
   test('音频格式映射：opus → ogg_opus（audio/ogg），aac 回落 mp3', async () => {
-    const opusMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const opusMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
     await volcanoAdapter(opusMock, 0, { audioFormat: 'opus' }).synthesize('Opus case.')
     const opusBody = JSON.parse(String((opusMock.mock.calls[0] as [string, RequestInit])[1].body))
     expect(opusBody.req_params.audio_params.format).toBe('ogg_opus')
 
-    const aacMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const aacMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
     await volcanoAdapter(aacMock, 0, { audioFormat: 'aac' }).synthesize('Aac case.')
     const aacBody = JSON.parse(String((aacMock.mock.calls[0] as [string, RequestInit])[1].body))
     expect(aacBody.req_params.audio_params.format).toBe('mp3')
   })
 
   test('超长文本按 500 字符上限分块请求', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const fetchMock = vi.fn().mockResolvedValue(volcanoJsonResponse())
     const adapter = volcanoAdapter(fetchMock, 0)
 
     const longText = 'This is a sentence for volcano chunk tests. '.repeat(15) // ~750 字符
@@ -434,16 +481,65 @@ describe('火山豆包 TTS 适配器', () => {
     }
   })
 
-  test('200 + JSON 错误响应（火山特有形态）抛出服务端错误信息', async () => {
+  test('200 + JSON 错误响应（code != 0）抛出服务端错误信息', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      headers: new Headers({ 'content-type': 'application/json' }),
-      text: async () => JSON.stringify({ message: 'invalid speaker' }),
+      headers: new Headers({ 'content-type': 'text/plain; charset=utf-8' }),
+      text: async () => JSON.stringify({ code: 1001, message: 'invalid speaker' }),
     })
     const adapter = volcanoAdapter(fetchMock)
 
     await expect(adapter.synthesize('Hello.')).rejects.toThrow('语音合成失败：invalid speaker')
+  })
+
+  test('200 + JSON 成功响应（code:0 + data base64）解码为可播放音频', async () => {
+    const fakeBase64 = btoa(String.fromCharCode(0x49, 0x44, 0x33, 0x04))
+    const fetchMock = vi.fn().mockResolvedValue(volcanoJsonResponse(fakeBase64))
+    const adapter = volcanoAdapter(fetchMock)
+
+    const result = await adapter.synthesize('Hello volcano.')
+
+    expect(result.audioUrl).toMatch(/^data:audio\/mpeg;base64,/)
+    // 解码后的 data URI base64 部分应还原为原始音频字节（ID3 头）
+    const base64Part = result.audioUrl.split(',')[1]
+    const decoded = atob(base64Part)
+    expect(decoded.charCodeAt(0)).toBe(0x49) // 'I'
+    expect(decoded.charCodeAt(1)).toBe(0x44) // 'D'
+    expect(decoded.charCodeAt(2)).toBe(0x33) // '3'
+  })
+
+  test('多个 JSON chunk 拼接（火山流式响应）：提取所有 data 并拼接解码', async () => {
+    // 模拟火山流式返回：两个 JSON chunk 直接拼接
+    const chunk1 = btoa(String.fromCharCode(0x49, 0x44, 0x33)) // 'ID3'
+    const chunk2 = btoa(String.fromCharCode(0x04, 0x00, 0x00))
+    const multiChunk = `{"code":0,"message":"","data":"${chunk1}"}{"code":0,"data":"${chunk2}"}`
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'text/plain; charset=utf-8' }),
+      text: async () => multiChunk,
+      blob: async () => new Blob(),
+    } as unknown as Response)
+    const adapter = volcanoAdapter(fetchMock)
+
+    const result = await adapter.synthesize('Hello.')
+
+    const base64Part = result.audioUrl.split(',')[1]
+    const decoded = atob(base64Part)
+    // 拼接后应为 ID3 + 后续字节
+    expect(decoded.charCodeAt(0)).toBe(0x49)
+    expect(decoded.charCodeAt(1)).toBe(0x44)
+    expect(decoded.charCodeAt(2)).toBe(0x33)
+    expect(decoded.charCodeAt(3)).toBe(0x04)
+  })
+
+  test('非 JSON 二进制响应（audio content-type）直接取 blob（fallback）', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(volcanoBinaryResponse())
+    const adapter = volcanoAdapter(fetchMock, 0)
+
+    const result = await adapter.synthesize('Hello.')
+    expect(result.audioUrl).toMatch(/^data:audio\/mpeg;base64,/)
   })
 
   test('HTTP 失败时抛错并带状态码', async () => {
@@ -470,7 +566,7 @@ describe('火山豆包 TTS 适配器', () => {
       maxActive = Math.max(maxActive, active)
       await new Promise((resolve) => setTimeout(resolve, 0))
       active--
-      return volcanoSpeechResponse()
+      return volcanoJsonResponse()
     })
     const adapter = volcanoAdapter(fetchMock, 100)
 

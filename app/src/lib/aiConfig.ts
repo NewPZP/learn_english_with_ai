@@ -76,9 +76,11 @@ export const volcanoVoiceDefaults: Pick<
   'baseUrl' | 'modelName' | 'voiceType' | 'audioFormat'
 > = {
   baseUrl: 'https://openspeech.bytedance.com',
-  modelName: 'seed-tts-2.0', // 复用「模型名称」字段作为 X-Api-Resource-Id
+  // 「模型名称」对应请求体 req_params.model，默认 seed-tts-2.0-standard
+  // X-Api-Resource-Id 由适配器根据音色 ID 自动判断（ICL_ 前缀 → seed-icl-2.0）
+  modelName: 'seed-tts-2.0-standard',
   voiceType: '',
-  audioFormat: 'mp3', // 火山仅支持 mp3 / ogg_opus（aac/flac 回落 mp3）
+  audioFormat: 'mp3',
 }
 
 const STORAGE_KEY = 'linguaai.ai-config'
@@ -191,6 +193,19 @@ async function testRealConnection(
 }
 
 /**
+ * 判断音色是否为声音复刻（ICL）音色。
+ * 火山复刻音色 ID 以 ICL_ 开头，需使用 seed-icl-2.0 作为 X-Api-Resource-Id。
+ */
+export function isIclVoice(voiceType: string): boolean {
+  return voiceType.trim().toUpperCase().startsWith('ICL_')
+}
+
+/** 根据音色 ID 返回对应的 X-Api-Resource-Id */
+export function volcanoResourceId(voiceType: string): 'seed-tts-2.0' | 'seed-icl-2.0' {
+  return isIclVoice(voiceType) ? 'seed-icl-2.0' : 'seed-tts-2.0'
+}
+
+/**
  * 真实连接测试（火山豆包 TTS）：合成一句极短文本验证 Key 与音色
  * 火山无 /models 探测端点，端到端合成是最小可行验证（仅 3 字符计费）
  */
@@ -213,7 +228,8 @@ async function testVolcanoConnection(
         headers: {
           'Content-Type': 'application/json',
           'X-Api-Key': endpoint.apiKey,
-          'X-Api-Resource-Id': endpoint.modelName,
+          // X-Api-Resource-Id 根据音色自动判断：ICL 音色用 seed-icl-2.0，否则 seed-tts-2.0
+          'X-Api-Resource-Id': volcanoResourceId(voiceType),
           'X-Api-Request-Id': randomRequestId(),
         },
         body: JSON.stringify({
@@ -221,6 +237,9 @@ async function testVolcanoConnection(
           req_params: {
             text: 'Hi.',
             speaker: voiceType,
+            // model 字段仅复刻音色（ICL_ 前缀）需指定，值为模型版本 seed-icl-2.0；
+            // 普通音色不携带 model，使用服务端默认（seed-tts-2.0）
+            ...(isIclVoice(voiceType) ? { model: 'seed-icl-2.0' } : {}),
             audio_params: { format: 'mp3', sample_rate: 24000, speech_rate: 0 },
           },
         }),
@@ -231,6 +250,18 @@ async function testVolcanoConnection(
       const detail = await response.text().catch(() => '')
       const message = detail ? `HTTP ${response.status}：${detail.slice(0, 120)}` : `服务返回 HTTP ${response.status}`
       return { ok: false, latencyMs, message }
+    }
+    // 火山以 200 + JSON 返回错误（code != 0），需识别
+    const raw = await response.text()
+    let code: number | undefined
+    try {
+      const parsed = JSON.parse(raw) as { code?: number }
+      code = parsed.code
+    } catch {
+      /* 非 JSON 响应视为成功 */
+    }
+    if (code !== undefined && code !== 0) {
+      return { ok: false, latencyMs, message: `服务返回错误 code=${code}` }
     }
     return { ok: true, latencyMs, message: '连接正常' }
   } catch (err) {

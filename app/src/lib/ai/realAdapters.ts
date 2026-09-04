@@ -412,18 +412,19 @@ const VOLCANO_AUDIO_MIME: Record<string, string> = {
   ogg_opus: 'audio/ogg',
 }
 
-/** 宽松提取火山错误信息：常见 {message} / {error:{message}} 形态，解析失败返回原文 */
-function extractVolcanoError(raw: string): string {
-  const parsed = tryParse(raw)
-  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-    const record = parsed as Record<string, unknown>
-    if (typeof record.message === 'string') return record.message
-    const error = record.error
-    if (error && typeof error === 'object' && typeof (error as Record<string, unknown>).message === 'string') {
-      return String((error as Record<string, unknown>).message)
-    }
+/**
+ * 将 base64 字符串解码为 Uint8Array。
+ * 火山 TTS 的 JSON 响应中 data 字段为 base64 编码的音频二进制，
+ * 浏览器端用 atob 解码后需逐字节转 Uint8Array（atob 返回 Latin1 字符串）。
+ */
+function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+  const cleaned = base64.replace(/\s+/g, '')
+  const binary = atob(cleaned)
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length))
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
   }
-  return raw
+  return bytes
 }
 
 export class VolcanoVoiceAdapter implements VoiceAiAdapter {
@@ -439,6 +440,10 @@ export class VolcanoVoiceAdapter implements VoiceAiAdapter {
 
   /** 单块语音合成请求（火山 /api/v3/tts/unidirectional，流式响应由 fetch 读完整） */
   private async requestSpeech(chunk: string): Promise<Blob> {
+    const isIcl = this.config.voiceType.trim().toUpperCase().startsWith('ICL_')
+    const format = volcanoAudioFormat(this.config.audioFormat)
+    // ogg_opus 仅支持 48000 采样率，其他格式默认 24000
+    const sampleRate = format === 'ogg_opus' ? 48000 : 24000
     const response = await this.fetchImpl(
       proxied(`${trimSlash(this.config.baseUrl)}/api/v3/tts/unidirectional`),
       {
@@ -446,8 +451,8 @@ export class VolcanoVoiceAdapter implements VoiceAiAdapter {
         headers: {
           'Content-Type': 'application/json',
           'X-Api-Key': this.config.apiKey,
-          // 「模型名称」字段复用为资源 ID（seed-tts-2.0 / seed-icl-2.0）
-          'X-Api-Resource-Id': this.config.modelName,
+          // X-Api-Resource-Id 根据音色自动判断：ICL 复刻音色用 seed-icl-2.0，否则 seed-tts-2.0
+          'X-Api-Resource-Id': isIcl ? 'seed-icl-2.0' : 'seed-tts-2.0',
           'X-Api-Request-Id': randomRequestId(),
         },
         body: JSON.stringify({
@@ -455,9 +460,12 @@ export class VolcanoVoiceAdapter implements VoiceAiAdapter {
           req_params: {
             text: chunk,
             speaker: this.config.voiceType,
+            // model 字段仅复刻音色（ICL_ 前缀）需指定，值为模型版本 seed-icl-2.0
+            // 普通音色不携带 model，使用服务端默认（seed-tts-2.0）
+            ...(isIcl ? { model: 'seed-icl-2.0' } : {}),
             audio_params: {
-              format: volcanoAudioFormat(this.config.audioFormat),
-              sample_rate: 24000,
+              format,
+              sample_rate: sampleRate,
               speech_rate: speedToSpeechRate(this.config.speed),
             },
           },
@@ -468,13 +476,31 @@ export class VolcanoVoiceAdapter implements VoiceAiAdapter {
       const detail = await response.text().catch(() => '')
       throw new Error(`语音合成失败（HTTP ${response.status}）${brief(detail)}`)
     }
-    // 火山部分错误以 200 + JSON 返回，需按 content-type 分流识别
-    const contentType = response.headers.get('content-type') ?? ''
-    if (contentType.includes('json')) {
-      const detail = extractVolcanoError(await response.text())
-      throw new Error(`语音合成失败${brief(detail)}`)
+    // 火山 TTS 单向流式接口返回多个 JSON chunk 直接拼接：
+    // {"code":0,"message":"","data":"<base64分片1>"}{"code":0,"data":"<base64分片2>"}...
+    // content-type 为 text/plain，整体不是合法 JSON，需逐个提取 data 字段的 base64 拼接
+    const raw = await response.text()
+    const dataRegex = /"data":"([^"]*)"/g
+    const parts: string[] = []
+    let m: RegExpExecArray | null
+    while ((m = dataRegex.exec(raw)) !== null) {
+      parts.push(m[1])
     }
-    return response.blob()
+    if (parts.length > 0) {
+      const base64 = parts.join('')
+      if (base64.length > 0) {
+        const bytes = base64ToBytes(base64)
+        return new Blob([bytes], { type: AUDIO_MIME[volcanoAudioFormat(this.config.audioFormat)] })
+      }
+    }
+    // 检查是否为错误响应（code != 0）
+    const codeMatch = raw.match(/"code":\s*(\d+)/)
+    if (codeMatch && codeMatch[1] !== '0') {
+      const msgMatch = raw.match(/"message":"([^"]*)"/)
+      throw new Error(`语音合成失败${brief(msgMatch?.[1] ?? raw)}`)
+    }
+    // fallback：非 JSON 响应（理论上火山不会返回纯二进制，保留兜底）
+    return new Blob([raw], { type: AUDIO_MIME[volcanoAudioFormat(this.config.audioFormat)] })
   }
 
   async synthesize(text: string): Promise<TtsResult> {

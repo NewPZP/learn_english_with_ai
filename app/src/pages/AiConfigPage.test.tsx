@@ -238,7 +238,7 @@ describe('AI 配置页 — 声音协议切换', () => {
       'https://openspeech.bytedance.com',
     )
     expect(screen.getByLabelText('模型名称', { selector: '#voice-model-name' })).toHaveValue(
-      'seed-tts-2.0',
+      'seed-tts-2.0-standard',
     )
     expect(screen.getByTestId('voice-protocol-hint')).toHaveTextContent('火山引擎')
   })
@@ -286,7 +286,7 @@ describe('AI 配置页 — 声音协议切换', () => {
 
     expect(screen.getByLabelText('音色 ID')).toHaveValue('zh_female_cancan_mars_bigtts')
     expect(screen.getByLabelText('模型名称', { selector: '#voice-model-name' })).toHaveValue(
-      'seed-tts-2.0',
+      'seed-tts-2.0-standard',
     )
   })
 })

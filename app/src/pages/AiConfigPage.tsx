@@ -225,13 +225,13 @@ export function AiConfigPage() {
 
             <p className="provider-hint" data-testid="voice-protocol-hint">
               {config.voice.protocol === 'volcano'
-                ? '火山引擎豆包 TTS：Base URL 填 openspeech.bytedance.com，模型名称填资源 ID（如 seed-tts-2.0），音色 ID 从控制台「语音技术 → 音色库」复制；仅支持 MP3 / Opus。'
+                ? '火山引擎豆包 TTS：Base URL 填 openspeech.bytedance.com；音色 ID 从控制台「语音技术 → 音色库」复制（ICL_ 开头为复刻音色）；模型名称即请求体 model（默认 seed-tts-2.0-standard，复刻音色需指定）；X-Api-Resource-Id 由音色自动判断。仅支持 MP3 / Opus。'
                 : '通过 OpenAI 兼容的 /audio/speech 接口合成语音（OpenAI、硅基流动等）。'}
             </p>
 
             <EndpointFields
               prefix="voice-"
-              modelPlaceholder={config.voice.protocol === 'volcano' ? 'seed-tts-2.0' : 'tts-1'}
+              modelPlaceholder={config.voice.protocol === 'volcano' ? 'seed-tts-2.0-standard' : 'tts-1'}
               endpoint={config.voice}
               onChange={updateVoice}
             />
