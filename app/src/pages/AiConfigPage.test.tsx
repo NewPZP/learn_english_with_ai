@@ -211,3 +211,82 @@ describe('AI 配置页 — 数据来源切换', () => {
     expect(loadAiConfig().provider).toBe('mock')
   })
 })
+
+describe('AI 配置页 — 声音协议切换', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('默认 OpenAI 协议：协议按钮选中、语音类型下拉存在', () => {
+    renderPage()
+
+    expect(screen.getByTestId('voice-protocol-openai')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('voice-protocol-volcano')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByLabelText('语音类型')).toBeInTheDocument()
+    expect(screen.queryByLabelText('音色 ID')).not.toBeInTheDocument()
+    expect(screen.getByTestId('voice-protocol-hint')).toHaveTextContent('/audio/speech')
+  })
+
+  test('切换火山协议：音色 ID 文本框替换下拉，套用火山默认端点值', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByTestId('voice-protocol-volcano'))
+
+    expect(screen.getByTestId('voice-protocol-volcano')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('音色 ID')).toBeInTheDocument()
+    expect(screen.queryByLabelText('语音类型')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Base URL/, { selector: '#voice-base-url' })).toHaveValue(
+      'https://openspeech.bytedance.com',
+    )
+    expect(screen.getByLabelText('模型名称', { selector: '#voice-model-name' })).toHaveValue(
+      'seed-tts-2.0',
+    )
+    expect(screen.getByTestId('voice-protocol-hint')).toHaveTextContent('火山引擎')
+  })
+
+  test('火山协议下音频格式仅 MP3 / Opus，切回 OpenAI 恢复四选项', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByTestId('voice-protocol-volcano'))
+    const volcanoSelect = screen.getByLabelText('音频格式') as HTMLSelectElement
+    expect(Array.from(volcanoSelect.options).map((o) => o.value)).toEqual(['mp3', 'opus'])
+
+    await user.click(screen.getByTestId('voice-protocol-openai'))
+    const openaiSelect = screen.getByLabelText('音频格式') as HTMLSelectElement
+    expect(Array.from(openaiSelect.options).map((o) => o.value)).toEqual([
+      'mp3',
+      'opus',
+      'aac',
+      'flac',
+    ])
+  })
+
+  test('切换协议保留 API Key 与语速，旧连接状态作废', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.type(screen.getByLabelText('API Key', { selector: '#voice-api-key' }), 'vk-keep')
+    fireEvent.change(screen.getByLabelText('语速'), { target: { value: '1.6' } })
+    await user.click(screen.getByTestId('voice-protocol-volcano'))
+
+    expect(screen.getByLabelText('API Key', { selector: '#voice-api-key' })).toHaveValue('vk-keep')
+    expect(screen.getByTestId('voice-speed-slider-value')).toHaveTextContent('1.6x')
+  })
+
+  test('协议切换后保存：重新挂载回填火山配置', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderPage()
+
+    await user.click(screen.getByTestId('voice-protocol-volcano'))
+    await user.type(screen.getByLabelText('音色 ID'), 'zh_female_cancan_mars_bigtts')
+    await user.click(screen.getAllByRole('button', { name: '保存配置' })[1])
+
+    unmount()
+    renderPage()
+
+    expect(screen.getByLabelText('音色 ID')).toHaveValue('zh_female_cancan_mars_bigtts')
+    expect(screen.getByLabelText('模型名称', { selector: '#voice-model-name' })).toHaveValue(
+      'seed-tts-2.0',
+    )
+  })
+})

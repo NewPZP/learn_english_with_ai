@@ -10,18 +10,21 @@ import {
   RangeField,
 } from '../components/ConfigPanel'
 import {
+  defaultVoiceConfig,
   loadAiConfig,
   saveProviderMode,
   saveTextConfig,
   saveVoiceConfig,
+  volcanoVoiceDefaults,
   type AiConfig,
   type AudioFormat,
   type ConnectionTestResult,
   type ProviderMode,
-  type VoiceType,
+  type VoiceModelConfig,
+  type VoiceProtocol,
 } from '../lib/aiConfig'
 
-const VOICE_TYPES: { value: VoiceType; label: string }[] = [
+const VOICE_TYPES: { value: string; label: string }[] = [
   { value: 'alloy', label: 'Alloy' },
   { value: 'echo', label: 'Echo' },
   { value: 'fable', label: 'Fable' },
@@ -37,6 +40,21 @@ const AUDIO_FORMATS: { value: AudioFormat; label: string }[] = [
   { value: 'flac', label: 'FLAC' },
 ]
 
+/** 火山协议仅支持 mp3 / ogg_opus（aac / flac 回落 mp3），下拉仅展示可选项 */
+const VOLCANO_AUDIO_FORMATS = AUDIO_FORMATS.filter((f) => f.value === 'mp3' || f.value === 'opus')
+
+const VOICE_PROTOCOLS: { value: VoiceProtocol; label: string }[] = [
+  { value: 'openai', label: 'OpenAI 兼容' },
+  { value: 'volcano', label: '火山豆包 TTS' },
+]
+
+/** 切换协议时套用的端点默认值（保留 API Key 与语速） */
+function protocolDefaults(protocol: VoiceProtocol): Partial<VoiceModelConfig> {
+  if (protocol === 'volcano') return { protocol, ...volcanoVoiceDefaults }
+  const { baseUrl, modelName, voiceType, audioFormat } = defaultVoiceConfig
+  return { protocol, baseUrl, modelName, voiceType, audioFormat }
+}
+
 /**
  * AI 配置页：数据来源切换 + 文字/声音模型双面板
  * 数据来源全局生效并立即持久化；real 模式下未填 Key 的模型自动回落 mock
@@ -50,6 +68,14 @@ export function AiConfigPage() {
     setConfig((c) => ({ ...c, text: { ...c.text, ...patch } }))
   const updateVoice = (patch: Partial<AiConfig['voice']>) =>
     setConfig((c) => ({ ...c, voice: { ...c.voice, ...patch } }))
+
+  /** 切换声音服务协议：套用对应端点默认值（保留 API Key 与语速），旧连接状态作废 */
+  const switchVoiceProtocol = (protocol: VoiceProtocol) => {
+    setConfig((c) =>
+      c.voice.protocol === protocol ? c : { ...c, voice: { ...c.voice, ...protocolDefaults(protocol) } },
+    )
+    setVoiceStatus(null)
+  }
 
   /** 数据来源切换：立即持久化（模式是全局开关，无需走「保存配置」） */
   const switchProvider = (mode: ProviderMode) => {
@@ -182,27 +208,62 @@ export function AiConfigPage() {
               <ConfigBadge connected={voiceStatus?.ok ?? false} />
             </div>
 
+            <div className="provider-switch" role="group" aria-label="声音服务协议切换">
+              {VOICE_PROTOCOLS.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  className="provider-option"
+                  data-testid={`voice-protocol-${p.value}`}
+                  aria-pressed={config.voice.protocol === p.value}
+                  onClick={() => switchVoiceProtocol(p.value)}
+                >
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <p className="provider-hint" data-testid="voice-protocol-hint">
+              {config.voice.protocol === 'volcano'
+                ? '火山引擎豆包 TTS：Base URL 填 openspeech.bytedance.com，模型名称填资源 ID（如 seed-tts-2.0），音色 ID 从控制台「语音技术 → 音色库」复制；仅支持 MP3 / Opus。'
+                : '通过 OpenAI 兼容的 /audio/speech 接口合成语音（OpenAI、硅基流动等）。'}
+            </p>
+
             <EndpointFields
               prefix="voice-"
-              modelPlaceholder="tts-1"
+              modelPlaceholder={config.voice.protocol === 'volcano' ? 'seed-tts-2.0' : 'tts-1'}
               endpoint={config.voice}
               onChange={updateVoice}
             />
 
             <div className="form-row">
-              <div className="form-group">
-                <FieldLabel htmlFor="voice-type">语音类型</FieldLabel>
-                <select
-                  id="voice-type"
-                  className="form-select"
-                  value={config.voice.voiceType}
-                  onChange={(e) => updateVoice({ voiceType: e.target.value as VoiceType })}
-                >
-                  {VOICE_TYPES.map((v) => (
-                    <option key={v.value} value={v.value}>{v.label}</option>
-                  ))}
-                </select>
-              </div>
+              {config.voice.protocol === 'volcano' ? (
+                <div className="form-group">
+                  <FieldLabel htmlFor="voice-type">音色 ID</FieldLabel>
+                  <input
+                    id="voice-type"
+                    type="text"
+                    className="form-input"
+                    placeholder="从控制台音色库复制，如 zh_female_cancan_mars_bigtts"
+                    value={config.voice.voiceType}
+                    onChange={(e) => updateVoice({ voiceType: e.target.value })}
+                  />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <FieldLabel htmlFor="voice-type">语音类型</FieldLabel>
+                  <select
+                    id="voice-type"
+                    className="form-select"
+                    value={config.voice.voiceType}
+                    onChange={(e) => updateVoice({ voiceType: e.target.value })}
+                  >
+                    {VOICE_TYPES.map((v) => (
+                      <option key={v.value} value={v.value}>{v.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <FieldLabel htmlFor="audio-format">音频格式</FieldLabel>
                 <select
@@ -211,9 +272,11 @@ export function AiConfigPage() {
                   value={config.voice.audioFormat}
                   onChange={(e) => updateVoice({ audioFormat: e.target.value as AudioFormat })}
                 >
-                  {AUDIO_FORMATS.map((f) => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
-                  ))}
+                  {(config.voice.protocol === 'volcano' ? VOLCANO_AUDIO_FORMATS : AUDIO_FORMATS).map(
+                    (f) => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ),
+                  )}
                 </select>
               </div>
             </div>
@@ -234,6 +297,7 @@ export function AiConfigPage() {
               saveId="voice-save-btn"
               endpoint={config.voice}
               mode={config.provider}
+              voice={{ protocol: config.voice.protocol, voiceType: config.voice.voiceType }}
               onSave={() => saveVoiceConfig(config.voice)}
               onTested={setVoiceStatus}
             />

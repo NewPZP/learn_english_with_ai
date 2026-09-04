@@ -9,7 +9,7 @@ import {
 } from '../aiConfig'
 import { getTextAdapter, getVoiceAdapter } from './index'
 import { MockTextAdapter, MockVoiceAdapter } from './mockAdapters'
-import { OpenAiTextAdapter, OpenAiVoiceAdapter } from './realAdapters'
+import { OpenAiTextAdapter, OpenAiVoiceAdapter, VolcanoVoiceAdapter } from './realAdapters'
 import type { Quiz, TextAiAdapter, VoiceAiAdapter } from './types'
 
 /**
@@ -267,5 +267,44 @@ describe('mock / real 切换（工厂路由）', () => {
     saveProviderMode('real')
     const adapter = getTextAdapter({ ...defaultTextConfig, apiKey: 'sk-explicit' })
     expect(adapter).toBeInstanceOf(OpenAiTextAdapter)
+  })
+
+  test('real 模式 + 火山协议 + Key + 音色 ID → VolcanoVoiceAdapter', () => {
+    saveProviderMode('real')
+    saveVoiceConfig({
+      ...defaultVoiceConfig,
+      protocol: 'volcano',
+      apiKey: 'vk-volcano',
+      baseUrl: 'https://openspeech.bytedance.com',
+      modelName: 'seed-tts-2.0',
+      voiceType: 'zh_female_cancan_mars_bigtts',
+    })
+
+    expect(getVoiceAdapter()).toBeInstanceOf(VolcanoVoiceAdapter)
+  })
+
+  test('real 模式 + 火山协议但音色 ID 未填 → 回落 Mock（音色 ID 是必填鉴权参数）', () => {
+    saveProviderMode('real')
+    saveVoiceConfig({
+      ...defaultVoiceConfig,
+      protocol: 'volcano',
+      apiKey: 'vk-volcano',
+      voiceType: '',
+    })
+
+    expect(getVoiceAdapter()).toBeInstanceOf(MockVoiceAdapter)
+  })
+
+  test('旧配置无 protocol 字段 → 回落 openai 协议走 OpenAI 适配器', () => {
+    saveProviderMode('real')
+    // 模拟旧版本存储：写入无 protocol 字段的配置（delete 模拟字段缺失）
+    const legacyVoice: VoiceModelConfig = { ...defaultVoiceConfig, apiKey: 'vk-legacy' }
+    delete (legacyVoice as Partial<VoiceModelConfig>).protocol
+    localStorage.setItem(
+      'linguaai.ai-config',
+      JSON.stringify({ provider: 'real', text: defaultTextConfig, voice: legacyVoice }),
+    )
+
+    expect(getVoiceAdapter()).toBeInstanceOf(OpenAiVoiceAdapter)
   })
 })

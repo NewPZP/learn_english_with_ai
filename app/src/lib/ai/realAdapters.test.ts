@@ -1,9 +1,11 @@
 import { describe, test, expect, vi } from 'vitest'
-import { defaultTextConfig, defaultVoiceConfig } from '../aiConfig'
+import { defaultTextConfig, defaultVoiceConfig, type VoiceModelConfig } from '../aiConfig'
 import {
   OpenAiTextAdapter,
   OpenAiVoiceAdapter,
+  VolcanoVoiceAdapter,
   parseJsonLoose,
+  speedToSpeechRate,
   splitForTts,
   type FetchLike,
 } from './realAdapters'
@@ -210,6 +212,19 @@ describe('OpenAI 文字适配器', () => {
 
     await expect(adapter.extractWords(CONTENT)).rejects.toThrow('模型未返回内容')
   })
+
+  test('输出被 max_tokens 截断（finish_reason=length）时报明确错误', async () => {
+    const truncated = { choices: [{ finish_reason: 'length', message: { content: '[{"word":"con' } }] }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => truncated,
+      text: async () => '',
+    })
+    const adapter = new OpenAiTextAdapter(textConfig(), { fetch: fetchMock as unknown as FetchLike })
+
+    await expect(adapter.extractWords(CONTENT)).rejects.toThrow('Max Tokens 截断')
+  })
 })
 
 describe('splitForTts 超长分块', () => {
@@ -317,5 +332,152 @@ describe('OpenAI 声音适配器', () => {
     expect(results).toHaveLength(2)
     expect(results.every((r) => r.durationMs === 1000)).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('火山豆包 TTS 适配器', () => {
+  /** 火山成功响应：流式音频以 audio content-type 返回 */
+  function volcanoSpeechResponse(): Response {
+    return {
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'audio/mpeg' }),
+      blob: async () => new Blob([new Uint8Array([9, 9, 9])], { type: 'audio/mpeg' }),
+      text: async () => '',
+    } as unknown as Response
+  }
+
+  function volcanoAdapter(
+    fetchMock: ReturnType<typeof vi.fn>,
+    probedMs = 8888,
+    overrides: Partial<VoiceModelConfig> = {},
+  ) {
+    return new VolcanoVoiceAdapter(
+      {
+        ...defaultVoiceConfig,
+        protocol: 'volcano',
+        apiKey: 'volcano-key',
+        baseUrl: 'https://openspeech.bytedance.com/',
+        modelName: 'seed-tts-2.0',
+        voiceType: 'zh_female_cancan_mars_bigtts',
+        audioFormat: 'mp3',
+        speed: 1.2,
+        ...overrides,
+      },
+      { fetch: fetchMock as unknown as FetchLike, probeDurationMs: async () => probedMs },
+    )
+  }
+
+  test('speedToSpeechRate 映射：0.5x→-50 / 1x→0 / 2x→100 / 1.35x→35', () => {
+    expect(speedToSpeechRate(0.5)).toBe(-50)
+    expect(speedToSpeechRate(1)).toBe(0)
+    expect(speedToSpeechRate(2)).toBe(100)
+    expect(speedToSpeechRate(1.35)).toBe(35)
+  })
+
+  test('synthesize 请求 unidirectional 端点，携带火山鉴权头与嵌套请求体', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const adapter = volcanoAdapter(fetchMock)
+
+    const result = await adapter.synthesize('Hello volcano.')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://openspeech.bytedance.com/api/v3/tts/unidirectional',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const headers = init.headers as Record<string, string>
+    expect(headers['X-Api-Key']).toBe('volcano-key')
+    expect(headers['X-Api-Resource-Id']).toBe('seed-tts-2.0')
+    expect(headers['X-Api-Request-Id']).toBeTruthy()
+
+    const body = JSON.parse(String(init.body))
+    expect(body.user).toEqual({ uid: 'linguaai' })
+    expect(body.req_params).toMatchObject({
+      text: 'Hello volcano.',
+      speaker: 'zh_female_cancan_mars_bigtts',
+    })
+    expect(body.req_params.audio_params).toEqual({
+      format: 'mp3',
+      sample_rate: 24000,
+      speech_rate: 20, // 1.2x → (1.2-1)*100
+    })
+
+    expect(result.audioUrl).toMatch(/^data:audio\/mpeg;base64,/)
+    expect(result.mimeType).toBe('audio/mpeg')
+    expect(result.durationMs).toBe(8888)
+  })
+
+  test('音频格式映射：opus → ogg_opus（audio/ogg），aac 回落 mp3', async () => {
+    const opusMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    await volcanoAdapter(opusMock, 0, { audioFormat: 'opus' }).synthesize('Opus case.')
+    const opusBody = JSON.parse(String((opusMock.mock.calls[0] as [string, RequestInit])[1].body))
+    expect(opusBody.req_params.audio_params.format).toBe('ogg_opus')
+
+    const aacMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    await volcanoAdapter(aacMock, 0, { audioFormat: 'aac' }).synthesize('Aac case.')
+    const aacBody = JSON.parse(String((aacMock.mock.calls[0] as [string, RequestInit])[1].body))
+    expect(aacBody.req_params.audio_params.format).toBe('mp3')
+  })
+
+  test('超长文本按 500 字符上限分块请求', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(volcanoSpeechResponse())
+    const adapter = volcanoAdapter(fetchMock, 0)
+
+    const longText = 'This is a sentence for volcano chunk tests. '.repeat(15) // ~750 字符
+    await adapter.synthesize(longText)
+
+    expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(2)
+    for (const call of fetchMock.mock.calls as unknown[] as [string, RequestInit][]) {
+      const body = JSON.parse(String(call[1].body))
+      expect(body.req_params.text.length).toBeLessThanOrEqual(500)
+    }
+  })
+
+  test('200 + JSON 错误响应（火山特有形态）抛出服务端错误信息', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      text: async () => JSON.stringify({ message: 'invalid speaker' }),
+    })
+    const adapter = volcanoAdapter(fetchMock)
+
+    await expect(adapter.synthesize('Hello.')).rejects.toThrow('语音合成失败：invalid speaker')
+  })
+
+  test('HTTP 失败时抛错并带状态码', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: async () => 'forbidden',
+    })
+    const adapter = volcanoAdapter(fetchMock)
+
+    await expect(adapter.synthesize('Hello.')).rejects.toThrow('语音合成失败（HTTP 403）')
+  })
+
+  test('音色 ID 未填写时抛错（引导用户回配置页填写）', async () => {
+    const adapter = volcanoAdapter(vi.fn(), 0, { voiceType: '' })
+    await expect(adapter.synthesize('Hello.')).rejects.toThrow('音色 ID')
+  })
+
+  test('synthesizeAll 串行执行（火山并发限制，任意时刻仅一个在途请求）', async () => {
+    let active = 0
+    let maxActive = 0
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      active++
+      maxActive = Math.max(maxActive, active)
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      active--
+      return volcanoSpeechResponse()
+    })
+    const adapter = volcanoAdapter(fetchMock, 100)
+
+    const results = await adapter.synthesizeAll(['A.', 'B.', 'C.'])
+
+    expect(results).toHaveLength(3)
+    expect(results.every((r) => r.durationMs === 100)).toBe(true)
+    expect(maxActive).toBe(1)
   })
 })

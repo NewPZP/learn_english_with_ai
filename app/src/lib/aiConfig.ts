@@ -5,10 +5,17 @@
  * 存储说明：当前使用 localStorage 明文存储（Web 应用可行方案）；
  * 桌面壳打包后可升级为 Electron safeStorage 等系统级安全存储。
  */
-import { proxied } from './ai/devProxy'
+import { proxied, randomRequestId } from './ai/devProxy'
 
 export type VoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
 export type AudioFormat = 'mp3' | 'opus' | 'aac' | 'flac'
+
+/**
+ * 声音服务协议：
+ * - openai：/audio/speech 兼容端点（OpenAI、硅基流动等）
+ * - volcano：火山豆包 TTS（X-Api-Key 鉴权 + req_params 请求体）
+ */
+export type VoiceProtocol = 'openai' | 'volcano'
 
 /** 数据来源模式：mock 演示数据 / 真实 AI 接口（OpenAI 兼容） */
 export type ProviderMode = 'mock' | 'real'
@@ -28,7 +35,10 @@ export interface TextModelConfig extends ModelEndpoint {
 
 /** 声音模型配置（6 项） */
 export interface VoiceModelConfig extends ModelEndpoint {
-  voiceType: VoiceType
+  /** 服务协议：决定请求格式与鉴权方式（openai / volcano） */
+  protocol: VoiceProtocol
+  /** 音色：OpenAI 协议为枚举值，火山协议为控制台音色库 ID */
+  voiceType: string
   audioFormat: AudioFormat
   speed: number // 0.5–2.0，步进 0.1
 }
@@ -44,7 +54,9 @@ export const defaultTextConfig: TextModelConfig = {
   apiKey: '',
   baseUrl: 'https://api.openai.com/v1',
   modelName: 'gpt-4o',
-  maxTokens: 4096,
+  // 默认 16384：30 词词条 JSON（含中文释义/例句/近义词）实测约 8–10k tokens，
+  // 4096 会截断导致 JSON 解析失败（finish_reason=length）
+  maxTokens: 16384,
   temperature: 0.7,
 }
 
@@ -52,9 +64,21 @@ export const defaultVoiceConfig: VoiceModelConfig = {
   apiKey: '',
   baseUrl: 'https://api.openai.com/v1',
   modelName: 'tts-1',
+  protocol: 'openai',
   voiceType: 'alloy',
   audioFormat: 'mp3',
   speed: 1.0,
+}
+
+/** 火山豆包 TTS 协议默认值（切换协议时套用；音色 ID 需从控制台音色库复制） */
+export const volcanoVoiceDefaults: Pick<
+  VoiceModelConfig,
+  'baseUrl' | 'modelName' | 'voiceType' | 'audioFormat'
+> = {
+  baseUrl: 'https://openspeech.bytedance.com',
+  modelName: 'seed-tts-2.0', // 复用「模型名称」字段作为 X-Api-Resource-Id
+  voiceType: '',
+  audioFormat: 'mp3', // 火山仅支持 mp3 / ogg_opus（aac/flac 回落 mp3）
 }
 
 const STORAGE_KEY = 'linguaai.ai-config'
@@ -68,10 +92,13 @@ export function loadAiConfig(): AiConfig {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultConfig()
     const parsed = JSON.parse(raw) as Partial<AiConfig>
+    const voice = { ...defaultVoiceConfig, ...parsed.voice }
+    // 旧版本配置无 protocol 字段，回落 openai
+    if (voice.protocol !== 'volcano') voice.protocol = 'openai'
     return {
       provider: parsed.provider === 'real' ? 'real' : 'mock',
       text: { ...defaultTextConfig, ...parsed.text },
-      voice: { ...defaultVoiceConfig, ...parsed.voice },
+      voice,
     }
   } catch {
     return defaultConfig()
@@ -135,7 +162,7 @@ async function testMockConnection(
 }
 
 /**
- * 真实连接测试：GET {baseUrl}/models 验证端点与 Key 可用性
+ * 真实连接测试（OpenAI 兼容）：GET {baseUrl}/models 验证端点与 Key 可用性
  * 开发模式下经 /dev-proxy 同源代理转发，绕过浏览器 CORS 限制
  */
 async function testRealConnection(
@@ -163,10 +190,72 @@ async function testRealConnection(
   }
 }
 
-/** 连接测试入口：按数据来源模式分流（mock 模拟 / real 真实请求） */
-export async function testConnection(
-  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>,
-  mode: ProviderMode = 'mock',
+/**
+ * 真实连接测试（火山豆包 TTS）：合成一句极短文本验证 Key 与音色
+ * 火山无 /models 探测端点，端到端合成是最小可行验证（仅 3 字符计费）
+ */
+async function testVolcanoConnection(
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl' | 'modelName'>,
+  voiceType: string,
 ): Promise<ConnectionTestResult> {
+  if (!endpoint.apiKey.trim()) {
+    return { ok: false, latencyMs: 0, message: 'API Key 未填写' }
+  }
+  if (!voiceType.trim()) {
+    return { ok: false, latencyMs: 0, message: '音色 ID 未填写（从火山控制台音色库复制）' }
+  }
+  const start = Date.now()
+  try {
+    const response = await fetch(
+      proxied(`${endpoint.baseUrl.replace(/\/+$/, '')}/api/v3/tts/unidirectional`),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': endpoint.apiKey,
+          'X-Api-Resource-Id': endpoint.modelName,
+          'X-Api-Request-Id': randomRequestId(),
+        },
+        body: JSON.stringify({
+          user: { uid: 'linguaai' },
+          req_params: {
+            text: 'Hi.',
+            speaker: voiceType,
+            audio_params: { format: 'mp3', sample_rate: 24000, speech_rate: 0 },
+          },
+        }),
+      },
+    )
+    const latencyMs = Date.now() - start
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      const message = detail ? `HTTP ${response.status}：${detail.slice(0, 120)}` : `服务返回 HTTP ${response.status}`
+      return { ok: false, latencyMs, message }
+    }
+    return { ok: true, latencyMs, message: '连接正常' }
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      message: err instanceof Error ? err.message : '网络请求失败',
+    }
+  }
+}
+
+/**
+ * 连接测试入口：按数据来源模式分流（mock 模拟 / real 真实请求）
+ * real 模式下声音模型若为火山协议，走火山专用的端到端合成验证
+ */
+export async function testConnection(
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'> & Partial<Pick<ModelEndpoint, 'modelName'>>,
+  mode: ProviderMode = 'mock',
+  voice?: Pick<VoiceModelConfig, 'protocol' | 'voiceType'>,
+): Promise<ConnectionTestResult> {
+  if (mode === 'real' && voice?.protocol === 'volcano') {
+    return testVolcanoConnection(
+      { modelName: 'seed-tts-2.0', ...endpoint },
+      voice.voiceType,
+    )
+  }
   return mode === 'real' ? testRealConnection(endpoint) : testMockConnection(endpoint)
 }

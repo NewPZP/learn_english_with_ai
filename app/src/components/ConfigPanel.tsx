@@ -5,6 +5,7 @@ import {
   type ConnectionTestResult,
   type ModelEndpoint,
   type ProviderMode,
+  type VoiceModelConfig,
 } from '../lib/aiConfig'
 
 /* ---- 小控件 ---- */
@@ -171,19 +172,21 @@ export function RangeField({
 interface PanelActionsProps {
   testId: string
   saveId: string
-  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'>
+  endpoint: Pick<ModelEndpoint, 'apiKey' | 'baseUrl'> & Partial<Pick<ModelEndpoint, 'modelName'>>
   mode: ProviderMode
+  /** 声音面板传入：火山协议走端到端合成验证 */
+  voice?: Pick<VoiceModelConfig, 'protocol' | 'voiceType'>
   onSave: () => void
   onTested: (result: ConnectionTestResult) => void
 }
 
-export function PanelActions({ testId, saveId, endpoint, mode, onSave, onTested }: PanelActionsProps) {
+export function PanelActions({ testId, saveId, endpoint, mode, voice, onSave, onTested }: PanelActionsProps) {
   const [testing, setTesting] = useState(false)
 
   const handleTest = async () => {
     setTesting(true)
     try {
-      const result = await testConnection(endpoint, mode)
+      const result = await testConnection(endpoint, mode, voice)
       onTested(result)
     } finally {
       setTesting(false)

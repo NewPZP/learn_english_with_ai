@@ -27,3 +27,12 @@ export function proxied(url: string): string {
     return url
   }
 }
+
+/**
+ * 生成随机请求 ID（火山 TTS 的 X-Api-Request-Id）。
+ * crypto.randomUUID 在部分环境（jsdom 测试环境）不可用，降级为时间戳 + 随机数。
+ */
+export function randomRequestId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}

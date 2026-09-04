@@ -1,12 +1,14 @@
 /**
- * OpenAI 兼容真实适配器（mock / real 切换的 real 侧）
- * - 文字适配器：POST {baseUrl}/chat/completions，提示词约束 JSON 输出，
+ * 真实 AI 适配器（mock / real 切换的 real 侧）
+ * - 文字适配器（OpenAI 兼容）：POST {baseUrl}/chat/completions，提示词约束 JSON 输出，
  *   宽松解析（容错代码围栏 / 单键对象包裹 / 前后杂文）
- * - 声音适配器：POST {baseUrl}/audio/speech，超长文本按句边界分块请求后拼接音频
+ * - 声音适配器（OpenAI 兼容）：POST {baseUrl}/audio/speech，超长文本按句边界分块请求后拼接音频
+ * - 声音适配器（火山豆包 TTS）：POST {baseUrl}/api/v3/tts/unidirectional，
+ *   X-Api-Key 鉴权 + req_params 嵌套请求体，流式响应读完整音频
  * 依赖注入：fetch 与音源时长探测均可在构造时替换（测试接缝，jsdom 不触发真实网络）
  */
 import type { TextModelConfig, VoiceModelConfig } from '../aiConfig'
-import { proxied } from './devProxy'
+import { proxied, randomRequestId } from './devProxy'
 import type {
   PhraseEntry,
   Quiz,
@@ -148,13 +150,22 @@ export class OpenAiTextAdapter implements TextAiAdapter {
       throw new Error(`文字模型请求失败（HTTP ${response.status}）${brief(detail)}`)
     }
     const payload = (await response.json()) as {
-      choices?: Array<{ message?: { content?: unknown } }>
+      choices?: Array<{ finish_reason?: string; message?: { content?: unknown } }>
     }
-    const message = payload?.choices?.[0]?.message?.content
+    const choice = payload?.choices?.[0]
+    const message = choice?.message?.content
     if (typeof message !== 'string' || !message.trim()) {
       throw new Error('模型未返回内容，请重试')
     }
-    return parseJsonLoose(message)
+    try {
+      return parseJsonLoose(message)
+    } catch (err) {
+      // finish_reason=length 表示输出被 max_tokens 截断，JSON 必然不完整
+      if (choice?.finish_reason === 'length') {
+        throw new Error('模型输出被 Max Tokens 截断，请在 AI 配置页调大 Max Tokens 后重试')
+      }
+      throw err
+    }
   }
 
   async extractWords(content: string): Promise<WordEntry[]> {
@@ -375,5 +386,119 @@ export class OpenAiVoiceAdapter implements VoiceAiAdapter {
 
   async synthesizeAll(texts: string[]): Promise<TtsResult[]> {
     return Promise.all(texts.map((text) => this.synthesize(text)))
+  }
+}
+
+/* ---- 火山豆包 TTS 适配器 ---- */
+
+/**
+ * 火山单次请求文本上限按保守值切分（官方文档未明示大模型 TTS 的单请求上限，
+ * 按句边界 500 字符分块可稳定工作；英文一句约 60–100 字符）
+ */
+const VOLCANO_TTS_MAX_CHARS = 500
+
+/** 语速映射：应用 0.5–2.0 倍速 → 火山 speech_rate [-50, 100]（100=2x，-50=0.5x） */
+export function speedToSpeechRate(speed: number): number {
+  return Math.round((speed - 1) * 100)
+}
+
+/** 音频格式映射：火山仅支持 mp3 / ogg_opus（aac / flac 回落 mp3） */
+function volcanoAudioFormat(format: string): 'mp3' | 'ogg_opus' {
+  return format === 'opus' ? 'ogg_opus' : 'mp3'
+}
+
+const VOLCANO_AUDIO_MIME: Record<string, string> = {
+  mp3: 'audio/mpeg',
+  ogg_opus: 'audio/ogg',
+}
+
+/** 宽松提取火山错误信息：常见 {message} / {error:{message}} 形态，解析失败返回原文 */
+function extractVolcanoError(raw: string): string {
+  const parsed = tryParse(raw)
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    const record = parsed as Record<string, unknown>
+    if (typeof record.message === 'string') return record.message
+    const error = record.error
+    if (error && typeof error === 'object' && typeof (error as Record<string, unknown>).message === 'string') {
+      return String((error as Record<string, unknown>).message)
+    }
+  }
+  return raw
+}
+
+export class VolcanoVoiceAdapter implements VoiceAiAdapter {
+  readonly config: VoiceModelConfig
+  private readonly fetchImpl: FetchLike
+  private readonly probeDurationMs: (audioUrl: string) => Promise<number>
+
+  constructor(config: VoiceModelConfig, options: RealAdapterOptions = {}) {
+    this.config = config
+    this.fetchImpl = options.fetch ?? ((...args) => globalThis.fetch(...args))
+    this.probeDurationMs = options.probeDurationMs ?? probeViaAudioElement
+  }
+
+  /** 单块语音合成请求（火山 /api/v3/tts/unidirectional，流式响应由 fetch 读完整） */
+  private async requestSpeech(chunk: string): Promise<Blob> {
+    const response = await this.fetchImpl(
+      proxied(`${trimSlash(this.config.baseUrl)}/api/v3/tts/unidirectional`),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': this.config.apiKey,
+          // 「模型名称」字段复用为资源 ID（seed-tts-2.0 / seed-icl-2.0）
+          'X-Api-Resource-Id': this.config.modelName,
+          'X-Api-Request-Id': randomRequestId(),
+        },
+        body: JSON.stringify({
+          user: { uid: 'linguaai' },
+          req_params: {
+            text: chunk,
+            speaker: this.config.voiceType,
+            audio_params: {
+              format: volcanoAudioFormat(this.config.audioFormat),
+              sample_rate: 24000,
+              speech_rate: speedToSpeechRate(this.config.speed),
+            },
+          },
+        }),
+      },
+    )
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new Error(`语音合成失败（HTTP ${response.status}）${brief(detail)}`)
+    }
+    // 火山部分错误以 200 + JSON 返回，需按 content-type 分流识别
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType.includes('json')) {
+      const detail = extractVolcanoError(await response.text())
+      throw new Error(`语音合成失败${brief(detail)}`)
+    }
+    return response.blob()
+  }
+
+  async synthesize(text: string): Promise<TtsResult> {
+    assertNonEmptyText(text, '待合成文本')
+    assertNonEmptyText(this.config.voiceType, '音色 ID（请在 AI 配置页填写）')
+    const format = volcanoAudioFormat(this.config.audioFormat)
+    const mimeType = VOLCANO_AUDIO_MIME[format]
+    const chunks = splitForTts(text, VOLCANO_TTS_MAX_CHARS)
+    const blobs: Blob[] = []
+    for (const chunk of chunks) {
+      blobs.push(await this.requestSpeech(chunk))
+    }
+    const audioUrl = await blobToDataUri(new Blob(blobs, { type: mimeType }))
+    const probed = await this.probeDurationMs(audioUrl)
+    const durationMs = probed > 0 ? probed : estimateDurationMs(text, this.config.speed)
+    return { audioUrl, mimeType, durationMs }
+  }
+
+  /** 逐条串行合成：火山 TTS 有较严格的并发限制，避免同时突发多请求 */
+  async synthesizeAll(texts: string[]): Promise<TtsResult[]> {
+    const results: TtsResult[] = []
+    for (const text of texts) {
+      results.push(await this.synthesize(text))
+    }
+    return results
   }
 }
