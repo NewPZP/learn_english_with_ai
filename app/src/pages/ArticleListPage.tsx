@@ -61,14 +61,8 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
           progress={progress.words}
         />
         <ProgressRow
-          label="播客"
-          testId="card-progress-podcast"
-          value={`${progress.podcast.percent}%`}
-          progress={progress.podcast}
-        />
-        <ProgressRow
-          label="听力训练"
-          testId="card-progress-listening"
+          label="深入学习"
+          testId="card-progress-deep"
           value={`${progress.listening.done}/${progress.listening.total}`}
           progress={progress.listening}
         />
@@ -116,7 +110,7 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
 
 /**
  * 文章列表页：统计栏 + 双列卡片网格 + 空态
- * 卡片回显三模式真实进度（单词预习 x/y、播客百分比、听力训练 x/y），
+ * 卡片回显两模式真实进度（单词预习 x/y、深入学习 x/y），
  * 统计栏「今日学习分钟数」来自当日累计学习时长（跨天归零）
  */
 export function ArticleListPage() {

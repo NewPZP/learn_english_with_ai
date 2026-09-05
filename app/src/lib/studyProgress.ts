@@ -191,8 +191,9 @@ export function toModeProgress(done: number, total: number): ModeProgress {
 }
 
 /**
- * 汇聚某篇文章三模式真实进度：
- * 单词预习取自评记录、播客取收听位置、听力训练取已作答句数
+ * 汇聚某篇文章各模式真实进度：
+ * 单词预习取自评记录、播客取收听位置（用于续播，卡片不单独展示）、
+ * 深入学习取已掌握句数（卡片展示为「深入学习 x/y」）
  */
 export function computeArticleProgress(article: Article): ArticleProgress {
   const wordList = (article.processing?.words ?? []).map((w) => w.word)

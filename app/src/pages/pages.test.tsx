@@ -693,22 +693,21 @@ describe('学习进度闭环（工单 #11）', () => {
     )
   }
 
-  test('E2E：完成预习/播客/精听行为 → 返回列表 → 卡片进度正确回显', async () => {
+  test('E2E：完成预习/深入学习行为 → 返回列表 → 卡片进度正确回显', async () => {
     const user = userEvent.setup()
     seedProcessedArticle()
     renderAtRoute('/articles')
 
     // 初始卡片进度全 0
     expect(screen.getByTestId('card-progress-words')).toHaveTextContent('0/3')
-    expect(screen.getByTestId('card-progress-podcast')).toHaveTextContent('0%')
-    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('0/2')
+    expect(screen.getByTestId('card-progress-deep')).toHaveTextContent('0/2')
 
     // 1) 单词预习：自评首词「认识」→ 1/3
     await user.click(screen.getByRole('link', { name: /单词预习/ }))
     await user.click(screen.getByTestId('rate-known'))
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
-    // 2) 深入学习（收听）：拖动进度条到 5s/10s → 50%
+    // 2) 深入学习（收听）：拖动进度条到 5s/10s → 收听进度持久化（用于续播，卡片不单独展示）
     await user.click(screen.getByRole('link', { name: /深入学习/ }))
     fireEvent.change(screen.getByTestId('progress-slider'), { target: { value: '5000' } })
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
@@ -724,13 +723,11 @@ describe('学习进度闭环（工单 #11）', () => {
     }
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
-    // 返回列表：三模式进度回显真实数据，进度条填充与数值一致
+    // 返回列表：单词预习 + 深入学习进度回显真实数据，进度条填充与数值一致
     expect(await screen.findByTestId('card-progress-words')).toHaveTextContent('1/3')
     expect(screen.getByTestId('card-progress-words-fill')).toHaveStyle({ width: '33%' })
-    expect(screen.getByTestId('card-progress-podcast')).toHaveTextContent('50%')
-    expect(screen.getByTestId('card-progress-podcast-fill')).toHaveStyle({ width: '50%' })
-    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('1/2')
-    expect(screen.getByTestId('card-progress-listening-fill')).toHaveStyle({ width: '50%' })
+    expect(screen.getByTestId('card-progress-deep')).toHaveTextContent('1/2')
+    expect(screen.getByTestId('card-progress-deep-fill')).toHaveStyle({ width: '50%' })
   })
 
   test('今日学习分钟数按当天累计显示，跨天归零', () => {
