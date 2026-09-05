@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, MemoryRouter, Route, Routes } from 'react-router-dom'
 import { App } from '../App'
 import { ImportArticlePage } from './ImportArticlePage'
 import { ArticleListPage } from './ArticleListPage'
@@ -13,6 +13,33 @@ import { dateKey } from '../lib/studyProgress'
 function renderAtRoute(route: string) {
   window.history.replaceState({}, '', route)
   return render(<App />)
+}
+
+type User = ReturnType<typeof userEvent.setup>
+
+/**
+ * 经卡片「AI 预处理」进入加工页，依次独立触发三步（提取单词/短语/生成语音），
+ * 每步等待完成且按钮恢复可用（running 已清除），再返回列表。
+ * 产物经 mergeProcessing 持久化，供后续单词预习/播客/听力训练消费。
+ */
+async function processViaAiPreprocess(user: User) {
+  await user.click(screen.getByRole('link', { name: /AI 预处理/ }))
+  await screen.findByTestId('ai-processing-panel')
+
+  await user.click(screen.getByTestId('process-words'))
+  await screen.findByText('已提取 32 个单词')
+  await waitFor(() => expect(screen.getByTestId('process-words')).toBeEnabled())
+
+  await user.click(screen.getByTestId('process-phrases'))
+  await screen.findByText('已提取 8 个短语')
+  await waitFor(() => expect(screen.getByTestId('process-phrases')).toBeEnabled())
+
+  await user.click(screen.getByTestId('process-audio'))
+  await screen.findByText(/语音已生成（约 \d+ 秒）/)
+  await waitFor(() => expect(screen.getByTestId('process-audio')).toBeEnabled())
+
+  await user.click(screen.getByRole('button', { name: /返回列表/ }))
+  expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
 }
 
 /**
@@ -66,7 +93,7 @@ describe('导入页', () => {
 describe('导入 → 列表完整流程', () => {
   beforeEach(() => localStorage.clear())
 
-  test('粘贴文本 → 完成导入 → 三步流转完成 → 预览可见 → 回列表见新卡片', async () => {
+  test('粘贴文本 → 完成导入（只存文本）→ AI 预处理三步独立完成 → 预览可见 → 产物持久化', async () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
@@ -78,37 +105,54 @@ describe('导入 → 列表完整流程', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     expect(screen.getByRole('heading', { name: '导入文章' }))
 
-    // 粘贴文本并提交
+    // 粘贴文本并完成导入：仅保存纯文本，不触发 AI，保存后回列表
     const textarea = screen.getByLabelText('粘贴文章内容')
     await user.type(textarea, 'The quick brown fox jumps over the lazy dog.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
 
-    // AI 处理面板出现，三步依次流转完成（结果计数）
-    expect(screen.getByTestId('ai-processing-panel')).toBeInTheDocument()
-    expect(await screen.findByText('已提取 32 个单词')).toBeInTheDocument()
-    expect(screen.getByText('已提取 8 个短语')).toBeInTheDocument()
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    // 导入后无 processing（首次只存文本）
+    const stored0 = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored0).toHaveLength(1)
+    expect(stored0[0].processing).toBeUndefined()
 
-    // 生词 chip（单词 + 音标 + 中文释义）与短语（原文 + 释义）预览可见
+    // 经卡片「AI 预处理」进入加工页，三步初始均为待处理
+    await user.click(screen.getByRole('link', { name: /AI 预处理/ }))
+    expect(screen.getByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
+    expect(screen.getByTestId('ai-processing-panel')).toBeInTheDocument()
+    expect(screen.getByTestId('step-words')).toHaveTextContent('待处理')
+    expect(screen.getByTestId('step-phrases')).toHaveTextContent('待处理')
+    expect(screen.getByTestId('step-audio')).toHaveTextContent('待处理')
+
+    // 依次独立触发三步（互不依赖）；每步完成后产物即时持久化（部分合并，保留其它产物）
+    await user.click(screen.getByTestId('process-words'))
+    expect(await screen.findByText('已提取 32 个单词')).toBeInTheDocument()
     expect(screen.getByTestId('word-preview')).toBeInTheDocument()
     expect(screen.getByText('procrastination')).toBeInTheDocument()
-    expect(screen.getByText('/prəˌkræstɪˈneɪʃən/')).toBeInTheDocument()
     expect(screen.getByText('拖延症')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('process-words')).toBeEnabled())
+
+    await user.click(screen.getByTestId('process-phrases'))
+    expect(await screen.findByText('已提取 8 个短语')).toBeInTheDocument()
     expect(screen.getByTestId('phrase-preview')).toBeInTheDocument()
     expect(screen.getByText('instant gratification')).toBeInTheDocument()
     expect(screen.getByText('即时满足')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('process-phrases')).toBeEnabled())
 
-    // 处理产物持久化并与文章关联（含整篇语音音源，供播客/精听消费）
+    await user.click(screen.getByTestId('process-audio'))
+    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('process-audio')).toBeEnabled())
+
+    // 处理产物部分合并持久化（words/phrases/sentences/audio 齐备）
     const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
-    expect(stored).toHaveLength(1)
     expect(stored[0].processing.words).toHaveLength(32)
     expect(stored[0].processing.phrases).toHaveLength(8)
     expect(stored[0].processing.sentences.length).toBeGreaterThanOrEqual(5)
     expect(stored[0].processing.audio.audioUrl).toMatch(/^data:audio\/wav;base64,/)
     expect(stored[0].processing.audio.durationMs).toBeGreaterThan(0)
 
-    // 经侧边栏返回列表，新卡片出现（卡片标题为首句推导）
-    await user.click(screen.getByRole('link', { name: '文章' }))
+    // 返回列表见新卡片（卡片标题为首句推导）
+    await user.click(screen.getByRole('button', { name: /返回列表/ }))
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
     expect(screen.getByText('The quick brown fox jumps over the lazy dog')).toBeInTheDocument()
   })
@@ -170,6 +214,7 @@ describe('文章卡片', () => {
     expect(screen.getByText('Intermediate')).toBeInTheDocument()
 
     // data-dom-id 锚点位于卡片内
+    expect(document.querySelector('[data-dom-id="cta-ai-process"]')).toBeInTheDocument()
     expect(document.querySelector('[data-dom-id="cta-word-preview"]')).toBeInTheDocument()
     expect(document.querySelector('[data-dom-id="cta-podcast"]')).toBeInTheDocument()
     expect(document.querySelector('[data-dom-id="cta-intensive-listening"]')).toBeInTheDocument()
@@ -304,26 +349,41 @@ describe('导入 AI 处理管道（页面级）', () => {
       </BrowserRouter>,
     )
     expect(screen.queryByTestId('ai-processing-panel')).not.toBeInTheDocument()
-    expect(screen.getByText(/AI 将自动提取生词、短语并生成语音/)).toBeInTheDocument()
+    expect(screen.getByText(/导入后可在文章卡片点/)).toBeInTheDocument()
   })
 
-  test('处理进行中「完成导入」禁用，防止重复导入', async () => {
+  test('完成导入即时保存并返回列表，不触发 AI 处理', async () => {
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <ImportArticlePage />
-      </BrowserRouter>,
-    )
+    renderAtRoute('/articles')
+
+    await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'Some English content here.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
 
-    expect(await screen.findByText('已提取 32 个单词')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /已导入/ })).toBeDisabled()
+    // 即时回到列表，文章已存入但未加工
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored[0].processing).toBeUndefined()
   })
 
-  test('单步失败展示错误态与重试入口，重试后完成并持久化产物', async () => {
+  test('加工页单步失败展示错误态与重试入口，重试后完成并持久化该步产物', async () => {
     const user = userEvent.setup()
-    // 接缝：注入首调失败、重试成功的适配器
+    // 种子文章 a1（无 processing）供加工模式加载
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Some English content here',
+          source: '粘贴文本',
+          content: 'Some English content here.',
+          wordCount: 4,
+          difficulty: 'Beginner',
+          createdAt: '2026-09-03',
+        },
+      ]),
+    )
+    // 接缝：注入首调失败、重试成功的适配器（仅 phrases 会失败一次）
     const text = new MockTextAdapter(defaultTextConfig)
     const voice = new MockVoiceAdapter(defaultVoiceConfig)
     const extractPhrases = text.extractPhrases.bind(text)
@@ -336,33 +396,84 @@ describe('导入 AI 处理管道（页面级）', () => {
     const adapters: PipelineAdapters = { text, voice }
 
     render(
-      <BrowserRouter>
-        <ImportArticlePage adapters={adapters} />
-      </BrowserRouter>,
+      <MemoryRouter initialEntries={['/articles/a1/process']}>
+        <Routes>
+          <Route path="/articles/:id/process" element={<ImportArticlePage adapters={adapters} />} />
+        </Routes>
+      </MemoryRouter>,
     )
 
-    await user.type(screen.getByLabelText('粘贴文章内容'), 'Some English content here.')
-    await user.click(screen.getByRole('button', { name: /完成导入/ }))
+    expect(await screen.findByTestId('ai-processing-panel')).toBeInTheDocument()
 
-    // 第一步完成、第二步失败：错误消息 + 重试按钮可见，第三步保持待处理
+    // 单独触发 phrases：失败 → 错误消息 + 重试入口，words/audio 保持待处理（互不依赖）
+    await user.click(screen.getByTestId('process-phrases'))
     expect(await screen.findByTestId('step-phrases-error')).toHaveTextContent('短语服务超时')
-    expect(screen.getByText('已提取 32 个单词')).toBeInTheDocument()
-    expect(screen.getByTestId('retry-phrases')).toBeInTheDocument()
+    expect(screen.getByTestId('process-phrases')).toHaveTextContent('重试')
+    expect(screen.getByTestId('step-words')).toHaveTextContent('待处理')
     expect(screen.getByTestId('step-audio')).toHaveTextContent('待处理')
     // 失败时无短语预览，产物未持久化
     expect(screen.queryByTestId('phrase-preview')).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')[0].processing).toBeUndefined()
 
-    // 重试该步：从失败步骤续跑直至完成
-    await user.click(screen.getByTestId('retry-phrases'))
+    // 重试该步：成功后短语产物部分合并持久化（words/audio 仍空，验证单步独立）
+    await user.click(screen.getByTestId('process-phrases'))
     expect(await screen.findByText('已提取 8 个短语')).toBeInTheDocument()
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
     expect(screen.getByTestId('phrase-preview')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('process-phrases')).toBeEnabled())
 
-    // 完成后产物持久化关联到文章
+    const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored[0].processing.phrases).toHaveLength(8)
+    expect(stored[0].processing.words).toEqual([])
+    expect(stored[0].processing.audio).toBeUndefined()
+  })
+
+  test('重提单词覆盖旧词表且不清空已有短语/音频', async () => {
+    const user = userEvent.setup()
+    // 种子文章 a1：已有 words(3)/phrases(1)/audio，验证重提 words 不扰动其它产物
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Some English content here',
+          source: '粘贴文本',
+          content: 'Some English content here.',
+          wordCount: 4,
+          difficulty: 'Beginner',
+          createdAt: '2026-09-03',
+          processing: {
+            words: [{ word: 'old', phonetic: '', partOfSpeech: '', definition: '', translation: '', example: '', synonyms: [] }],
+            phrases: [{ phrase: 'keep me', definition: '', translation: '保留', example: '' }],
+            sentences: [{ text: 's', startMs: 0, endMs: 1000 }],
+            audio: { audioUrl: 'data:audio/wav;base64,old', mimeType: 'audio/wav', durationMs: 1000 },
+          },
+        },
+      ]),
+    )
+
+    render(
+      <MemoryRouter initialEntries={['/articles/a1/process']}>
+        <Routes>
+          <Route path="/articles/:id/process" element={<ImportArticlePage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    // 进入加工页即见已有产物状态（words/phrases/audio 均 done）
+    expect(await screen.findByTestId('ai-processing-panel')).toBeInTheDocument()
+    expect(screen.getByTestId('step-words')).toHaveTextContent('已提取 1 个单词')
+    expect(screen.getByTestId('step-phrases')).toHaveTextContent('已提取 1 个短语')
+    expect(screen.getByTestId('step-audio')).toHaveTextContent(/语音已生成/)
+
+    // 重提 words：旧 1 词被覆盖为 mock 的 32 词；phrases(1)/audio 保留
+    await user.click(screen.getByTestId('process-words'))
+    expect(await screen.findByText('已提取 32 个单词')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('process-words')).toBeEnabled())
+
     const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored[0].processing.words).toHaveLength(32)
-    expect(stored[0].processing.phrases).toHaveLength(8)
+    expect(stored[0].processing.phrases).toHaveLength(1)
+    expect(stored[0].processing.audio.audioUrl).toBe('data:audio/wav;base64,old')
   })
 })
 
@@ -376,11 +487,11 @@ describe('导入 → 单词预习完整链路', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
-
-    // 回列表，从卡片进入单词预习
-    await user.click(screen.getByRole('link', { name: '文章' }))
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    // 经 AI 预处理完成三步加工后回列表
+    await processViaAiPreprocess(user)
+
+    // 从卡片进入单词预习
     await user.click(screen.getByRole('link', { name: /单词预习/ }))
 
     // 32 个处理产物词全部进入预习
@@ -403,15 +514,14 @@ describe('导入 → 单词预习完整链路', () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
-    // 导入并等待处理完成（音源 + 时间轴已持久化）
+    // 导入并经 AI 预处理完成加工（音源 + 时间轴已持久化）
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
-
-    // 回列表进入播客模式
-    await user.click(screen.getByRole('link', { name: '文章' }))
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await processViaAiPreprocess(user)
+
+    // 进入播客模式
     await user.click(screen.getByRole('link', { name: /播客/ }))
 
     // 信息卡与字幕区渲染，句子列表与字幕同步高亮首句
@@ -441,15 +551,14 @@ describe('导入 → 单词预习完整链路', () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
-    // 导入并等待处理完成（分句 + 生词/短语 + 音源已持久化）
+    // 导入并经 AI 预处理完成加工（分句 + 生词/短语 + 音源已持久化）
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
-
-    // 回列表进入听力训练
-    await user.click(screen.getByRole('link', { name: '文章' }))
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await processViaAiPreprocess(user)
+
+    // 进入听力训练
     await user.click(screen.getByRole('link', { name: /听力训练/ }))
 
     // 默认难度「重要词语」：首句无命中词语 → 空态提示 + 提交禁用
@@ -497,15 +606,14 @@ describe('导入 → 单词预习完整链路', () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
-    // 导入并等待处理完成
+    // 导入并经 AI 预处理完成加工
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText(/语音已生成（约 \d+ 秒）/)).toBeInTheDocument()
+    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    await processViaAiPreprocess(user)
 
     // 进入听力训练，切到听力挑战 Tab
-    await user.click(screen.getByRole('link', { name: '文章' }))
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
     await user.click(screen.getByRole('link', { name: /听力训练/ }))
     await user.click(screen.getByText('听力挑战'))
 

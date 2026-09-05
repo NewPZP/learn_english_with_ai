@@ -16,6 +16,7 @@ import { routes } from './routes'
  * /articles/:id/words    → 单词预习
  * /articles/:id/podcast  → 播客模式
  * /articles/:id/listening→ 听力训练
+ * /articles/:id/process  → AI 预处理（加工页，复用导入页双模式）
  * /ai-config             → AI 配置
  */
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
           <Route path="/articles/:id/words" element={<WordPreviewPage />} />
           <Route path="/articles/:id/podcast" element={<PodcastPage />} />
           <Route path="/articles/:id/listening" element={<IntensiveListeningPage />} />
+          <Route path="/articles/:id/process" element={<ImportArticlePage />} />
           <Route path={routes.aiConfig} element={<AiConfigPage />} />
           <Route path="*" element={<Navigate to={routes.articles} replace />} />
         </Route>

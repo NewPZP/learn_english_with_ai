@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { BookOpen, Check, Minus, Rotate3d, X } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { BookOpen, Check, Minus, Rotate3d, Sparkles, X } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle } from '../lib/articles'
+import { routes } from '../routes'
 import type { WordEntry } from '../lib/ai'
 import {
   computeStats,
@@ -276,14 +277,27 @@ export function WordPreviewPage() {
   }
 
   if (!article || words.length === 0) {
+    const missing = article && words.length === 0
     return (
       <>
         <PageTopbar title="单词预习" right={<span className="topbar-progress nums">0 / 0</span>} />
         <div className="app-content-inner">
           <div className="empty-state" data-testid="word-preview-empty">
             <BookOpen size={32} />
-            <span className="empty-state-title">暂无可预习的单词</span>
-            <span className="empty-state-hint">请先导入文章并完成 AI 处理</span>
+            <span className="empty-state-title">{missing ? '本文尚未提取单词' : '暂无可预习的单词'}</span>
+            <span className="empty-state-hint">
+              {missing ? '先用 AI 预处理提取单词，再回来预习' : '请先导入文章'}
+            </span>
+            {missing && (
+              <Link
+                to={routes.articleProcess(article.id)}
+                className="function-btn function-btn-primary"
+                data-dom-id="cta-ai-process"
+              >
+                <Sparkles size={16} />
+                <span>去 AI 预处理</span>
+              </Link>
+            )}
           </div>
         </div>
       </>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, Headphones, Ear, FileText, Trash2 } from 'lucide-react'
+import { Plus, BookOpen, Headphones, Ear, FileText, Sparkles, Trash2 } from 'lucide-react'
 import { loadArticles, deleteArticle, type Article } from '../lib/articles'
 import { computeArticleProgress, getTodayStudyMs, type ModeProgress } from '../lib/studyProgress'
 import { routes } from '../routes'
@@ -75,6 +75,14 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
       </div>
 
       <div className="btn-row">
+        <Link
+          to={routes.articleProcess(article.id)}
+          data-dom-id="cta-ai-process"
+          className="function-btn function-btn-secondary"
+        >
+          <Sparkles />
+          <span>AI 预处理</span>
+        </Link>
         <Link
           to={routes.articleWords(article.id)}
           data-dom-id="cta-word-preview"

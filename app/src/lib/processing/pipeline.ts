@@ -91,6 +91,39 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
+/** 按 step 生成完成摘要文案；execStep 与加工页初始状态推导共用，避免文案双写 */
+export function summarizeStep(step: StepId, state: PipelineState): string {
+  if (step === 'words') return `已提取 ${state.words.length} 个单词`
+  if (step === 'phrases') return `已提取 ${state.phrases.length} 个短语`
+  const seconds = Math.round((state.audio?.durationMs ?? 0) / 1000)
+  return `语音已生成（约 ${seconds} 秒）`
+}
+
+/**
+ * 执行单个 step 的适配器调用并把产物写回 state：
+ * words → extractWords；phrases → extractPhrases；audio → splitSentences + synthesize（并等比缩放时间轴）。
+ * 成功置 done + summary，失败置 error（不抛出，由调用方决定后续）。
+ */
+async function execStep(
+  state: PipelineState,
+  step: StepId,
+  content: string,
+  adapters: PipelineAdapters,
+): Promise<void> {
+  if (step === 'words') {
+    state.words = await adapters.text.extractWords(content)
+  } else if (step === 'phrases') {
+    state.phrases = await adapters.text.extractPhrases(content)
+  } else {
+    // 语音步骤同时产出句级分句（时间轴供播客字幕/逐句精听消费），
+    // 并将估算时间轴等比缩放到 TTS 真实时长
+    state.sentences = await adapters.text.splitSentences(content)
+    state.audio = await adapters.voice.synthesize(content)
+    state.sentences = fitSentencesToDuration(state.sentences, state.audio.durationMs)
+  }
+  state.steps[step] = { status: 'done', summary: summarizeStep(step, state) }
+}
+
 /**
  * 执行（或续跑）处理管道：
  * ① extractWords → ② extractPhrases → ③ splitSentences + synthesize
@@ -122,21 +155,7 @@ export async function runPipeline(
     notify()
 
     try {
-      if (step === 'words') {
-        state.words = await adapters.text.extractWords(content)
-        state.steps[step] = { status: 'done', summary: `已提取 ${state.words.length} 个单词` }
-      } else if (step === 'phrases') {
-        state.phrases = await adapters.text.extractPhrases(content)
-        state.steps[step] = { status: 'done', summary: `已提取 ${state.phrases.length} 个短语` }
-      } else {
-        // 语音步骤同时产出句级分句（时间轴供播客字幕/逐句精听消费），
-        // 并将估算时间轴等比缩放到 TTS 真实时长
-        state.sentences = await adapters.text.splitSentences(content)
-        state.audio = await adapters.voice.synthesize(content)
-        state.sentences = fitSentencesToDuration(state.sentences, state.audio.durationMs)
-        const seconds = Math.round(state.audio.durationMs / 1000)
-        state.steps[step] = { status: 'done', summary: `语音已生成（约 ${seconds} 秒）` }
-      }
+      await execStep(state, step, content, adapters)
       notify()
     } catch (err) {
       state.steps[step] = { status: 'error', error: errorMessage(err) }
@@ -146,4 +165,42 @@ export async function runPipeline(
   }
 
   return { ...state, steps: { ...state.steps }, completed: true }
+}
+
+/**
+ * 单步执行：只跑指定 step，其余 step 状态保持不变。
+ * 用于「AI 预处理」加工页的独立操作——用户可单独提取单词/短语/音频，
+ * 互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）。
+ * completed 仅反映目标 step 是否成功，与其它 step 状态无关。
+ */
+export async function runPipelineStep(
+  content: string,
+  adapters: PipelineAdapters,
+  step: StepId,
+  options: RunPipelineOptions = {},
+): Promise<PipelineResult> {
+  const state: PipelineState = options.initialState
+    ? {
+        ...options.initialState,
+        steps: { ...options.initialState.steps },
+        words: [...options.initialState.words],
+        phrases: [...options.initialState.phrases],
+        sentences: [...options.initialState.sentences],
+        audio: options.initialState.audio ? { ...options.initialState.audio } : null,
+      }
+    : initialPipelineState()
+  const notify = () => options.onStateChange?.({ ...state, steps: { ...state.steps } })
+
+  state.steps[step] = { status: 'running' }
+  notify()
+
+  try {
+    await execStep(state, step, content, adapters)
+    notify()
+    return { ...state, steps: { ...state.steps }, completed: true }
+  } catch (err) {
+    state.steps[step] = { status: 'error', error: errorMessage(err) }
+    notify()
+    return { ...state, steps: { ...state.steps }, completed: false }
+  }
 }

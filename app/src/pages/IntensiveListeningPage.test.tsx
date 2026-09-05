@@ -110,10 +110,14 @@ async function typeAnswer(user: ReturnType<typeof userEvent.setup>, blankIndex: 
 describe('听力训练页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
-  test('无处理产物显示空态', () => {
+  test('文章存在但未生成听力数据：空态提示并提供「去 AI 预处理」跳转', () => {
     seedArticle(false)
     renderPage(createFakeAudio())
-    expect(screen.getByTestId('listening-empty')).toHaveTextContent('暂无听力训练数据')
+    expect(screen.getByTestId('listening-empty')).toHaveTextContent('本文尚未生成听力数据')
+    const cta = document.querySelector('[data-dom-id="cta-ai-process"]') as HTMLAnchorElement
+    expect(cta).toBeInTheDocument()
+    expect(cta.getAttribute('href')).toBe('/articles/a1/process')
+    expect(cta).toHaveTextContent('去 AI 预处理')
   })
 
   test('顶栏进度 1/3，统计卡初始值，难度默认「重要词语」', () => {

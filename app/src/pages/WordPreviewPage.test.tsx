@@ -64,10 +64,21 @@ function renderPage() {
 describe('单词预习页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
-  test('无 AI 处理产物的文章显示空态', () => {
+  test('文章存在但未提取单词：空态提示并提供「去 AI 预处理」跳转', () => {
     seedArticle(false)
     renderPage()
+    expect(screen.getByTestId('word-preview-empty')).toHaveTextContent('本文尚未提取单词')
+    const cta = document.querySelector('[data-dom-id="cta-ai-process"]') as HTMLAnchorElement
+    expect(cta).toBeInTheDocument()
+    expect(cta.getAttribute('href')).toBe('/articles/a1/process')
+    expect(cta).toHaveTextContent('去 AI 预处理')
+  })
+
+  test('文章不存在时显示泛化空态且无跳转按钮', () => {
+    // 不种子文章 → 路由 a1 找不到文章
+    renderPage()
     expect(screen.getByTestId('word-preview-empty')).toHaveTextContent('暂无可预习的单词')
+    expect(document.querySelector('[data-dom-id="cta-ai-process"]')).not.toBeInTheDocument()
   })
 
   test('闪卡正面：单词/音标/词性 + 翻面提示；进度 0/3', () => {

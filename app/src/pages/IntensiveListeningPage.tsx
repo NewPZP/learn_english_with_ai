@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   Check,
   CheckCircle2,
@@ -9,11 +9,13 @@ import {
   Ear,
   Flame,
   Play,
+  Sparkles,
   Target,
   Volume2,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle } from '../lib/articles'
+import { routes } from '../routes'
 import { useSentencePlayer, type AudioFactory } from '../lib/audio/useSentencePlayer'
 import { markSentenceCompleted } from '../lib/studyProgress'
 import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
@@ -164,14 +166,27 @@ export function IntensiveListeningPage({
   const progressPercent = sentences.length ? ((sentenceIndex + 1) / sentences.length) * 100 : 0
 
   if (!article || !audio || sentences.length === 0) {
+    const missing = article && (!audio || sentences.length === 0)
     return (
       <>
         <PageTopbar title="听力训练" />
         <div className="app-content-inner">
           <div className="empty-state" data-testid="listening-empty">
             <Ear size={32} />
-            <span className="empty-state-title">暂无听力训练数据</span>
-            <span className="empty-state-hint">请先导入文章并完成 AI 处理</span>
+            <span className="empty-state-title">{missing ? '本文尚未生成听力数据' : '暂无听力训练数据'}</span>
+            <span className="empty-state-hint">
+              {missing ? '先用 AI 预处理生成语音，再回来训练' : '请先导入文章'}
+            </span>
+            {missing && (
+              <Link
+                to={routes.articleProcess(article.id)}
+                className="function-btn function-btn-primary"
+                data-dom-id="cta-ai-process"
+              >
+                <Sparkles size={16} />
+                <span>去 AI 预处理</span>
+              </Link>
+            )}
           </div>
         </div>
       </>

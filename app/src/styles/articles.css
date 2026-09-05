@@ -178,6 +178,7 @@
 /* ---- 卡片内功能按钮行 ---- */
 .btn-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
 }
@@ -265,6 +266,11 @@
 
 .empty-state-hint {
   font-size: 13px;
+}
+
+/* 空态内跳转/返回按钮：上间距，复用 function-btn 视觉 */
+.empty-state .function-btn {
+  margin-top: 8px;
 }
 
 /* ---- 导入页 ---- */

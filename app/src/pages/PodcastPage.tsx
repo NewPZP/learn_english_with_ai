@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   BookOpen,
   ChevronDown,
@@ -13,9 +13,11 @@ import {
   Repeat,
   SkipBack,
   SkipForward,
+  Sparkles,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle } from '../lib/articles'
+import { routes } from '../routes'
 import {
   formatTime,
   useSentencePlayer,
@@ -77,14 +79,27 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
   }, [player.currentIndex])
 
   if (!article || !audio) {
+    const missing = article && !audio
     return (
       <>
         <PageTopbar title="播客模式" />
         <div className="app-content-inner">
           <div className="empty-state" data-testid="podcast-empty">
             <Headphones size={32} />
-            <span className="empty-state-title">暂无语音产物</span>
-            <span className="empty-state-hint">请先导入文章并完成 AI 处理</span>
+            <span className="empty-state-title">{missing ? '本文尚未生成音频' : '暂无语音产物'}</span>
+            <span className="empty-state-hint">
+              {missing ? '先用 AI 预处理生成语音，再回来收听' : '请先导入文章'}
+            </span>
+            {missing && (
+              <Link
+                to={routes.articleProcess(article.id)}
+                className="function-btn function-btn-primary"
+                data-dom-id="cta-ai-process"
+              >
+                <Sparkles size={16} />
+                <span>去 AI 预处理</span>
+              </Link>
+            )}
           </div>
         </div>
       </>

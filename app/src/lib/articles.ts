@@ -113,6 +113,30 @@ export function attachProcessing(articleId: string, processing: ArticleProcessin
   return target
 }
 
+/**
+ * 部分合并 AI 处理产物到文章：只覆盖传入的字段，保留已有其它产物。
+ * 用于「AI 预处理」加工页的单步操作——单独提取单词/短语/音频时，
+ * 不清空已完成的其它产物（attachProcessing 是全量替换，单步场景不适用）。
+ * 返回更新后的文章（找不到时返回 undefined）。
+ */
+export function mergeProcessing(
+  articleId: string,
+  partial: Partial<ArticleProcessing>,
+): Article | undefined {
+  const articles = loadArticles()
+  const target = articles.find((a) => a.id === articleId)
+  if (!target) return undefined
+  const prev = target.processing
+  target.processing = {
+    words: partial.words ?? prev?.words ?? [],
+    phrases: partial.phrases ?? prev?.phrases ?? [],
+    sentences: partial.sentences ?? prev?.sentences ?? [],
+    audio: partial.audio ?? prev?.audio,
+  }
+  persist(articles)
+  return target
+}
+
 /** 按 ID 删除单篇文章；返回是否成功删除（ID 不存在时返回 false） */
 export function deleteArticle(id: string): boolean {
   const articles = loadArticles()

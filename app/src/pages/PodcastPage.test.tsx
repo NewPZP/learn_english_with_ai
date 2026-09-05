@@ -85,10 +85,14 @@ function renderPage(fake: FakeAudio) {
 describe('播客模式页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
-  test('无语音产物显示空态', () => {
+  test('文章存在但未生成音频：空态提示并提供「去 AI 预处理」跳转', () => {
     seedArticle(false)
     renderPage(createFakeAudio())
-    expect(screen.getByTestId('podcast-empty')).toHaveTextContent('暂无语音产物')
+    expect(screen.getByTestId('podcast-empty')).toHaveTextContent('本文尚未生成音频')
+    const cta = document.querySelector('[data-dom-id="cta-ai-process"]') as HTMLAnchorElement
+    expect(cta).toBeInTheDocument()
+    expect(cta.getAttribute('href')).toBe('/articles/a1/process')
+    expect(cta).toHaveTextContent('去 AI 预处理')
   })
 
   test('信息卡：标题/来源/时长/统计徽章', () => {
