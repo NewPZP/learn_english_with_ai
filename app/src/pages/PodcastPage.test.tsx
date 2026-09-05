@@ -6,8 +6,10 @@ import { PodcastPage } from './PodcastPage'
 import type { AudioLike } from '../lib/audio/useSentencePlayer'
 
 /**
- * 工单「播客模式」验收测试（页面级，注入假音频）
- * 覆盖：信息卡、播放/暂停、字幕高亮随播放切换、上下句/重复/倍速、点句跳听、列表折叠、跟读开关
+ * 深入学习页验收测试（页面级，注入假音频）
+ * 覆盖：信息卡、播放/暂停、字幕高亮同步、上下句/重复/倍速、进度条、
+ * Tab 切换（挖空听写/听力挑战）、子模式（整篇/逐句）、三档难度、
+ * 整词输入即判分（失焦/回车）、重新编辑清除判分
  */
 
 const SENTENCES = [
@@ -82,7 +84,7 @@ function renderPage(fake: FakeAudio) {
   )
 }
 
-describe('播客模式页 — 初始渲染', () => {
+describe('深入学习页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
   test('文章存在但未生成音频：空态提示并提供「去 AI 预处理」跳转', () => {
@@ -107,19 +109,29 @@ describe('播客模式页 — 初始渲染', () => {
     expect(screen.getByText('8 短语')).toBeInTheDocument()
   })
 
-  test('字幕区渲染全部句子，首句当前高亮；右栏列表同步', () => {
+  test('字幕区渲染全部句子，首句当前高亮', () => {
     seedArticle()
     renderPage(createFakeAudio())
 
     expect(screen.getAllByTestId(/^subtitle-line-/)).toHaveLength(3)
     expect(screen.getByTestId('subtitle-line-0').className).toContain('current')
-    expect(screen.getAllByTestId(/^sentence-row-/)).toHaveLength(3)
-    expect(screen.getByTestId('sentence-row-0').className).toContain('current')
-    expect(screen.getByText('3 句')).toBeInTheDocument()
+  })
+
+  test('默认显示「挖空听写」Tab，含整篇/逐句子模式与三档难度', () => {
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    expect(screen.getByRole('button', { name: '挖空听写' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '听力挑战' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '逐句' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('全部听写')).toBeInTheDocument()
+    expect(screen.getByText('重要词语')).toBeInTheDocument()
+    expect(screen.getByText('仅生词')).toBeInTheDocument()
   })
 })
 
-describe('播客模式页 — 播放与字幕同步', () => {
+describe('深入学习页 — 播放与字幕同步', () => {
   beforeEach(() => localStorage.clear())
 
   test('播放/暂停切换，播放中当前句显示动画点', async () => {
@@ -140,7 +152,7 @@ describe('播客模式页 — 播放与字幕同步', () => {
     expect(screen.getByTestId('subtitle-line-0').querySelector('.playing-dot')).toBeNull()
   })
 
-  test('字幕高亮随播放切换，右侧列表同步高亮，时间推进', async () => {
+  test('字幕高亮随播放切换，时间推进', async () => {
     const user = userEvent.setup()
     const fake = createFakeAudio()
     seedArticle()
@@ -149,11 +161,9 @@ describe('播客模式页 — 播放与字幕同步', () => {
     await user.click(screen.getByTestId('play-pause'))
     expect(screen.getByTestId('current-time')).toHaveTextContent('0:00')
 
-    // 推进 10 秒 → 第二句
     act(() => fake.tick(10))
     expect(screen.getByTestId('subtitle-line-1').className).toContain('current')
     expect(screen.getByTestId('subtitle-line-0').className).not.toContain('current')
-    expect(screen.getByTestId('sentence-row-1').className).toContain('current')
     expect(screen.getByTestId('current-time')).toHaveTextContent('0:10')
   })
 
@@ -171,7 +181,7 @@ describe('播客模式页 — 播放与字幕同步', () => {
   })
 })
 
-describe('播客模式页 — 句级控制与倍速', () => {
+describe('深入学习页 — 句级控制与倍速', () => {
   beforeEach(() => localStorage.clear())
 
   test('下一句/上一句/重复本句', async () => {
@@ -187,7 +197,6 @@ describe('播客模式页 — 句级控制与倍速', () => {
     await user.click(screen.getByRole('button', { name: '上一句' }))
     expect(screen.getByTestId('subtitle-line-0').className).toContain('current')
 
-    // 播放到第二句中段 → 重复本句回到句首
     await user.click(screen.getByTestId('play-pause'))
     act(() => fake.tick(12))
     expect(screen.getByTestId('current-time')).toHaveTextContent('0:12')
@@ -214,65 +223,131 @@ describe('播客模式页 — 句级控制与倍速', () => {
     expect(speedBtn).toHaveTextContent('1.0x')
   })
 
-  test('点击右栏句子跳听对应句', async () => {
-    const user = userEvent.setup()
-    const fake = createFakeAudio()
-    seedArticle()
-    renderPage(fake)
-
-    await user.click(screen.getByTestId('sentence-row-2'))
-    expect(screen.getByTestId('subtitle-line-2').className).toContain('current')
-    expect(screen.getByTestId('current-time')).toHaveTextContent('0:20')
-  })
-
   test('拖拽进度条定位（range change → seek）', async () => {
     const user = userEvent.setup()
     const fake = createFakeAudio()
     seedArticle()
     renderPage(fake)
 
-    await user.click(screen.getByTestId('sentence-row-0'))
     const slider = screen.getByTestId('progress-slider')
     await user.type(slider, '{ArrowRight}')
-    // 0:00 + 100ms 步进仍在首句区间
     expect(screen.getByTestId('current-time')).toHaveTextContent('0:00')
   })
 })
 
-describe('播客模式页 — 面板交互', () => {
+describe('深入学习页 — Tab 与子模式切换', () => {
   beforeEach(() => localStorage.clear())
 
-  test('句子列表可折叠/展开，aria-expanded 同步', async () => {
+  test('切换到「听力挑战」Tab，再切回「挖空听写」', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
-    const toggle = screen.getByTestId('sentence-list-toggle')
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByTestId('sentence-list')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '听力挑战' }))
+    expect(screen.getByRole('button', { name: '听力挑战' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByTestId('subtitle-area')).not.toBeInTheDocument()
 
-    await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByTestId('sentence-list')).not.toBeInTheDocument()
-
-    await user.click(toggle)
-    expect(screen.getByTestId('sentence-list')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '挖空听写' }))
+    expect(screen.getByRole('button', { name: '挖空听写' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('subtitle-area')).toBeInTheDocument()
   })
 
-  test('跟读模式开关切换（仅 UI 状态）', async () => {
+  test('子模式整篇/逐句切换', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
-    const toggle = screen.getByTestId('readalong-toggle')
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
-    expect(toggle).not.toHaveTextContent('· 开')
+    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: '逐句' }))
+    expect(screen.getByRole('button', { name: '逐句' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'false')
+  })
 
-    await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    expect(toggle).toHaveTextContent('跟读模式 · 开')
+  test('三档难度切换', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
 
-    await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('重要词语').closest('button')).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByText('全部听写'))
+    expect(screen.getByText('全部听写').closest('button')).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByText('仅生词'))
+    expect(screen.getByText('仅生词').closest('button')).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('深入学习页 — 整词挖空输入与即判分', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('「全部听写」难度下首句所有词元变为输入框', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    // 首句 "So I want to start with a story about a guy." → 11 个词元
+    expect(screen.getAllByTestId(/^blank-0-/)).toHaveLength(11)
+  })
+
+  test('输入正确答案失焦后判为正确（绿色），错误判为错误（红色）', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    const input = screen.getByTestId('blank-0-0')
+
+    await user.type(input, 'so')
+    await user.tab() // blur → grade
+    expect(input.className).toContain('blank-correct')
+
+    await user.clear(input)
+    await user.type(input, 'xyz')
+    await user.tab()
+    expect(input.className).toContain('blank-wrong')
+  })
+
+  test('回车键触发判分', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    const input = screen.getByTestId('blank-0-0')
+
+    await user.type(input, 'so{Enter}')
+    expect(input.className).toContain('blank-correct')
+  })
+
+  test('重新编辑已判分的输入会清除判分状态', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    const input = screen.getByTestId('blank-0-0')
+
+    await user.type(input, 'so')
+    await user.tab()
+    expect(input.className).toContain('blank-correct')
+
+    // 重新输入触发 onChange，清除判分
+    await user.type(input, 'x')
+    expect(input.className).not.toContain('blank-correct')
+    expect(input.className).not.toContain('blank-wrong')
+  })
+
+  test('逐句模式下非当前句输入框为只读', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    await user.click(screen.getByRole('button', { name: '逐句' }))
+
+    // 当前句（第0句）输入框可编辑
+    expect(screen.getByTestId('blank-0-0')).not.toHaveAttribute('readonly')
+    // 非当前句（第1句）输入框只读
+    expect(screen.getByTestId('blank-1-0')).toHaveAttribute('readonly')
   })
 })

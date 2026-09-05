@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   BookOpen,
-  ChevronDown,
   Clock,
   FileText,
-  Headphones,
+  GraduationCap,
   Link2,
-  Mic,
   Pause,
   Play,
   Repeat,
@@ -23,20 +21,58 @@ import {
   useSentencePlayer,
   type AudioFactory,
 } from '../lib/audio/useSentencePlayer'
-import { savePodcastProgress } from '../lib/studyProgress'
+import { markSentenceCompleted, savePodcastProgress, loadPodcastProgress } from '../lib/studyProgress'
 import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
+import { QuizChallengeTab, type GenerateQuiz } from './QuizChallengeTab'
+import {
+  buildSentenceDictation,
+  DICTATION_DIFFICULTY_LABELS,
+  gradeBlank,
+  vocabFromProcessing,
+  type DictationDifficulty,
+  type SentenceDictation,
+} from '../lib/listening/dictation'
+
+const DIFFICULTY_ORDER: DictationDifficulty[] = ['full', 'key', 'new']
+type DictationMode = 'whole' | 'sentence'
+type TabKey = 'dictation' | 'quiz'
 
 /** 倍速显示文案：1 → 1.0x */
 function speedLabel(rate: number): string {
   return `${rate.toFixed(1)}x`
 }
 
+/** 输入框状态：未判分 / 正确 / 错误 */
+type BlankState = 'idle' | 'correct' | 'wrong'
+
+/** 在 Record<number, T[]> 中按下标写入一个值（自动补齐长度） */
+function setNested<T>(
+  prev: Record<number, T[]>,
+  sentenceIndex: number,
+  blankIndex: number,
+  value: T,
+  fill: T,
+): Record<number, T[]> {
+  const arr = [...(prev[sentenceIndex] ?? [])]
+  while (arr.length <= blankIndex) arr.push(fill)
+  arr[blankIndex] = value
+  return { ...prev, [sentenceIndex]: arr }
+}
+
 /**
- * 播客模式页：整篇播放 + 字幕同步高亮 + 句子级控制
- * 音频来自 AI 处理管道的语音产物（article.processing.audio），句级时间轴驱动字幕同步
- * createAudio 可注入媒体元素（测试接缝，默认 new Audio()）
+ * 深入学习页：播客整篇播放 + 字幕挖空听写 + 听力挑战（工单 #18）
+ * 以播客页为基础，移除右栏句子列表，顶部 Tab 切换「挖空听写 / 听力挑战」。
+ * 挖空听写支持「整篇 / 逐句」子模式与三档屏蔽选项；屏蔽词为整词输入框，
+ * 失焦或回车即判分（复用 gradeBlank，忽略大小写与空格）。
+ * createAudio 可注入媒体元素（测试接缝，默认 new Audio()）。
  */
-export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
+export function PodcastPage({
+  createAudio,
+  generateQuiz,
+}: {
+  createAudio?: AudioFactory
+  generateQuiz?: GenerateQuiz
+}) {
   const { id } = useParams<{ id: string }>()
   const article = useMemo(() => (id ? getArticle(id) : undefined), [id])
   const processing = article?.processing
@@ -54,12 +90,11 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
 
   /**
    * 收听进度持久化：记录最远收听位置（回拖重听不回退进度）
-   * 位置每次变化即保存，供文章列表卡片回显播客百分比
+   * 挂载时从存储恢复已有位置，避免重进页面时被 0 覆盖
    */
   const furthestMsRef = useRef(0)
-  // 路由参数变化不重挂载（如浏览器前进/后退），切换文章时重置最远位置
   useEffect(() => {
-    furthestMsRef.current = 0
+    furthestMsRef.current = id ? loadPodcastProgress(id)?.positionMs ?? 0 : 0
   }, [id])
   useEffect(() => {
     if (!id) return
@@ -67,10 +102,33 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
     savePodcastProgress(id, furthestMsRef.current, audio?.durationMs ?? 0)
   }, [id, player.currentTimeMs, audio?.durationMs])
 
-  /** 跟读模式开关：仅 UI 状态（录音功能由后续工单接入） */
-  const [readAlong, setReadAlong] = useState(false)
-  /** 右栏句子列表折叠态 */
-  const [listExpanded, setListExpanded] = useState(true)
+  const [activeTab, setActiveTab] = useState<TabKey>('dictation')
+  const [mode, setMode] = useState<DictationMode>('whole')
+  const [difficulty, setDifficulty] = useState<DictationDifficulty>('key')
+
+  /** 每句的输入值：sentenceIndex → blankIndex → 输入字符串 */
+  const [inputs, setInputs] = useState<Record<number, string[]>>({})
+  /** 每句的判分结果：sentenceIndex → blankIndex → null(未判)/true/false */
+  const [grades, setGrades] = useState<Record<number, (boolean | null)[]>>({})
+  /** 已标记完成的句子下标集合（避免重复调用 markSentenceCompleted） */
+  const completedSentencesRef = useRef<Set<number>>(new Set())
+
+  const vocab = useMemo(
+    () => vocabFromProcessing(processing?.words, processing?.phrases),
+    [processing],
+  )
+
+  /** 每句的听写片段（难度变化时重新计算） */
+  const dictations: SentenceDictation[] = useMemo(
+    () => sentences.map((s) => buildSentenceDictation(s.text, vocab, difficulty)),
+    [sentences, vocab, difficulty],
+  )
+
+  /** 难度变化：清空所有输入与判分（挖空下标随之变化，旧值失效） */
+  useEffect(() => {
+    setInputs({})
+    setGrades({})
+  }, [difficulty])
 
   // 当前句字幕自动滚动到可视区
   const currentLineRef = useRef<HTMLParagraphElement | null>(null)
@@ -78,17 +136,65 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
     currentLineRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
   }, [player.currentIndex])
 
+  function updateInput(sentenceIndex: number, blankIndex: number, value: string) {
+    setInputs((prev) => setNested(prev, sentenceIndex, blankIndex, value, ''))
+    // 重新编辑时清除该空的判分结果
+    setGrades((prev) => {
+      if (prev[sentenceIndex]?.[blankIndex] === undefined) return prev
+      return setNested(prev, sentenceIndex, blankIndex, null, null)
+    })
+  }
+
+  function gradeInput(sentenceIndex: number, blankIndex: number) {
+    const dictation = dictations[sentenceIndex]
+    if (!dictation) return
+    const answer = dictation.blanks[blankIndex]
+    const value = inputs[sentenceIndex]?.[blankIndex] ?? ''
+    const correct = gradeBlank(answer, value)
+    setGrades((prev) => setNested(prev, sentenceIndex, blankIndex, correct, null))
+    // 该句所有空均判为正确 → 标记句子完成
+    const allGrades = dictation.blanks.map((_, i) =>
+      i === blankIndex ? correct : grades[sentenceIndex]?.[i] ?? null,
+    )
+    if (
+      dictation.blanks.length > 0 &&
+      allGrades.every((g) => g === true) &&
+      !completedSentencesRef.current.has(sentenceIndex)
+    ) {
+      completedSentencesRef.current.add(sentenceIndex)
+      if (id) markSentenceCompleted(id, sentenceIndex)
+    }
+  }
+
+  function handleInputKeyDown(
+    sentenceIndex: number,
+    blankIndex: number,
+    e: KeyboardEvent<HTMLInputElement>,
+  ) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      gradeInput(sentenceIndex, blankIndex)
+    }
+  }
+
+  function blankState(sentenceIndex: number, blankIndex: number): BlankState {
+    const g = grades[sentenceIndex]?.[blankIndex]
+    if (g === true) return 'correct'
+    if (g === false) return 'wrong'
+    return 'idle'
+  }
+
   if (!article || !audio) {
     const missing = article && !audio
     return (
       <>
-        <PageTopbar title="播客模式" />
+        <PageTopbar title="深入学习" />
         <div className="app-content-inner">
           <div className="empty-state" data-testid="podcast-empty">
-            <Headphones size={32} />
+            <GraduationCap size={32} />
             <span className="empty-state-title">{missing ? '本文尚未生成音频' : '暂无语音产物'}</span>
             <span className="empty-state-hint">
-              {missing ? '先用 AI 预处理生成语音，再回来收听' : '请先导入文章'}
+              {missing ? '先用 AI 预处理生成语音，再回来学习' : '请先导入文章'}
             </span>
             {missing && (
               <Link
@@ -108,177 +214,224 @@ export function PodcastPage({ createAudio }: { createAudio?: AudioFactory }) {
 
   return (
     <>
-      <PageTopbar title="播客模式" />
+      <PageTopbar title="深入学习" />
       <div className="app-content-inner">
-        <div className="podcast-columns">
-          {/* 左栏：信息卡 + 字幕 + 播放控制 */}
-          <div className="podcast-left-col">
-            <section className="info-card" data-testid="podcast-info-card">
-              <h1 className="info-card-title">{article.title}</h1>
-              <div className="info-card-meta">
-                <span>{article.source}</span>
-                <span className="dot" />
-                <span className="info-card-duration">
-                  <Clock size={14} />
-                  {formatTime(audio.durationMs)}
-                </span>
-              </div>
-              <div className="info-card-badges">
-                <span className="stat-badge">
-                  <FileText size={14} />
-                  {article.wordCount.toLocaleString()} 词
-                </span>
-                <span className="stat-badge">
-                  <BookOpen size={14} />
-                  {processing?.words.length ?? 0} 生词
-                </span>
-                <span className="stat-badge">
-                  <Link2 size={14} />
-                  {processing?.phrases.length ?? 0} 短语
-                </span>
-              </div>
-            </section>
+        <div className="deep-learning-stack">
+          {/* 信息卡 */}
+          <section className="info-card" data-testid="podcast-info-card">
+            <h1 className="info-card-title">{article.title}</h1>
+            <div className="info-card-meta">
+              <span>{article.source}</span>
+              <span className="dot" />
+              <span className="info-card-duration">
+                <Clock size={14} />
+                {formatTime(audio.durationMs)}
+              </span>
+            </div>
+            <div className="info-card-badges">
+              <span className="stat-badge">
+                <FileText size={14} />
+                {article.wordCount.toLocaleString()} 词
+              </span>
+              <span className="stat-badge">
+                <BookOpen size={14} />
+                {processing?.words.length ?? 0} 生词
+              </span>
+              <span className="stat-badge">
+                <Link2 size={14} />
+                {processing?.phrases.length ?? 0} 短语
+              </span>
+            </div>
+          </section>
 
+          {/* Tab 切换：挖空听写 / 听力挑战 */}
+          <div className="listening-tabs" data-testid="deep-learning-tabs">
             <button
               type="button"
-              className={`readalong-toggle${readAlong ? ' readalong-on' : ''}`}
-              data-dom-id="cta-readalong"
-              data-testid="readalong-toggle"
-              aria-pressed={readAlong}
-              onClick={() => setReadAlong((v) => !v)}
+              className={`listening-tab${activeTab === 'dictation' ? ' tab-active' : ' tab-inactive'}`}
+              data-tab-key="dictation"
+              aria-pressed={activeTab === 'dictation'}
+              onClick={() => setActiveTab('dictation')}
             >
-              <Mic size={16} />
-              <span>跟读模式{readAlong ? ' · 开' : ''}</span>
+              挖空听写
             </button>
-
-            <section className="subtitle-area" data-testid="subtitle-area">
-              {sentences.map((sentence, index) => (
-                <p
-                  key={index}
-                  ref={index === player.currentIndex ? currentLineRef : undefined}
-                  className={`subtitle-line${
-                    index === player.currentIndex ? ' current' : index < player.currentIndex ? '' : ' faded'
-                  }`}
-                  data-sentence-index={index}
-                  data-testid={`subtitle-line-${index}`}
-                >
-                  {index === player.currentIndex && player.playing && (
-                    <span className="playing-dot" aria-hidden="true" />
-                  )}
-                  {sentence.text}
-                </p>
-              ))}
-            </section>
-
-            <section className="player-controls">
-              <input
-                type="range"
-                className="progress-slider"
-                min={0}
-                max={audio.durationMs}
-                step={100}
-                value={player.currentTimeMs}
-                style={{
-                  ['--progress-percent' as string]: `${
-                    audio.durationMs ? (player.currentTimeMs / audio.durationMs) * 100 : 0
-                  }%`,
-                }}
-                aria-label="播放进度"
-                data-dom-id="podcast-progress"
-                data-testid="progress-slider"
-                onChange={(e) => player.seekToMs(Number(e.target.value))}
-              />
-              <div className="time-row">
-                <span data-testid="current-time">{formatTime(player.currentTimeMs)}</span>
-                <span data-testid="total-time">{formatTime(audio.durationMs)}</span>
-              </div>
-              <div className="controls-row">
-                <button
-                  type="button"
-                  className="control-btn"
-                  aria-label="重复本句"
-                  data-dom-id="cta-repeat-sentence"
-                  onClick={player.repeatSentence}
-                >
-                  <Repeat size={24} />
-                </button>
-                <button
-                  type="button"
-                  className="nav-btn"
-                  aria-label="上一句"
-                  data-dom-id="cta-prev-sentence"
-                  onClick={player.prevSentence}
-                >
-                  <SkipBack size={28} />
-                </button>
-                <button
-                  type="button"
-                  className="play-button"
-                  aria-label={player.playing ? '暂停' : '播放'}
-                  data-dom-id="cta-play-pause"
-                  data-testid="play-pause"
-                  onClick={player.togglePlay}
-                >
-                  {player.playing ? <Pause size={28} /> : <Play size={28} />}
-                </button>
-                <button
-                  type="button"
-                  className="nav-btn"
-                  aria-label="下一句"
-                  data-dom-id="cta-next-sentence"
-                  onClick={player.nextSentence}
-                >
-                  <SkipForward size={28} />
-                </button>
-                <button
-                  type="button"
-                  className="speed-btn"
-                  aria-label="播放速度"
-                  data-dom-id="cta-playback-speed"
-                  data-testid="speed-button"
-                  onClick={player.cyclePlaybackRate}
-                >
-                  {speedLabel(player.playbackRate)}
-                </button>
-              </div>
-            </section>
+            <button
+              type="button"
+              className={`listening-tab${activeTab === 'quiz' ? ' tab-active' : ' tab-inactive'}`}
+              data-tab-key="quiz"
+              aria-pressed={activeTab === 'quiz'}
+              onClick={() => setActiveTab('quiz')}
+            >
+              听力挑战
+            </button>
           </div>
 
-          {/* 右栏：全部句子列表（可折叠） */}
-          <section className="sentence-panel">
-            <button
-              type="button"
-              className="sentence-list-header"
-              aria-expanded={listExpanded}
-              data-testid="sentence-list-toggle"
-              onClick={() => setListExpanded((v) => !v)}
-            >
-              <span className="sentence-list-title">
-                全部句子 <span className="sentence-count nums">{sentences.length} 句</span>
-              </span>
-              <ChevronDown size={20} className={`chevron${listExpanded ? ' chevron-up' : ''}`} />
-            </button>
-            {listExpanded && (
-              <div className="sentence-list" data-testid="sentence-list">
-                {sentences.map((sentence, index) => (
+          {activeTab === 'quiz' ? (
+            <QuizChallengeTab content={article.content} generateQuiz={generateQuiz} />
+          ) : (
+            <>
+              {/* 子模式 + 难度 */}
+              <div className="dictation-toolbar">
+                <div className="mode-toggle" data-testid="mode-toggle">
                   <button
-                    key={index}
                     type="button"
-                    className={`sentence-row${index === player.currentIndex ? ' current' : ''}`}
-                    data-sentence-index={index}
-                    data-testid={`sentence-row-${index}`}
-                    onClick={() => player.goToSentence(index)}
+                    className={`mode-pill${mode === 'whole' ? ' mode-active' : ' mode-inactive'}`}
+                    data-mode="whole"
+                    aria-pressed={mode === 'whole'}
+                    onClick={() => setMode('whole')}
                   >
-                    <span className="sentence-num nums">{index + 1}</span>
-                    <span className="sentence-text">{sentence.text}</span>
-                    <span className="sentence-duration nums">
-                      {formatTime(sentence.endMs - sentence.startMs)}
-                    </span>
+                    整篇
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    className={`mode-pill${mode === 'sentence' ? ' mode-active' : ' mode-inactive'}`}
+                    data-mode="sentence"
+                    aria-pressed={mode === 'sentence'}
+                    onClick={() => setMode('sentence')}
+                  >
+                    逐句
+                  </button>
+                </div>
+                <div className="difficulty-pills" data-testid="difficulty-pills">
+                  {DIFFICULTY_ORDER.map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`diff-pill${difficulty === key ? ' diff-active' : ' diff-inactive'}`}
+                      data-diff-key={key}
+                      aria-pressed={difficulty === key}
+                      onClick={() => setDifficulty(key)}
+                    >
+                      {DICTATION_DIFFICULTY_LABELS[key]}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </section>
+
+              {/* 字幕挖空区 */}
+              <section className="subtitle-area" data-testid="subtitle-area">
+                {sentences.map((_sentence, sIndex) => {
+                  const dictation = dictations[sIndex]
+                  const isCurrent = sIndex === player.currentIndex
+                  const isSentenceMode = mode === 'sentence'
+                  const editable = !isSentenceMode || isCurrent
+                  return (
+                    <p
+                      key={sIndex}
+                      ref={isCurrent ? currentLineRef : undefined}
+                      className={`subtitle-line${
+                        isCurrent
+                          ? ' current'
+                          : isSentenceMode
+                            ? ' faded'
+                            : ''
+                      }`}
+                      data-sentence-index={sIndex}
+                      data-testid={`subtitle-line-${sIndex}`}
+                    >
+                      {isCurrent && player.playing && (
+                        <span className="playing-dot" aria-hidden="true" />
+                      )}
+                      {dictation.segments.map((segment, segIndex) =>
+                        segment.kind === 'text' ? (
+                          <span key={segIndex}>{segment.text}</span>
+                        ) : (
+                          <span key={segIndex} className="word-blank-inline">
+                            <input
+                              type="text"
+                              className={`blank-input blank-${blankState(sIndex, segment.blankIndex)}`}
+                              value={inputs[sIndex]?.[segment.blankIndex] ?? ''}
+                              readOnly={!editable}
+                              style={{ width: `${Math.max(segment.text.length, 3)}ch` }}
+                              aria-label={`第 ${sIndex + 1} 句第 ${segment.blankIndex + 1} 空`}
+                              data-testid={`blank-${sIndex}-${segment.blankIndex}`}
+                              onChange={(e) => updateInput(sIndex, segment.blankIndex, e.target.value)}
+                              onBlur={() => gradeInput(sIndex, segment.blankIndex)}
+                              onKeyDown={(e) => handleInputKeyDown(sIndex, segment.blankIndex, e)}
+                            />
+                          </span>
+                        ),
+                      )}
+                    </p>
+                  )
+                })}
+              </section>
+
+              {/* 播放控制 */}
+              <section className="player-controls">
+                <input
+                  type="range"
+                  className="progress-slider"
+                  min={0}
+                  max={audio.durationMs}
+                  step={100}
+                  value={player.currentTimeMs}
+                  style={{
+                    ['--progress-percent' as string]: `${
+                      audio.durationMs ? (player.currentTimeMs / audio.durationMs) * 100 : 0
+                    }%`,
+                  }}
+                  aria-label="播放进度"
+                  data-dom-id="podcast-progress"
+                  data-testid="progress-slider"
+                  onChange={(e) => player.seekToMs(Number(e.target.value))}
+                />
+                <div className="time-row">
+                  <span data-testid="current-time">{formatTime(player.currentTimeMs)}</span>
+                  <span data-testid="total-time">{formatTime(audio.durationMs)}</span>
+                </div>
+                <div className="controls-row">
+                  <button
+                    type="button"
+                    className="control-btn"
+                    aria-label="重复本句"
+                    data-dom-id="cta-repeat-sentence"
+                    onClick={player.repeatSentence}
+                  >
+                    <Repeat size={24} />
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    aria-label="上一句"
+                    data-dom-id="cta-prev-sentence"
+                    onClick={player.prevSentence}
+                  >
+                    <SkipBack size={28} />
+                  </button>
+                  <button
+                    type="button"
+                    className="play-button"
+                    aria-label={player.playing ? '暂停' : '播放'}
+                    data-dom-id="cta-play-pause"
+                    data-testid="play-pause"
+                    onClick={player.togglePlay}
+                  >
+                    {player.playing ? <Pause size={28} /> : <Play size={28} />}
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-btn"
+                    aria-label="下一句"
+                    data-dom-id="cta-next-sentence"
+                    onClick={player.nextSentence}
+                  >
+                    <SkipForward size={28} />
+                  </button>
+                  <button
+                    type="button"
+                    className="speed-btn"
+                    aria-label="播放速度"
+                    data-dom-id="cta-playback-speed"
+                    data-testid="speed-button"
+                    onClick={player.cyclePlaybackRate}
+                  >
+                    {speedLabel(player.playbackRate)}
+                  </button>
+                </div>
+              </section>
+            </>
+          )}
         </div>
       </div>
     </>

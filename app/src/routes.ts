@@ -5,8 +5,7 @@ export const routes = {
   articles: '/articles',
   articleImport: '/articles/import',
   articleWords: (id: string | number) => `/articles/${id}/words`,
-  articlePodcast: (id: string | number) => `/articles/${id}/podcast`,
-  articleListening: (id: string | number) => `/articles/${id}/listening`,
+  articleDeepLearning: (id: string | number) => `/articles/${id}/podcast`,
   articleProcess: (id: string | number) => `/articles/${id}/process`,
   aiConfig: '/ai-config',
 } as const

@@ -1,29 +1,14 @@
 /* ============================================================
-   播客模式页 — 源自原型 podcast.html
+   深入学习页 — 播客整篇播放 + 字幕挖空听写 + 听力挑战
    ============================================================ */
 
-/* ---- 双栏布局（左 3/5 + 右 2/5） ---- */
-.podcast-columns {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-.podcast-left-col {
-  flex: 3;
-  min-width: 0;
+/* ---- 单栏纵向堆叠 ---- */
+.deep-learning-stack {
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.sentence-panel {
-  flex: 2;
-  min-width: 0;
-  background: var(--en-card);
-  border: 1px solid var(--en-border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
 }
 
 /* ---- 信息卡 ---- */
@@ -78,45 +63,6 @@
   color: var(--en-muted-foreground);
   white-space: nowrap;
   line-height: 1;
-}
-
-/* ---- 跟读模式开关（仅 UI 状态） ---- */
-.readalong-toggle {
-  align-self: flex-end;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 16px;
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  border: 1px solid var(--en-border);
-  background: transparent;
-  color: var(--en-foreground);
-  cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.readalong-toggle:hover {
-  border-color: var(--en-primary);
-  color: var(--en-primary);
-}
-
-.readalong-toggle:active {
-  transform: scale(0.98);
-}
-
-.readalong-toggle:focus-visible {
-  outline: 2px solid var(--en-ring);
-  outline-offset: 2px;
-}
-
-.readalong-toggle.readalong-on {
-  background-color: var(--en-primary);
-  border-color: var(--en-primary);
-  color: var(--en-primary-foreground);
 }
 
 /* ---- 字幕区 ---- */
@@ -354,117 +300,93 @@
   outline-offset: 2px;
 }
 
-/* ---- 右栏句子列表 ---- */
-.sentence-list-header {
+/* ---- 挖空听写工具栏：子模式 + 难度 ---- */
+.dictation-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 4px 0 12px;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  cursor: pointer;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.sentence-list-title {
+.mode-toggle {
   display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--en-muted);
+}
+
+.mode-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  justify-content: center;
+  height: 30px;
+  padding: 0 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--en-muted-foreground);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.mode-pill.mode-active {
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.mode-pill.mode-inactive:hover {
   color: var(--en-foreground);
 }
 
-.sentence-count {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--en-muted-foreground);
-}
-
-.chevron {
-  color: var(--en-muted-foreground);
-  transition: transform 150ms ease;
-}
-
-.chevron-up {
-  transform: rotate(180deg);
-}
-
-.sentence-list-header:focus-visible .chevron {
+.mode-pill:focus-visible {
   outline: 2px solid var(--en-ring);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
-.sentence-list {
-  display: flex;
-  flex-direction: column;
-  max-height: 560px;
-  overflow-y: auto;
-}
-
-.sentence-row {
-  display: flex;
+/* ---- 整词挖空输入框 ---- */
+.word-blank-inline {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  height: 40px;
-  padding: 0 4px;
+  margin: 0 2px;
+  vertical-align: baseline;
+}
+
+.blank-input {
   border: none;
-  border-bottom: 1px solid var(--en-border);
+  border-bottom: 2px solid var(--en-primary-300);
   background: transparent;
-  font-size: 13px;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.sentence-list .sentence-row:last-child {
-  border-bottom: none;
-}
-
-.sentence-row .sentence-num {
-  width: 24px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  color: var(--en-muted-foreground);
-  flex-shrink: 0;
-}
-
-.sentence-row .sentence-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--en-muted-foreground);
-}
-
-.sentence-row .sentence-duration {
-  font-variant-numeric: tabular-nums;
-  color: var(--en-muted-foreground);
-  flex-shrink: 0;
-}
-
-.sentence-row.current {
-  background: color-mix(in srgb, var(--en-primary) 10%, transparent);
-  border-radius: var(--radius-md);
-}
-
-.sentence-row.current .sentence-num,
-.sentence-row.current .sentence-text,
-.sentence-row.current .sentence-duration {
-  color: var(--en-primary);
-  font-weight: 500;
-}
-
-.sentence-row:hover .sentence-text {
+  outline: none;
+  font-family: var(--en-font-mono);
+  font-size: 15px;
   color: var(--en-foreground);
+  text-align: center;
+  padding: 0 2px;
+  transition: border-color 120ms ease, color 120ms ease;
 }
 
-.sentence-row:focus-visible {
-  outline: 2px solid var(--en-ring);
-  outline-offset: -2px;
+.blank-input:focus {
+  border-bottom-color: var(--en-ring);
+}
+
+.blank-input.blank-correct {
+  color: var(--state-success);
+  border-bottom-color: var(--state-success);
+}
+
+.blank-input.blank-wrong {
+  color: var(--state-error);
+  border-bottom-color: var(--state-error);
+}
+
+.blank-input[readonly] {
+  cursor: default;
+  opacity: 0.6;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -475,20 +397,8 @@
   .play-button,
   .nav-btn,
   .control-btn,
-  .readalong-toggle,
+  .mode-pill,
   .chevron {
     transition: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .podcast-columns {
-    flex-direction: column;
-  }
-
-  .podcast-left-col,
-  .sentence-panel {
-    flex: 1;
-    width: 100%;
   }
 }

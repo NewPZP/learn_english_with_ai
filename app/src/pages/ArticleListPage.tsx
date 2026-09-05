@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, Headphones, Ear, FileText, Sparkles, Trash2 } from 'lucide-react'
+import { Plus, BookOpen, GraduationCap, FileText, Sparkles, Trash2 } from 'lucide-react'
 import { loadArticles, deleteArticle, type Article } from '../lib/articles'
 import { computeArticleProgress, getTodayStudyMs, type ModeProgress } from '../lib/studyProgress'
 import { routes } from '../routes'
@@ -92,20 +92,12 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
           <span>单词预习</span>
         </Link>
         <Link
-          to={routes.articlePodcast(article.id)}
-          data-dom-id="cta-podcast"
+          to={routes.articleDeepLearning(article.id)}
+          data-dom-id="cta-deep-learning"
           className="function-btn function-btn-secondary"
         >
-          <Headphones />
-          <span>播客</span>
-        </Link>
-        <Link
-          to={routes.articleListening(article.id)}
-          data-dom-id="cta-intensive-listening"
-          className="function-btn function-btn-secondary"
-        >
-          <Ear />
-          <span>听力训练</span>
+          <GraduationCap />
+          <span>深入学习</span>
         </Link>
         <button
           data-dom-id="cta-delete-article"
