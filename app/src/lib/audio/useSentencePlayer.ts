@@ -130,12 +130,16 @@ export function useSentencePlayer(options: {
 
   const play = useCallback(() => {
     const audio = getAudio()
+    // 已播到末尾时，从头开始（否则浏览器可能重置 currentTime，导致起始句下标计算错误）
+    if (audio.currentTime * 1000 >= durationMs) {
+      audio.currentTime = 0
+    }
     // 记录播放起始句：单句模式下越过此句即暂停
     playStartIndexRef.current = sentenceIndexAt(sentences, audio.currentTime * 1000)
     setPlaying(true)
     // jsdom / 自动播放受限时不抛错：状态乐观推进，实际播放由元素决定
     void Promise.resolve(audio.play()).catch(() => {})
-  }, [getAudio, sentences])
+  }, [getAudio, sentences, durationMs])
 
   const pause = useCallback(() => {
     getAudio().pause()

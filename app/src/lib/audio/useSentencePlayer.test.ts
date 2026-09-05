@@ -166,6 +166,24 @@ describe('播放控制', () => {
     expect(result.current.currentIndex).toBe(1)
   })
 
+  test('单句模式：文章播完后再次播放，应从头开始并在第一句末尾暂停', () => {
+    const fake = createFakeAudio()
+    const { result } = renderPlayer(fake)
+    act(() => result.current.setStopAfterSentence(true))
+    // 第一遍播到结尾
+    act(() => result.current.play())
+    act(() => fake.finish())
+    expect(result.current.playing).toBe(false)
+    expect(result.current.currentTimeMs).toBe(DURATION_MS)
+
+    // 再次点击播放：应重置到 0 并只播第一句
+    act(() => result.current.play())
+    expect(fake.currentTime).toBe(0)
+    act(() => fake.tick(9))
+    expect(result.current.playing).toBe(false)
+    expect(result.current.currentTimeMs).toBe(9000)
+  })
+
   test('ended 事件：回到未播放态', () => {
     const fake = createFakeAudio()
     const { result } = renderPlayer(fake)
