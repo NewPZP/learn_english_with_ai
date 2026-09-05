@@ -110,11 +110,11 @@ const SENTENCES_INSTRUCTION = `把用户提供的英文文章按自然句切分�
 只输出一个 JSON 数组，每个元素格式如下，不要输出任何其他文字：
 {"text":"原句（含句末标点）","translation":"中文翻译"}`
 
-const QUIZ_INSTRUCTION = `你是英语听力理解出题人。基于用户提供的英文文章出 3 道理解题：恰好 1 道单选题、1 道填空题、1 道判断正误题。题目与解析用中文，答案引用原文。
-只输出一个 JSON 数组，每个元素格式如下，不要输出任何其他文字：
-单选题 {"type":"single-choice","question":"中文题面","options":["选项A","选项B","选项C","选项D"],"answer":"正确选项（必须与 options 中一项完全一致）","explanation":"中文解析"}
-填空题 {"type":"fill-blank","question":"中文题面，其中待填部分用 ______ 表示","answer":"英文答案","explanation":"中文解析"}
-判断题 {"type":"true-false","question":"中文陈述句","answer":true,"explanation":"中文解析"}`
+const QUIZ_INSTRUCTION = `You are an English listening comprehension quiz generator. Based on the English article provided by the user, create 3 comprehension questions: exactly 1 single-choice, 1 fill-in-the-blank, and 1 true/false question. All questions, options, answers, and explanations must be in English.
+Output only a JSON array, each element in one of the following formats, with no other text:
+Single choice: {"type":"single-choice","question":"English question","options":["A","B","C","D"],"answer":"The correct option (must exactly match one option)","explanation":"English explanation"}
+Fill in the blank: {"type":"fill-blank","question":"English sentence with ______ as the blank placeholder","answer":"English answer","explanation":"English explanation"}
+True/False: {"type":"true-false","question":"English statement","answer":true,"explanation":"English explanation"}`
 
 /* ---- 文字适配器 ---- */
 

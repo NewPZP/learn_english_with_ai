@@ -34,7 +34,7 @@ import {
 } from '../lib/listening/dictation'
 
 const DIFFICULTY_ORDER: DictationDifficulty[] = ['full', 'key', 'new']
-type DictationMode = 'whole' | 'sentence'
+type PlaybackMode = 'continuous' | 'sentence'
 type TabKey = 'dictation' | 'quiz'
 
 /** 倍速显示文案：1 → 1.0x */
@@ -60,10 +60,11 @@ function setNested<T>(
 }
 
 /**
- * 深入学习页：播客整篇播放 + 字幕挖空听写 + 听力挑战（工单 #18）
- * 以播客页为基础，移除右栏句子列表，顶部 Tab 切换「挖空听写 / 听力挑战」。
- * 挖空听写支持「整篇 / 逐句」子模式与三档屏蔽选项；屏蔽词为整词输入框，
- * 失焦或回车即判分（复用 gradeBlank，忽略大小写与空格）。
+ * 深入学习页：播客整篇播放 + 字幕挖空听写 + AI 综合测验（工单 #18、#19）
+ * 以播客页为基础，移除右栏句子列表，顶部 Tab 切换「挖空听写 / AI 综合测验」。
+ * 挖空听写支持三档屏蔽选项、全文显示开关；屏蔽词为整词输入框，
+ * 失焦/回车/空格即判分（复用 gradeBlank，忽略大小写与空格），空格自动跳下一个空。
+ * 播放控制区可切换「连续播放 / 单句播放」（单句播完自动停止）。
  * createAudio 可注入媒体元素（测试接缝，默认 new Audio()）。
  */
 export function PodcastPage({
@@ -103,8 +104,16 @@ export function PodcastPage({
   }, [id, player.currentTimeMs, audio?.durationMs])
 
   const [activeTab, setActiveTab] = useState<TabKey>('dictation')
-  const [mode, setMode] = useState<DictationMode>('whole')
+  /** 播放模式：continuous=连续播放整篇；sentence=单句播放，播完当前句自动停止 */
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>('continuous')
   const [difficulty, setDifficulty] = useState<DictationDifficulty>('key')
+  /** 全文显示开关：开启后句子以原文展示，关闭后为挖空输入 */
+  const [showFullText, setShowFullText] = useState(false)
+
+  // 同步播放模式到播放器
+  useEffect(() => {
+    player.setStopAfterSentence(playbackMode === 'sentence')
+  }, [playbackMode, player])
 
   /** 每句的输入值：sentenceIndex → blankIndex → 输入字符串 */
   const [inputs, setInputs] = useState<Record<number, string[]>>({})
@@ -135,6 +144,26 @@ export function PodcastPage({
   useEffect(() => {
     currentLineRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
   }, [player.currentIndex])
+
+  /** 挖空输入框引用集合，用于空格跳转下一个空 */
+  const blankInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  function focusNextBlank(sentenceIndex: number, blankIndex: number) {
+    const dictation = dictations[sentenceIndex]
+    if (!dictation) return
+    // 当前句内下一个空
+    if (blankIndex + 1 < dictation.blanks.length) {
+      blankInputRefs.current[`${sentenceIndex}-${blankIndex + 1}`]?.focus()
+      return
+    }
+    // 跳到下一句第一个空
+    for (let s = sentenceIndex + 1; s < dictations.length; s++) {
+      if (dictations[s].blanks.length > 0) {
+        blankInputRefs.current[`${s}-0`]?.focus()
+        return
+      }
+    }
+  }
 
   function updateInput(sentenceIndex: number, blankIndex: number, value: string) {
     setInputs((prev) => setNested(prev, sentenceIndex, blankIndex, value, ''))
@@ -174,6 +203,12 @@ export function PodcastPage({
     if (e.key === 'Enter') {
       e.preventDefault()
       gradeInput(sentenceIndex, blankIndex)
+      focusNextBlank(sentenceIndex, blankIndex)
+    } else if (e.key === ' ') {
+      // 空格：判定当前空并跳到下一个空
+      e.preventDefault()
+      gradeInput(sentenceIndex, blankIndex)
+      focusNextBlank(sentenceIndex, blankIndex)
     }
   }
 
@@ -262,36 +297,16 @@ export function PodcastPage({
               aria-pressed={activeTab === 'quiz'}
               onClick={() => setActiveTab('quiz')}
             >
-              听力挑战
+              AI 综合测验
             </button>
           </div>
 
           {activeTab === 'quiz' ? (
-            <QuizChallengeTab content={article.content} generateQuiz={generateQuiz} />
+            <QuizChallengeTab articleId={id} content={article.content} generateQuiz={generateQuiz} />
           ) : (
             <>
-              {/* 子模式 + 难度 */}
+              {/* 难度 + 全文显示开关 */}
               <div className="dictation-toolbar">
-                <div className="mode-toggle" data-testid="mode-toggle">
-                  <button
-                    type="button"
-                    className={`mode-pill${mode === 'whole' ? ' mode-active' : ' mode-inactive'}`}
-                    data-mode="whole"
-                    aria-pressed={mode === 'whole'}
-                    onClick={() => setMode('whole')}
-                  >
-                    整篇
-                  </button>
-                  <button
-                    type="button"
-                    className={`mode-pill${mode === 'sentence' ? ' mode-active' : ' mode-inactive'}`}
-                    data-mode="sentence"
-                    aria-pressed={mode === 'sentence'}
-                    onClick={() => setMode('sentence')}
-                  >
-                    逐句
-                  </button>
-                </div>
                 <div className="difficulty-pills" data-testid="difficulty-pills">
                   {DIFFICULTY_ORDER.map((key) => (
                     <button
@@ -306,51 +321,58 @@ export function PodcastPage({
                     </button>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  className={`fulltext-toggle${showFullText ? ' on' : ''}`}
+                  data-testid="fulltext-toggle"
+                  aria-pressed={showFullText}
+                  onClick={() => setShowFullText((v) => !v)}
+                >
+                  {showFullText ? '隐藏全文' : '显示全文'}
+                </button>
               </div>
 
               {/* 字幕挖空区 */}
               <section className="subtitle-area" data-testid="subtitle-area">
-                {sentences.map((_sentence, sIndex) => {
+                {sentences.map((sentence, sIndex) => {
                   const dictation = dictations[sIndex]
                   const isCurrent = sIndex === player.currentIndex
-                  const isSentenceMode = mode === 'sentence'
-                  const editable = !isSentenceMode || isCurrent
                   return (
                     <p
                       key={sIndex}
                       ref={isCurrent ? currentLineRef : undefined}
-                      className={`subtitle-line${
-                        isCurrent
-                          ? ' current'
-                          : isSentenceMode
-                            ? ' faded'
-                            : ''
-                      }`}
+                      className={`subtitle-line${isCurrent ? ' current' : ''}`}
                       data-sentence-index={sIndex}
                       data-testid={`subtitle-line-${sIndex}`}
                     >
                       {isCurrent && player.playing && (
                         <span className="playing-dot" aria-hidden="true" />
                       )}
-                      {dictation.segments.map((segment, segIndex) =>
-                        segment.kind === 'text' ? (
-                          <span key={segIndex}>{segment.text}</span>
-                        ) : (
-                          <span key={segIndex} className="word-blank-inline">
-                            <input
-                              type="text"
-                              className={`blank-input blank-${blankState(sIndex, segment.blankIndex)}`}
-                              value={inputs[sIndex]?.[segment.blankIndex] ?? ''}
-                              readOnly={!editable}
-                              style={{ width: `${Math.max(segment.text.length, 3)}ch` }}
-                              aria-label={`第 ${sIndex + 1} 句第 ${segment.blankIndex + 1} 空`}
-                              data-testid={`blank-${sIndex}-${segment.blankIndex}`}
-                              onChange={(e) => updateInput(sIndex, segment.blankIndex, e.target.value)}
-                              onBlur={() => gradeInput(sIndex, segment.blankIndex)}
-                              onKeyDown={(e) => handleInputKeyDown(sIndex, segment.blankIndex, e)}
-                            />
-                          </span>
-                        ),
+                      {showFullText ? (
+                        <span className="fulltext-line">{sentence.text}</span>
+                      ) : (
+                        dictation.segments.map((segment, segIndex) =>
+                          segment.kind === 'text' ? (
+                            <span key={segIndex}>{segment.text}</span>
+                          ) : (
+                            <span key={segIndex} className="word-blank-inline">
+                              <input
+                                ref={(el) => {
+                                  blankInputRefs.current[`${sIndex}-${segment.blankIndex}`] = el
+                                }}
+                                type="text"
+                                className={`blank-input blank-${blankState(sIndex, segment.blankIndex)}`}
+                                value={inputs[sIndex]?.[segment.blankIndex] ?? ''}
+                                style={{ width: `${Math.max(segment.text.length, 3)}ch` }}
+                                aria-label={`第 ${sIndex + 1} 句第 ${segment.blankIndex + 1} 空`}
+                                data-testid={`blank-${sIndex}-${segment.blankIndex}`}
+                                onChange={(e) => updateInput(sIndex, segment.blankIndex, e.target.value)}
+                                onBlur={() => gradeInput(sIndex, segment.blankIndex)}
+                                onKeyDown={(e) => handleInputKeyDown(sIndex, segment.blankIndex, e)}
+                              />
+                            </span>
+                          ),
+                        )
                       )}
                     </p>
                   )
@@ -379,6 +401,27 @@ export function PodcastPage({
                 <div className="time-row">
                   <span data-testid="current-time">{formatTime(player.currentTimeMs)}</span>
                   <span data-testid="total-time">{formatTime(audio.durationMs)}</span>
+                </div>
+                {/* 播放模式：连续播放整篇 / 单句播放自动停止 */}
+                <div className="playback-mode-toggle" data-testid="playback-mode-toggle">
+                  <button
+                    type="button"
+                    className={`mode-pill${playbackMode === 'continuous' ? ' mode-active' : ' mode-inactive'}`}
+                    data-mode="continuous"
+                    aria-pressed={playbackMode === 'continuous'}
+                    onClick={() => setPlaybackMode('continuous')}
+                  >
+                    连续播放
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-pill${playbackMode === 'sentence' ? ' mode-active' : ' mode-inactive'}`}
+                    data-mode="sentence"
+                    aria-pressed={playbackMode === 'sentence'}
+                    onClick={() => setPlaybackMode('sentence')}
+                  >
+                    单句播放
+                  </button>
                 </div>
                 <div className="controls-row">
                   <button

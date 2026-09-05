@@ -8,6 +8,7 @@
  */
 import type { Article } from './articles'
 import { computeStats, loadWordProgress } from './wordProgress'
+import type { Quiz } from './ai/types'
 
 /* ---- 播客收听进度 ---- */
 
@@ -86,6 +87,44 @@ export function markSentenceCompleted(articleId: string, sentenceIndex: number):
   store[articleId] = record
   localStorage.setItem(LISTENING_KEY, JSON.stringify(store))
   return record
+}
+
+/* ---- AI 出题缓存（减少 token 消耗） ---- */
+
+const QUIZ_CACHE_KEY = 'linguaai.quiz_cache'
+type QuizCacheStore = Record<string, Quiz[]>
+
+function loadQuizCacheStore(): QuizCacheStore {
+  try {
+    const raw = localStorage.getItem(QUIZ_CACHE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? (parsed as QuizCacheStore) : {}
+  } catch {
+    return {}
+  }
+}
+
+/** 读取某篇文章已缓存的题目（无缓存返回 null） */
+export function loadQuizCache(articleId: string): Quiz[] | null {
+  const cached = loadQuizCacheStore()[articleId]
+  return Array.isArray(cached) && cached.length > 0 ? cached : null
+}
+
+/** 缓存某篇文章的题目（覆盖旧缓存） */
+export function saveQuizCache(articleId: string, quizzes: Quiz[]): void {
+  if (!Array.isArray(quizzes) || quizzes.length === 0) return
+  const store = loadQuizCacheStore()
+  store[articleId] = quizzes
+  localStorage.setItem(QUIZ_CACHE_KEY, JSON.stringify(store))
+}
+
+/** 清除某篇文章的题目缓存（刷新题库时调用） */
+export function clearQuizCache(articleId: string): void {
+  const store = loadQuizCacheStore()
+  if (!(articleId in store)) return
+  delete store[articleId]
+  localStorage.setItem(QUIZ_CACHE_KEY, JSON.stringify(store))
 }
 
 /* ---- 今日学习时长 ---- */

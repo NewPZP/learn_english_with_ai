@@ -3,6 +3,11 @@ import { Award, Check, CheckCircle2, Loader2, RefreshCw, Sparkles, X, XCircle } 
 import { getTextAdapter } from '../lib/ai'
 import type { Quiz } from '../lib/ai/types'
 import {
+  clearQuizCache,
+  loadQuizCache,
+  saveQuizCache,
+} from '../lib/studyProgress'
+import {
   answerText,
   booleanText,
   countUnanswered,
@@ -20,14 +25,18 @@ function correctAnswerText(quiz: Quiz): string {
 }
 
 /**
- * 听力挑战 Tab（工单 #10）：AI 智能出题 + 三题型 + 整卷判分
+ * AI 综合测验 Tab（工单 #10、#19）：AI 智能出题 + 三题型 + 整卷判分
  * 题目由文字模型适配器生成（当前 mock，两套题库轮换）；
+ * 生成的题目按 articleId 持久化到 localStorage，复用以减少 token 消耗；
+ * 「刷新题库」清除缓存并重新生成。
  * 渲染与判分按 quiz.type 数据驱动，新增题型只需扩展渲染分支与判分规则
  */
 export function QuizChallengeTab({
+  articleId,
   content,
   generateQuiz,
 }: {
+  articleId?: string
   content: string
   generateQuiz?: GenerateQuiz
 }) {
@@ -49,11 +58,20 @@ export function QuizChallengeTab({
 
   useEffect(() => {
     let cancelled = false
+    // 优先读取缓存，命中则直接复用，避免重复消耗 token
+    const cached = articleId ? loadQuizCache(articleId) : null
+    if (cached) {
+      setQuizzes(cached)
+      setAnswers(new Array<QuizAnswer | undefined>(cached.length))
+      setLoading(false)
+      return
+    }
     generate(content)
       .then((next) => {
         if (cancelled) return
         setQuizzes(next)
         setAnswers(new Array<QuizAnswer | undefined>(next.length))
+        if (articleId) saveQuizCache(articleId, next)
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '出题失败，请重试')
@@ -64,7 +82,7 @@ export function QuizChallengeTab({
     return () => {
       cancelled = true
     }
-  }, [generate, content, loadKey])
+  }, [generate, content, loadKey, articleId])
 
   const unanswered = quizzes ? countUnanswered(quizzes, answers) : 0
   const submitted = !!result
@@ -87,6 +105,8 @@ export function QuizChallengeTab({
     setResult(null)
     setError(null)
     setLoading(true)
+    // 刷新题库：清除缓存，强制重新生成
+    if (articleId) clearQuizCache(articleId)
     setLoadKey((key) => key + 1)
   }
 

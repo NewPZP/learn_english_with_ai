@@ -142,6 +142,30 @@ describe('播放控制', () => {
     expect(fake.pause).toHaveBeenCalled()
   })
 
+  test('单句模式：到达当前句末尾自动暂停', () => {
+    const fake = createFakeAudio()
+    const { result } = renderPlayer(fake)
+    act(() => result.current.setStopAfterSentence(true))
+    act(() => result.current.play())
+
+    // 第 0 句 endMs = 8000ms；推进到 9 秒 → 越过句尾 → 暂停
+    act(() => fake.tick(9))
+    expect(result.current.playing).toBe(false)
+    expect(fake.pause).toHaveBeenCalled()
+    // 当前位置停在越过句尾处（不会继续播放）
+    expect(result.current.currentTimeMs).toBe(9000)
+  })
+
+  test('连续模式（默认）：越过句尾不暂停，继续播放', () => {
+    const fake = createFakeAudio()
+    const { result } = renderPlayer(fake)
+    act(() => result.current.play())
+
+    act(() => fake.tick(9))
+    expect(result.current.playing).toBe(true)
+    expect(result.current.currentIndex).toBe(1)
+  })
+
   test('ended 事件：回到未播放态', () => {
     const fake = createFakeAudio()
     const { result } = renderPlayer(fake)

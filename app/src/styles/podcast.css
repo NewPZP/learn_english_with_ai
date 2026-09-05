@@ -317,6 +317,16 @@
   background: var(--en-muted);
 }
 
+/* 播放模式切换（位于播放控制区）：连续播放 / 单句播放 */
+.playback-mode-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--en-muted);
+  align-self: center;
+}
+
 .mode-pill {
   display: inline-flex;
   align-items: center;
@@ -347,6 +357,44 @@
 .mode-pill:focus-visible {
   outline: 2px solid var(--en-ring);
   outline-offset: 2px;
+}
+
+/* 全文显示开关 */
+.fulltext-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--en-border);
+  background: var(--en-card);
+  color: var(--en-muted-foreground);
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.fulltext-toggle:hover {
+  color: var(--en-foreground);
+}
+
+.fulltext-toggle.on {
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+  border-color: var(--en-primary);
+}
+
+.fulltext-toggle:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+/* 全文显示时的原文行 */
+.fulltext-line {
+  color: var(--en-foreground);
 }
 
 /* ---- 整词挖空输入框 ---- */

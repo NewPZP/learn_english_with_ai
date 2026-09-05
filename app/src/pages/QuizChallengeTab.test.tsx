@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from 'vitest'
+import { beforeEach, describe, test, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QuizChallengeTab } from './QuizChallengeTab'
@@ -213,5 +213,51 @@ describe('QuizChallengeTab — 刷新题库', () => {
     await user.click(screen.getByTestId('quiz-tf-2-true'))
     await user.click(screen.getByTestId('submit-quiz'))
     expect(screen.getByTestId('quiz-score')).toHaveTextContent('3 / 3 正确')
+  })
+})
+
+describe('QuizChallengeTab — 题目缓存（减少 token）', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('首次生成后缓存，再次进入同一文章直接复用、不再调用出题', async () => {
+    const generate = createFakeGenerateQuiz()
+
+    // 首次进入：调用出题并缓存
+    const { unmount } = render(
+      <QuizChallengeTab articleId="art-1" content="c" generateQuiz={generate} />,
+    )
+    expect(await screen.findByTestId('quiz-header')).toBeInTheDocument()
+    expect(generate).toHaveBeenCalledTimes(1)
+    unmount()
+
+    // 再次进入同一文章：命中缓存，不再调用出题
+    const generate2 = createFakeGenerateQuiz()
+    render(<QuizChallengeTab articleId="art-1" content="c" generateQuiz={generate2} />)
+    expect(await screen.findByTestId('quiz-header')).toBeInTheDocument()
+    expect(generate2).not.toHaveBeenCalled()
+    // 复用的仍是第一套题
+    expect(screen.getByText('文章作者认为拖延的核心原因是什么？')).toBeInTheDocument()
+  })
+
+  test('刷新题库清除缓存并重新生成', async () => {
+    const user = userEvent.setup()
+    const generate = createFakeGenerateQuiz()
+    const { unmount } = render(
+      <QuizChallengeTab articleId="art-2" content="c" generateQuiz={generate} />,
+    )
+    expect(await screen.findByTestId('quiz-header')).toBeInTheDocument()
+    expect(generate).toHaveBeenCalledTimes(1)
+
+    // 刷新：清缓存 + 重新出题
+    await user.click(screen.getByTestId('refresh-quiz'))
+    expect(await screen.findByText('Panic Monster 在大脑里扮演什么角色？')).toBeInTheDocument()
+    expect(generate).toHaveBeenCalledTimes(2)
+    unmount()
+
+    // 此时缓存已更新为第二套；再次进入应复用第二套
+    const generate3 = createFakeGenerateQuiz()
+    render(<QuizChallengeTab articleId="art-2" content="c" generateQuiz={generate3} />)
+    expect(await screen.findByText('Panic Monster 在大脑里扮演什么角色？')).toBeInTheDocument()
+    expect(generate3).not.toHaveBeenCalled()
   })
 })

@@ -132,8 +132,8 @@ describe('mock 文字适配器返回结构', () => {
     // 轮换出新题组，且两套题面不同
     expect(second).not.toEqual(first)
     expect(third).toEqual(first)
-    expect(first[0].question).toBe('文章作者认为拖延的核心原因是什么？')
-    expect(second[0].question).toBe('Panic Monster 在大脑里扮演什么角色？')
+    expect(first[0].question).toBe('According to the article, what is the core cause of procrastination?')
+    expect(second[0].question).toBe('What role does the Panic Monster play in the brain?')
     // 两套均含三题型
     for (const set of [first, second]) {
       expect(new Set(set.map((q) => q.type))).toEqual(

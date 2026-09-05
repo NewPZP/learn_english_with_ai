@@ -117,17 +117,19 @@ describe('深入学习页 — 初始渲染', () => {
     expect(screen.getByTestId('subtitle-line-0').className).toContain('current')
   })
 
-  test('默认显示「挖空听写」Tab，含整篇/逐句子模式与三档难度', () => {
+  test('默认显示「挖空听写」Tab，含三档难度、全文开关与播放模式', () => {
     seedArticle()
     renderPage(createFakeAudio())
 
     expect(screen.getByRole('button', { name: '挖空听写' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: '听力挑战' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: '逐句' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'AI 综合测验' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByText('全部听写')).toBeInTheDocument()
     expect(screen.getByText('重要词语')).toBeInTheDocument()
     expect(screen.getByText('仅生词')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '显示全文' })).toHaveAttribute('aria-pressed', 'false')
+    // 播放模式位于播放控制区，默认连续播放
+    expect(screen.getByRole('button', { name: '连续播放' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '单句播放' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
 
@@ -238,13 +240,13 @@ describe('深入学习页 — 句级控制与倍速', () => {
 describe('深入学习页 — Tab 与子模式切换', () => {
   beforeEach(() => localStorage.clear())
 
-  test('切换到「听力挑战」Tab，再切回「挖空听写」', async () => {
+  test('切换到「AI 综合测验」Tab，再切回「挖空听写」', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
-    await user.click(screen.getByRole('button', { name: '听力挑战' }))
-    expect(screen.getByRole('button', { name: '听力挑战' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'AI 综合测验' }))
+    expect(screen.getByRole('button', { name: 'AI 综合测验' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.queryByTestId('subtitle-area')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '挖空听写' }))
@@ -252,15 +254,15 @@ describe('深入学习页 — Tab 与子模式切换', () => {
     expect(screen.getByTestId('subtitle-area')).toBeInTheDocument()
   })
 
-  test('子模式整篇/逐句切换', async () => {
+  test('播放模式：连续播放/单句播放切换', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
-    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'true')
-    await user.click(screen.getByRole('button', { name: '逐句' }))
-    expect(screen.getByRole('button', { name: '逐句' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: '整篇' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: '连续播放' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: '单句播放' }))
+    expect(screen.getByRole('button', { name: '单句播放' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '连续播放' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   test('三档难度切换', async () => {
@@ -319,6 +321,21 @@ describe('深入学习页 — 整词挖空输入与即判分', () => {
     expect(input.className).toContain('blank-correct')
   })
 
+  test('空格键判定当前空并跳到下一个空', async () => {
+    const user = userEvent.setup()
+    seedArticle()
+    renderPage(createFakeAudio())
+
+    await user.click(screen.getByText('全部听写'))
+    const first = screen.getByTestId('blank-0-0')
+    const second = screen.getByTestId('blank-0-1')
+
+    await user.type(first, 'so ')
+    // 当前空判为正确，焦点移到下一个空
+    expect(first.className).toContain('blank-correct')
+    expect(document.activeElement).toBe(second)
+  })
+
   test('重新编辑已判分的输入会清除判分状态', async () => {
     const user = userEvent.setup()
     seedArticle()
@@ -337,17 +354,22 @@ describe('深入学习页 — 整词挖空输入与即判分', () => {
     expect(input.className).not.toContain('blank-wrong')
   })
 
-  test('逐句模式下非当前句输入框为只读', async () => {
+  test('显示全文开关：开启后展示原文、隐藏挖空输入', async () => {
     const user = userEvent.setup()
     seedArticle()
     renderPage(createFakeAudio())
 
     await user.click(screen.getByText('全部听写'))
-    await user.click(screen.getByRole('button', { name: '逐句' }))
+    // 关闭状态：挖空输入框存在
+    expect(screen.getByTestId('blank-0-0')).toBeInTheDocument()
 
-    // 当前句（第0句）输入框可编辑
-    expect(screen.getByTestId('blank-0-0')).not.toHaveAttribute('readonly')
-    // 非当前句（第1句）输入框只读
-    expect(screen.getByTestId('blank-1-0')).toHaveAttribute('readonly')
+    await user.click(screen.getByRole('button', { name: '显示全文' }))
+    // 开启状态：挖空输入框消失，按钮变为「隐藏全文」
+    expect(screen.queryByTestId('blank-0-0')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '隐藏全文' })).toHaveAttribute('aria-pressed', 'true')
+
+    // 再次关闭：挖空输入框恢复
+    await user.click(screen.getByRole('button', { name: '隐藏全文' }))
+    expect(screen.getByTestId('blank-0-0')).toBeInTheDocument()
   })
 })

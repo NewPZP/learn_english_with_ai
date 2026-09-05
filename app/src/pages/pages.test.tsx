@@ -579,7 +579,7 @@ describe('导入 → 单词预习完整链路', () => {
     expect(screen.getByTestId('blank-1-0').className).toContain('blank-correct')
   })
 
-  test('E2E：导入并处理 → 听力挑战 → 作答三题型 → 提交判分 → 刷新题库轮换', async () => {
+  test('E2E：导入并处理 → AI 综合测验 → 作答三题型 → 提交判分 → 刷新题库轮换', async () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
@@ -590,14 +590,14 @@ describe('导入 → 单词预习完整链路', () => {
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
-    // 进入深入学习，切到听力挑战 Tab
+    // 进入深入学习，切到 AI 综合测验 Tab
     await user.click(screen.getByRole('link', { name: /深入学习/ }))
-    await user.click(screen.getByText('听力挑战'))
+    await user.click(screen.getByText('AI 综合测验'))
 
     // AI 出题徽章 + 三题型渲染
     expect(await screen.findByTestId('quiz-badge')).toHaveTextContent('AI 智能出题')
     expect(screen.getByTestId('quiz-count')).toHaveTextContent('共 3 题')
-    expect(screen.getByText('文章作者认为拖延的核心原因是什么？')).toBeInTheDocument()
+    expect(screen.getByText('According to the article, what is the core cause of procrastination?')).toBeInTheDocument()
 
     // 未答完阻止提交
     expect(screen.getByTestId('submit-quiz')).toBeDisabled()
@@ -620,7 +620,7 @@ describe('导入 → 单词预习完整链路', () => {
 
     // 刷新题库：轮换到第二套题组，作答与判分重置
     await user.click(screen.getByTestId('refresh-quiz'))
-    expect(await screen.findByText('Panic Monster 在大脑里扮演什么角色？')).toBeInTheDocument()
+    expect(await screen.findByText('What role does the Panic Monster play in the brain?')).toBeInTheDocument()
     expect(screen.getByTestId('quiz-fill-1')).toHaveValue('')
     expect(screen.queryByTestId('quiz-feedback')).not.toBeInTheDocument()
     expect(screen.getByTestId('submit-quiz')).toBeDisabled()

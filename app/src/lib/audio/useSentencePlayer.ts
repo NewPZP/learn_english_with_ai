@@ -30,6 +30,9 @@ export interface SentencePlayer {
   playbackRate: number
   /** 当前句下标（按时间轴推导；播放结束停 in 最后一句） */
   currentIndex: number
+  /** 单句模式：开启后播放到当前句结束自动暂停 */
+  stopAfterSentence: boolean
+  setStopAfterSentence: (value: boolean) => void
   play: () => void
   pause: () => void
   togglePlay: () => void
@@ -74,6 +77,14 @@ export function useSentencePlayer(options: {
   const [playing, setPlaying] = useState(false)
   const [currentTimeMs, setCurrentTimeMs] = useState(0)
   const [playbackRate, setRate] = useState(1)
+  const [stopAfterSentence, setStopAfterSentence] = useState(false)
+  /** ref 镜像：timeupdate 闭包内读取最新值，避免依赖列表频繁重订阅 */
+  const stopAfterSentenceRef = useRef(false)
+  useEffect(() => {
+    stopAfterSentenceRef.current = stopAfterSentence
+  }, [stopAfterSentence])
+  /** 播放起始句下标：单句模式下越过此句即暂停 */
+  const playStartIndexRef = useRef(0)
 
   // 惰性创建媒体元素（依赖 audioUrl，便于注入替换与卸载清理）
   const getAudio = useCallback((): AudioLike => {
@@ -93,6 +104,15 @@ export function useSentencePlayer(options: {
         audio.pause()
         setCurrentTimeMs(durationMs)
         setPlaying(false)
+        return
+      }
+      // 单句模式：越过播放起始句即自动暂停
+      if (stopAfterSentenceRef.current) {
+        const idx = sentenceIndexAt(sentences, ms)
+        if (idx > playStartIndexRef.current) {
+          audio.pause()
+          setPlaying(false)
+        }
       }
     }
     const onEnded = () => {
@@ -110,10 +130,12 @@ export function useSentencePlayer(options: {
 
   const play = useCallback(() => {
     const audio = getAudio()
+    // 记录播放起始句：单句模式下越过此句即暂停
+    playStartIndexRef.current = sentenceIndexAt(sentences, audio.currentTime * 1000)
     setPlaying(true)
     // jsdom / 自动播放受限时不抛错：状态乐观推进，实际播放由元素决定
     void Promise.resolve(audio.play()).catch(() => {})
-  }, [getAudio])
+  }, [getAudio, sentences])
 
   const pause = useCallback(() => {
     getAudio().pause()
@@ -183,6 +205,8 @@ export function useSentencePlayer(options: {
     durationMs,
     playbackRate,
     currentIndex,
+    stopAfterSentence,
+    setStopAfterSentence,
     play,
     pause,
     togglePlay,
