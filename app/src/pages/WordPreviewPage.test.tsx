@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { App } from '../App'
 
 /**
- * 工单「单词预习模式」验收测试
+ * 工单「词汇预习模式」验收测试
  * 覆盖：翻卡、三档自评推进、记忆曲线三态、单词列表状态、进度统计、完成态、持久化
  */
 
@@ -61,7 +61,7 @@ function renderPage() {
   return render(<App />)
 }
 
-describe('单词预习页 — 初始渲染', () => {
+describe('词汇预习页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
   test('文章存在但未提取单词：空态提示并提供「去 AI 预处理」跳转', () => {
@@ -77,7 +77,7 @@ describe('单词预习页 — 初始渲染', () => {
   test('文章不存在时显示泛化空态且无跳转按钮', () => {
     // 不种子文章 → 路由 a1 找不到文章
     renderPage()
-    expect(screen.getByTestId('word-preview-empty')).toHaveTextContent('暂无可预习的单词')
+    expect(screen.getByTestId('word-preview-empty')).toHaveTextContent('暂无可预习的内容')
     expect(document.querySelector('[data-dom-id="cta-ai-process"]')).not.toBeInTheDocument()
   })
 
@@ -90,8 +90,8 @@ describe('单词预习页 — 初始渲染', () => {
     expect(screen.getByText('/prəˌkræstɪˈneɪʃən/')).toBeInTheDocument()
     expect(screen.getByText('n.')).toBeInTheDocument()
     expect(screen.getByText('点击卡片查看释义')).toBeInTheDocument()
-    expect(screen.getByText('已掌握 0 词')).toBeInTheDocument()
-    expect(screen.getByText('待复习 0 词')).toBeInTheDocument()
+    expect(screen.getByText('已掌握 0 项')).toBeInTheDocument()
+    expect(screen.getByText('待复习 0 项')).toBeInTheDocument()
   })
 
   test('记忆曲线渲染 5 个节点：首节点当前（脉冲），其余待复习', () => {
@@ -113,11 +113,12 @@ describe('单词预习页 — 初始渲染', () => {
     expect(screen.getByTestId('word-row-procrastination')).toHaveAttribute('data-state', 'current')
     expect(screen.getByTestId('word-row-rational')).toHaveAttribute('data-state', 'upcoming')
     expect(screen.getByTestId('word-row-deadline')).toHaveAttribute('data-state', 'upcoming')
-    expect(screen.getByText('3')).toBeInTheDocument() // 总数
+    // 总数 3 出现在顶栏进度 / Tab 计数 / 列表头部多处
+    expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1)
   })
 })
 
-describe('单词预习页 — 翻卡与自评', () => {
+describe('词汇预习页 — 翻卡与自评', () => {
   beforeEach(() => localStorage.clear())
 
   test('点击闪卡翻面：背面含释义/例句/翻译/近义词；再点回正面', async () => {
@@ -145,7 +146,7 @@ describe('单词预习页 — 翻卡与自评', () => {
 
     // 进度 1/3，统计已掌握 1
     expect(screen.getByTestId('topbar-progress')).toHaveTextContent('1 / 3')
-    expect(screen.getByText('已掌握 1 词')).toBeInTheDocument()
+    expect(screen.getByText('已掌握 1 项')).toBeInTheDocument()
     // 列表首词已完成 ✓，第二词成为当前
     expect(screen.getByTestId('word-row-procrastination')).toHaveAttribute('data-state', 'completed')
     expect(screen.getByTestId('word-row-rational')).toHaveAttribute('data-state', 'current')
@@ -165,8 +166,8 @@ describe('单词预习页 — 翻卡与自评', () => {
     renderPage()
 
     await user.click(screen.getByTestId('rate-unknown'))
-    expect(screen.getByText('已掌握 0 词')).toBeInTheDocument()
-    expect(screen.getByText('待复习 1 词')).toBeInTheDocument()
+    expect(screen.getByText('已掌握 0 项')).toBeInTheDocument()
+    expect(screen.getByText('待复习 1 项')).toBeInTheDocument()
 
     const store = JSON.parse(localStorage.getItem('linguaai.word_progress') ?? '{}')
     expect(store.a1.procrastination).toMatchObject({ rating: 'unknown', stage: 0 })
@@ -182,8 +183,8 @@ describe('单词预习页 — 翻卡与自评', () => {
     await user.click(screen.getByTestId('rate-known'))
 
     expect(screen.getByTestId('completion-card')).toHaveTextContent('全部完成')
-    expect(screen.getByTestId('completion-card')).toHaveTextContent('已掌握 2 词')
-    expect(screen.getByTestId('completion-card')).toHaveTextContent('待复习 1 词')
+    expect(screen.getByTestId('completion-card')).toHaveTextContent('已掌握 2 项')
+    expect(screen.getByTestId('completion-card')).toHaveTextContent('待复习 1 项')
     expect(screen.queryByTestId('rate-known')).not.toBeInTheDocument()
     // 曲线全部节点已完成
     for (let i = 0; i < 5; i++) {
@@ -210,7 +211,7 @@ describe('单词预习页 — 翻卡与自评', () => {
   })
 })
 
-describe('单词预习页 — 进度持久化与续学', () => {
+describe('词汇预习页 — 进度持久化与续学', () => {
   beforeEach(() => localStorage.clear())
 
   test('已评单词重新进入页面后保持已完成，进度回显', () => {
@@ -232,7 +233,7 @@ describe('单词预习页 — 进度持久化与续学', () => {
     renderPage()
 
     expect(screen.getByTestId('topbar-progress')).toHaveTextContent('1 / 3')
-    expect(screen.getByText('已掌握 1 词')).toBeInTheDocument()
+    expect(screen.getByText('已掌握 1 项')).toBeInTheDocument()
     expect(screen.getByTestId('word-row-procrastination')).toHaveAttribute('data-state', 'completed')
     // 当前词为首个未评词 rational
     expect(screen.getByTestId('word-row-rational')).toHaveAttribute('data-state', 'current')
@@ -240,7 +241,7 @@ describe('单词预习页 — 进度持久化与续学', () => {
   })
 })
 
-describe('单词预习页 — 列表跳转与曲线联动', () => {
+describe('词汇预习页 — 列表跳转与曲线联动', () => {
   beforeEach(() => localStorage.clear())
 
   test('点击列表中待学习词可跳转闪卡', async () => {

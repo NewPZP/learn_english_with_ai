@@ -31,6 +31,8 @@ const word = (w: string) => ({
 
 const sentence = (text: string, i: number) => ({ text, startMs: i * 400, endMs: i * 400 + 400 })
 
+const phrase = (p: string) => ({ phrase: p, definition: 'd', translation: 't', example: 'e' })
+
 const ARTICLE: Article = {
   id: 'a1',
   title: 'T',
@@ -41,7 +43,7 @@ const ARTICLE: Article = {
   createdAt: '2026-09-03',
   processing: {
     words: [word('procrastination'), word('rational'), word('deadline')],
-    phrases: [],
+    phrases: [phrase('instant gratification'), phrase('pull an all-nighter')],
     sentences: ['a', 'b', 'c', 'd', 'e'].map(sentence),
     audio: { audioUrl: 'x', mimeType: 'audio/wav', durationMs: 2000 },
   },
@@ -130,18 +132,28 @@ describe('三模式进度汇聚', () => {
   test('无学习行为时全为 0', () => {
     const progress = computeArticleProgress(ARTICLE)
     expect(progress.words).toEqual({ done: 0, total: 3, percent: 0 })
+    expect(progress.phrases).toEqual({ done: 0, total: 2, percent: 0 })
     expect(progress.podcast).toEqual({ done: 0, total: 0, percent: 0 })
     expect(progress.listening).toEqual({ done: 0, total: 5, percent: 0 })
   })
 
   test('汇聚三模式真实进度', () => {
-    // 预习：评 2 词
+    // 单词：评 2 词
     localStorage.setItem(
       'linguaai.word_progress',
       JSON.stringify({
         a1: {
           procrastination: { word: 'procrastination', rating: 'known', stage: 1, ratedAt: 'x', nextReviewAt: 'x' },
           rational: { word: 'rational', rating: 'fuzzy', stage: 0, ratedAt: 'x', nextReviewAt: 'x' },
+        },
+      }),
+    )
+    // 短语：评 1 个
+    localStorage.setItem(
+      'linguaai.phrase_progress',
+      JSON.stringify({
+        a1: {
+          'instant gratification': { word: 'instant gratification', rating: 'known', stage: 1, ratedAt: 'x', nextReviewAt: 'x' },
         },
       }),
     )
@@ -153,6 +165,7 @@ describe('三模式进度汇聚', () => {
 
     const progress = computeArticleProgress(ARTICLE)
     expect(progress.words).toEqual({ done: 2, total: 3, percent: 67 })
+    expect(progress.phrases).toEqual({ done: 1, total: 2, percent: 50 })
     expect(progress.podcast).toEqual({ done: 1360, total: 2000, percent: 68 })
     expect(progress.listening).toEqual({ done: 2, total: 5, percent: 40 })
   })

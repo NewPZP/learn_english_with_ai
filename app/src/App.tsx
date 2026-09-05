@@ -12,7 +12,7 @@ import { routes } from './routes'
  * /                      → 重定向到 /articles
  * /articles              → 文章列表
  * /articles/import       → 导入文章
- * /articles/:id/words    → 单词预习
+ * /articles/:id/words    → 词汇预习
  * /articles/:id/podcast  → 深入学习（播客 + 挖空听写 + 听力挑战）
  * /articles/:id/process  → AI 预处理（加工页，复用导入页双模式）
  * /ai-config             → AI 配置

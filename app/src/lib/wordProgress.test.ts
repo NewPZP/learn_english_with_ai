@@ -3,14 +3,16 @@ import {
   computeStats,
   curveNodeStatuses,
   loadWordProgress,
+  loadPhraseProgress,
   rateWord,
+  ratePhrase,
   nextStage,
   scheduleNext,
   type WordProgressRecord,
 } from './wordProgress'
 
 /**
- * 工单「单词预习模式」验收测试 — 调度与持久化
+ * 工单「词汇预习模式」验收测试 — 调度与持久化
  */
 
 const NOW = new Date('2026-09-03T10:00:00')
@@ -200,5 +202,35 @@ describe('持久化（按文章 × 单词）', () => {
   test('损坏的存储数据返回空记录', () => {
     localStorage.setItem('linguaai.word_progress', '{invalid')
     expect(loadWordProgress('a1')).toEqual({})
+  })
+})
+
+describe('短语进度持久化（独立存储，不与单词混淆）', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('ratePhrase 首评：调度并持久化到短语存储', () => {
+    const record = ratePhrase('a1', 'pull an all-nighter', 'known', NOW)
+
+    expect(record).toMatchObject({
+      word: 'pull an all-nighter',
+      rating: 'known',
+      stage: 1,
+      nextReviewAt: daysLater(2),
+    })
+    expect(loadPhraseProgress('a1')['pull an all-nighter']).toEqual(record)
+  })
+
+  test('短语进度与单词进度隔离：相同键名互不干扰', () => {
+    rateWord('a1', 'put off', 'known', NOW)
+    ratePhrase('a1', 'put off', 'unknown', NOW)
+
+    // 单词存储中 put off 是 known
+    expect(loadWordProgress('a1')['put off'].rating).toBe('known')
+    // 短语存储中 put off 是 unknown
+    expect(loadPhraseProgress('a1')['put off'].rating).toBe('unknown')
+  })
+
+  test('loadPhraseProgress 初始为空对象', () => {
+    expect(loadPhraseProgress('a1')).toEqual({})
   })
 })

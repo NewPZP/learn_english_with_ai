@@ -20,7 +20,7 @@ type User = ReturnType<typeof userEvent.setup>
 /**
  * 经卡片「AI 预处理」进入加工页，依次独立触发三步（提取单词/短语/生成语音），
  * 每步等待完成且按钮恢复可用（running 已清除），再返回列表。
- * 产物经 mergeProcessing 持久化，供后续单词预习/播客/听力训练消费。
+ * 产物经 mergeProcessing 持久化，供后续词汇预习/播客/听力训练消费。
  */
 async function processViaAiPreprocess(user: User) {
   await user.click(screen.getByRole('link', { name: /AI 预处理/ }))
@@ -324,8 +324,8 @@ describe('文章卡片', () => {
 
     renderAtRoute('/articles')
 
-    await user.click(screen.getByRole('link', { name: /单词预习/ }))
-    expect(screen.getByRole('heading', { name: '单词预习' })).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /词汇预习/ }))
+    expect(screen.getByRole('heading', { name: '词汇预习' })).toBeInTheDocument()
     // 无处理产物 → 空态（骨架页已被真实页面替换）
     expect(screen.getByTestId('word-preview-empty')).toBeInTheDocument()
 
@@ -476,10 +476,10 @@ describe('导入 AI 处理管道（页面级）', () => {
   })
 })
 
-describe('导入 → 单词预习完整链路', () => {
+describe('导入 → 词汇预习完整链路', () => {
   beforeEach(() => localStorage.clear())
 
-  test('E2E：导入并处理 → 卡片进入单词预习 → 翻卡 → 自评 → 进度与复习计划持久化', async () => {
+  test('E2E：导入并处理 → 卡片进入词汇预习 → 翻卡 → 自评 → 进度与复习计划持久化', async () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
@@ -490,8 +490,8 @@ describe('导入 → 单词预习完整链路', () => {
     // 经 AI 预处理完成三步加工后回列表
     await processViaAiPreprocess(user)
 
-    // 从卡片进入单词预习
-    await user.click(screen.getByRole('link', { name: /单词预习/ }))
+    // 从卡片进入词汇预习
+    await user.click(screen.getByRole('link', { name: /词汇预习/ }))
 
     // 32 个处理产物词全部进入预习
     expect(screen.getByTestId('topbar-progress')).toHaveTextContent('0 / 32')
@@ -681,7 +681,10 @@ describe('学习进度闭环（工单 #11）', () => {
                 synonyms: ['due date'],
               },
             ],
-            phrases: [],
+            phrases: [
+              { phrase: 'instant gratification', definition: '', translation: '即时满足', example: '' },
+              { phrase: 'pull an all-nighter', definition: '', translation: '熬夜赶工', example: '' },
+            ],
             sentences: [
               { text: 'The quick brown fox jumps.', startMs: 0, endMs: 5000 },
               { text: 'Then it rests.', startMs: 5000, endMs: 10000 },
@@ -700,10 +703,11 @@ describe('学习进度闭环（工单 #11）', () => {
 
     // 初始卡片进度全 0
     expect(screen.getByTestId('card-progress-words')).toHaveTextContent('0/3')
-    expect(screen.getByTestId('card-progress-deep')).toHaveTextContent('0/2')
+    expect(screen.getByTestId('card-progress-phrases')).toHaveTextContent('0/2')
+    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('0/2')
 
-    // 1) 单词预习：自评首词「认识」→ 1/3
-    await user.click(screen.getByRole('link', { name: /单词预习/ }))
+    // 1) 词汇预习：自评首词「认识」→ 1/3
+    await user.click(screen.getByRole('link', { name: /词汇预习/ }))
     await user.click(screen.getByTestId('rate-known'))
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
@@ -723,11 +727,12 @@ describe('学习进度闭环（工单 #11）', () => {
     }
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
-    // 返回列表：单词预习 + 深入学习进度回显真实数据，进度条填充与数值一致
+    // 返回列表：单词 + 短语 + 逐句精听进度回显真实数据，进度条填充与数值一致
     expect(await screen.findByTestId('card-progress-words')).toHaveTextContent('1/3')
     expect(screen.getByTestId('card-progress-words-fill')).toHaveStyle({ width: '33%' })
-    expect(screen.getByTestId('card-progress-deep')).toHaveTextContent('1/2')
-    expect(screen.getByTestId('card-progress-deep-fill')).toHaveStyle({ width: '50%' })
+    expect(screen.getByTestId('card-progress-phrases')).toHaveTextContent('0/2')
+    expect(screen.getByTestId('card-progress-listening')).toHaveTextContent('1/2')
+    expect(screen.getByTestId('card-progress-listening-fill')).toHaveStyle({ width: '50%' })
   })
 
   test('今日学习分钟数按当天累计显示，跨天归零', () => {

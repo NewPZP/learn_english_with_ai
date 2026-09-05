@@ -55,14 +55,20 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
 
       <div className="progress-section">
         <ProgressRow
-          label="单词预习"
+          label="单词"
           testId="card-progress-words"
           value={`${progress.words.done}/${progress.words.total}`}
           progress={progress.words}
         />
         <ProgressRow
-          label="深入学习"
-          testId="card-progress-deep"
+          label="短语"
+          testId="card-progress-phrases"
+          value={`${progress.phrases.done}/${progress.phrases.total}`}
+          progress={progress.phrases}
+        />
+        <ProgressRow
+          label="逐句精听"
+          testId="card-progress-listening"
           value={`${progress.listening.done}/${progress.listening.total}`}
           progress={progress.listening}
         />
@@ -83,7 +89,7 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
           className="function-btn function-btn-primary"
         >
           <BookOpen />
-          <span>单词预习</span>
+          <span>词汇预习</span>
         </Link>
         <Link
           to={routes.articleDeepLearning(article.id)}
@@ -110,7 +116,7 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
 
 /**
  * 文章列表页：统计栏 + 双列卡片网格 + 空态
- * 卡片回显两模式真实进度（单词预习 x/y、深入学习 x/y），
+ * 卡片回显三模式真实进度（单词 x/y、短语 x/y、逐句精听 x/y），
  * 统计栏「今日学习分钟数」来自当日累计学习时长（跨天归零）
  */
 export function ArticleListPage() {

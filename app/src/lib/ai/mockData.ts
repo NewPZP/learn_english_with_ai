@@ -7,7 +7,7 @@
  */
 import type { PhraseEntry, Quiz, Sentence, WordEntry } from './types'
 
-/** 32 个生词（词条顺序即单词预习页的默认顺序） */
+/** 32 个生词（词条顺序即词汇预习页的默认顺序） */
 export const MOCK_WORDS: WordEntry[] = [
   {
     word: 'procrastination',

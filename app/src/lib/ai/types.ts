@@ -3,7 +3,7 @@
  * 调用方只依赖这里的接口与数据结构，不感知具体供应商（mock / 真实 LLM / TTS）
  */
 
-/** 生词条目（单词预习页数据源） */
+/** 生词条目（词汇预习页数据源） */
 export interface WordEntry {
   word: string
   /** IPA 音标，如 /prəˌkræstɪˈneɪʃən/ */

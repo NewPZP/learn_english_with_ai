@@ -390,7 +390,7 @@ describe('深入学习页 — AI 翻译开关', () => {
     const translatePromise = new Promise<string[]>((res) => {
       resolveTranslate = res
     })
-    const translateFn = vi.fn(async (texts: string[]) => {
+    const translateFn = vi.fn(async (_texts: string[]) => {
       // 等待外部 resolve，便于断言中间「加载中」状态
       const result = await translatePromise
       return result

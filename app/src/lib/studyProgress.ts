@@ -1,13 +1,13 @@
 /**
  * 学习进度闭环领域层（工单 #11）
  * 汇聚三种学习模式的进度数据供文章卡片回显：
- * - 单词预习 x/y：自评记录（wordProgress）
+ * - 词汇预习 x/y：自评记录（wordProgress）
  * - 播客百分比：收听位置 / 音源时长
  * - 听力训练 x/y：逐句精听已提交作答的句子数
  * 以及「今日学习时长」按天累计（跨天归零，由存储日期键保证）
  */
 import type { Article } from './articles'
-import { computeStats, loadWordProgress } from './wordProgress'
+import { computeStats, loadWordProgress, loadPhraseProgress } from './wordProgress'
 import type { Quiz } from './ai/types'
 
 /* ---- 播客收听进度 ---- */
@@ -178,6 +178,7 @@ export interface ModeProgress {
 
 export interface ArticleProgress {
   words: ModeProgress
+  phrases: ModeProgress
   podcast: ModeProgress
   listening: ModeProgress
 }
@@ -192,12 +193,15 @@ export function toModeProgress(done: number, total: number): ModeProgress {
 
 /**
  * 汇聚某篇文章各模式真实进度：
- * 单词预习取自评记录、播客取收听位置（用于续播，卡片不单独展示）、
- * 深入学习取已掌握句数（卡片展示为「深入学习 x/y」）
+ * 单词/短语取自评记录（独立存储）、播客取收听位置（用于续播，卡片不单独展示）、
+ * 逐句精听取已掌握句数（卡片展示为「逐句精听 x/y」）
  */
 export function computeArticleProgress(article: Article): ArticleProgress {
   const wordList = (article.processing?.words ?? []).map((w) => w.word)
   const wordStats = computeStats(loadWordProgress(article.id), wordList)
+
+  const phraseList = (article.processing?.phrases ?? []).map((p) => p.phrase)
+  const phraseStats = computeStats(loadPhraseProgress(article.id), phraseList)
 
   const podcast = loadPodcastProgress(article.id)
   const podcastDone = podcast ? Math.min(podcast.positionMs, podcast.durationMs) : 0
@@ -210,6 +214,7 @@ export function computeArticleProgress(article: Article): ArticleProgress {
 
   return {
     words: toModeProgress(wordStats.rated, wordStats.total),
+    phrases: toModeProgress(phraseStats.rated, phraseStats.total),
     podcast: toModeProgress(podcastDone, podcastTotal),
     listening: toModeProgress(listeningDone, sentenceTotal),
   }

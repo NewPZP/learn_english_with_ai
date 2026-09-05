@@ -6,7 +6,7 @@ import type { PhraseEntry, Sentence, TtsResult, WordEntry } from './ai/types'
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 
-/** AI 处理产物：供单词预习 / 播客 / 逐句精听等后续页面消费 */
+/** AI 处理产物：供词汇预习 / 播客 / 逐句精听等后续页面消费 */
 export interface ArticleProcessing {
   words: WordEntry[]
   phrases: PhraseEntry[]
