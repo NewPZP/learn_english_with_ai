@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest'
+import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -71,13 +71,18 @@ function createFakeAudio() {
 
 type FakeAudio = ReturnType<typeof createFakeAudio>
 
-function renderPage(fake: FakeAudio) {
+function renderPage(fake: FakeAudio, translateSentences?: (texts: string[]) => Promise<string[]>) {
   return render(
     <MemoryRouter initialEntries={['/articles/a1/podcast']}>
       <Routes>
         <Route
           path="/articles/:id/podcast"
-          element={<PodcastPage createAudio={() => fake as unknown as AudioLike} />}
+          element={
+            <PodcastPage
+              createAudio={() => fake as unknown as AudioLike}
+              translateSentences={translateSentences}
+            />
+          }
         />
       </Routes>
     </MemoryRouter>,
@@ -371,5 +376,105 @@ describe('深入学习页 — 整词挖空输入与即判分', () => {
     // 再次关闭：挖空输入框恢复
     await user.click(screen.getByRole('button', { name: '隐藏全文' }))
     expect(screen.getByTestId('blank-0-0')).toBeInTheDocument()
+  })
+})
+
+describe('深入学习页 — AI 翻译开关', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('缺译文时开启开关：调用翻译、显示骨架、完成后显示译文并持久化', async () => {
+    seedArticle()
+    const user = userEvent.setup()
+    const fake = createFakeAudio()
+    let resolveTranslate!: (translations: string[]) => void
+    const translatePromise = new Promise<string[]>((res) => {
+      resolveTranslate = res
+    })
+    const translateFn = vi.fn(async (texts: string[]) => {
+      // 等待外部 resolve，便于断言中间「加载中」状态
+      const result = await translatePromise
+      return result
+    })
+    renderPage(fake, translateFn)
+
+    // 初始无译文行
+    expect(screen.queryByTestId('translation-line-0')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+
+    // 调用了翻译函数，且入参为各句原文
+    expect(translateFn).toHaveBeenCalledTimes(1)
+    expect(translateFn.mock.calls[0][0]).toEqual(SENTENCES.map((s) => s.text))
+
+    // 加载中：每句显示骨架
+    expect(screen.getByTestId('translation-line-0')).toBeInTheDocument()
+    expect(document.querySelectorAll('.translation-skeleton')).toHaveLength(SENTENCES.length)
+
+    // 模拟翻译完成
+    await act(async () => {
+      resolveTranslate(['译文一', '译文二', '译文三'])
+    })
+
+    // 译文显示
+    expect(screen.getByText('译文一')).toBeInTheDocument()
+    expect(screen.getByText('译文二')).toBeInTheDocument()
+    expect(screen.getByText('译文三')).toBeInTheDocument()
+
+    // 持久化：localStorage 中的句子已带上 translation
+    const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored[0].processing.sentences.map((s: { translation: string }) => s.translation)).toEqual([
+      '译文一',
+      '译文二',
+      '译文三',
+    ])
+  })
+
+  test('已有译文时开启开关：不调用翻译，直接显示译文', async () => {
+    // 种子带译文
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 't',
+          content: 'c',
+          wordCount: 1,
+          difficulty: 'Easy',
+          createdAt: '2026-09-03',
+          processing: {
+            words: [],
+            phrases: [],
+            sentences: SENTENCES.map((s, i) => ({ ...s, translation: `已存译文${i + 1}` })),
+            audio: AUDIO,
+          },
+        },
+      ]),
+    )
+    const user = userEvent.setup()
+    const fake = createFakeAudio()
+    const translateFn = vi.fn(async () => ['不应被调用'])
+    renderPage(fake, translateFn)
+
+    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+
+    // 未调用翻译（避免浪费 token）
+    expect(translateFn).not.toHaveBeenCalled()
+    // 直接显示已有译文
+    expect(screen.getByText('已存译文1')).toBeInTheDocument()
+    expect(screen.getByText('已存译文2')).toBeInTheDocument()
+    expect(screen.getByText('已存译文3')).toBeInTheDocument()
+  })
+
+  test('关闭开关：译文行消失', async () => {
+    seedArticle()
+    const user = userEvent.setup()
+    const fake = createFakeAudio()
+    renderPage(fake, async (texts) => texts.map(() => '译'))
+
+    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+    expect(screen.getByTestId('translation-line-0')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '隐藏译文' }))
+    expect(screen.queryByTestId('translation-line-0')).not.toBeInTheDocument()
   })
 })

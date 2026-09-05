@@ -51,6 +51,15 @@ export class MockTextAdapter implements TextAiAdapter {
     return clone(MOCK_SENTENCES)
   }
 
+  async translateSentences(texts: string[]): Promise<string[]> {
+    if (texts.length === 0) return []
+    // 夹具中已有的句子返回其译文；其余句子给确定性占位译文（结构稳定可作夹具）
+    return texts.map((text, i) => {
+      const hit = MOCK_SENTENCES.find((s) => s.text === text)
+      return hit?.translation ?? `（mock 译文 ${i + 1}）${text}`
+    })
+  }
+
   async generateQuiz(content: string): Promise<Quiz[]> {
     assertNonEmptyText(content, '文章内容')
     const set = clone(MOCK_QUIZZES_SETS[this.quizCursor % MOCK_QUIZZES_SETS.length])

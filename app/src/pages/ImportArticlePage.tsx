@@ -46,12 +46,13 @@ const STEP_ICONS: Record<StepStatus, typeof Circle> = {
 const STEP_ACTION_LABELS: Record<StepId, Record<StepStatus, string>> = {
   words: { pending: '提取关键词汇', running: '处理中', done: '重新提取', error: '重试' },
   phrases: { pending: '提取重点短语', running: '处理中', done: '重新提取', error: '重试' },
+  translation: { pending: '获取中文译文', running: '处理中', done: '重新翻译', error: '重试' },
   audio: { pending: '补充语音', running: '处理中', done: '重新生成', error: '重试' },
 }
 
 /**
  * 由文章已有 processing 产物推导加工页初始 pipeline 状态：
- * 已有 words → words step done + 摘要；phrases/audio 同理；无产物则 pending。
+ * 已有 words → words step done + 摘要；phrases/translation/audio 同理；无产物则 pending。
  * 摘要文案复用 pipeline.summarizeStep，避免与管道双写。进入加工页即见当前加工进度。
  */
 function stateFromArticle(processing: ArticleProcessing | undefined): PipelineState {
@@ -65,6 +66,10 @@ function stateFromArticle(processing: ArticleProcessing | undefined): PipelineSt
     state.phrases = [...processing.phrases]
     state.steps.phrases = { status: 'done', summary: summarizeStep('phrases', state) }
   }
+  if (processing.sentences.some((s) => s.translation)) {
+    state.sentences = [...processing.sentences]
+    state.steps.translation = { status: 'done', summary: summarizeStep('translation', state) }
+  }
   if (processing.audio) {
     state.audio = { ...processing.audio }
     state.sentences = [...processing.sentences]
@@ -77,7 +82,7 @@ function stateFromArticle(processing: ArticleProcessing | undefined): PipelineSt
  * 导入文章页（双模式）：
  * - 无文章 ID（/articles/import）：粘贴/上传 .txt + 字符计数，点「完成导入」仅保存纯文本，不触发 AI；
  *   保存后导航回文章列表，用户在卡片点「AI 预处理」进入加工。
- * - 有文章 ID（/articles/:id/process）：只读展示正文 + 右侧 AI 处理面板，三步（提取单词/提取短语/生成语音）
+ * - 有文章 ID（/articles/:id/process）：只读展示正文 + 右侧 AI 处理面板，四步（提取单词/提取短语/获取译文/生成语音）
  *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）。
  */
 export function ImportArticlePage({ adapters }: { adapters?: PipelineAdapters }) {
@@ -262,7 +267,10 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
         const partial: Partial<ArticleProcessing> = {}
         if (step === 'words') partial.words = result.words
         else if (step === 'phrases') partial.phrases = result.phrases
-        else {
+        else if (step === 'translation') {
+          // 译文写回句子并持久化（深入学习页开关直接复用，避免重复消耗 token）
+          partial.sentences = result.sentences
+        } else {
           partial.audio = result.audio ?? undefined
           partial.sentences = result.sentences
         }

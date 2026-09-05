@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
-import { getArticle } from '../lib/articles'
+import { getArticle, mergeProcessing } from '../lib/articles'
 import { routes } from '../routes'
 import {
   formatTime,
@@ -24,6 +24,7 @@ import {
 import { markSentenceCompleted, savePodcastProgress, loadPodcastProgress } from '../lib/studyProgress'
 import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
 import { QuizChallengeTab, type GenerateQuiz } from './QuizChallengeTab'
+import { getTextAdapter } from '../lib/ai'
 import {
   buildSentenceDictation,
   DICTATION_DIFFICULTY_LABELS,
@@ -59,23 +60,34 @@ function setNested<T>(
   return { ...prev, [sentenceIndex]: arr }
 }
 
+export type TranslateSentences = (texts: string[]) => Promise<string[]>
+
 /**
- * 深入学习页：播客整篇播放 + 字幕挖空听写 + AI 综合测验（工单 #18、#19）
+ * 深入学习页：播客整篇播放 + 字幕挖空听写 + AI 综合测验（工单 #18、#19、#20）
  * 以播客页为基础，移除右栏句子列表，顶部 Tab 切换「挖空听写 / AI 综合测验」。
- * 挖空听写支持三档屏蔽选项、全文显示开关；屏蔽词为整词输入框，
+ * 挖空听写支持三档屏蔽选项、全文显示开关与 AI 译文开关；屏蔽词为整词输入框，
  * 失焦/回车/空格即判分（复用 gradeBlank，忽略大小写与空格），空格自动跳下一个空。
  * 播放控制区可切换「连续播放 / 单句播放」（单句播完自动停止）。
- * createAudio 可注入媒体元素（测试接缝，默认 new Audio()）。
+ * 「显示 AI 翻译」开启时缺译文句子自动整篇翻译一次并持久化（mergeProcessing），
+ * 再次进入直接复用，避免重复消耗 token。
+ * createAudio / generateQuiz / translateSentences 可注入（测试接缝）。
  */
 export function PodcastPage({
   createAudio,
   generateQuiz,
+  translateSentences,
 }: {
   createAudio?: AudioFactory
   generateQuiz?: GenerateQuiz
+  translateSentences?: TranslateSentences
 }) {
   const { id } = useParams<{ id: string }>()
-  const article = useMemo(() => (id ? getArticle(id) : undefined), [id])
+  /** 文章版本号：译文持久化后自增，驱动 article 重读 localStorage */
+  const [articleRevision, setArticleRevision] = useState(0)
+  const article = useMemo(
+    () => (id ? getArticle(id) : undefined),
+    [id, articleRevision],
+  )
   const processing = article?.processing
   const sentences = processing?.sentences ?? []
   const audio = processing?.audio ?? null
@@ -109,6 +121,52 @@ export function PodcastPage({
   const [difficulty, setDifficulty] = useState<DictationDifficulty>('key')
   /** 全文显示开关：开启后句子以原文展示，关闭后为挖空输入 */
   const [showFullText, setShowFullText] = useState(false)
+  /** AI 翻译开关：开启后每句下方显示中文译文 */
+  const [showTranslation, setShowTranslation] = useState(false)
+  /** 整篇译文获取中（译文区显示过渡动画） */
+  const [translating, setTranslating] = useState(false)
+  /** 译文获取失败提示 */
+  const [translateError, setTranslateError] = useState<string | null>(null)
+  /** 翻译进行中标记（防重复触发） */
+  const translatingRef = useRef(false)
+
+  /** 翻译函数引用稳定（测试可注入） */
+  const translate = useMemo<TranslateSentences>(
+    () => translateSentences ?? ((texts: string[]) => getTextAdapter().translateSentences(texts)),
+    [translateSentences],
+  )
+
+  /**
+   * 开启「显示 AI 翻译」：缺译文的句子整篇翻译一次并持久化（mergeProcessing），
+   * 已有全部译文则直接显示——再次进入不重复消耗 token
+   */
+  async function ensureTranslations() {
+    if (translatingRef.current) return
+    if (sentences.length === 0 || sentences.every((s) => s.translation)) return
+    translatingRef.current = true
+    setTranslating(true)
+    setTranslateError(null)
+    try {
+      const translations = await translate(sentences.map((s) => s.text))
+      const merged = sentences.map((s, i) => ({
+        ...s,
+        translation: translations[i] || s.translation || '',
+      }))
+      if (id) mergeProcessing(id, { sentences: merged })
+      setArticleRevision((r) => r + 1)
+    } catch (err) {
+      setTranslateError(err instanceof Error ? err.message : '译文获取失败，请重试')
+    } finally {
+      translatingRef.current = false
+      setTranslating(false)
+    }
+  }
+
+  function handleToggleTranslation() {
+    const next = !showTranslation
+    setShowTranslation(next)
+    if (next) void ensureTranslations()
+  }
 
   // 同步播放模式到播放器
   useEffect(() => {
@@ -330,6 +388,15 @@ export function PodcastPage({
                 >
                   {showFullText ? '隐藏全文' : '显示全文'}
                 </button>
+                <button
+                  type="button"
+                  className={`fulltext-toggle${showTranslation ? ' on' : ''}`}
+                  data-testid="translation-toggle"
+                  aria-pressed={showTranslation}
+                  onClick={handleToggleTranslation}
+                >
+                  {showTranslation ? '隐藏译文' : '显示AI翻译'}
+                </button>
               </div>
 
               {/* 字幕挖空区 */}
@@ -373,6 +440,19 @@ export function PodcastPage({
                             </span>
                           ),
                         )
+                      )}
+                      {showTranslation && (
+                        <span className="translation-line" data-testid={`translation-line-${sIndex}`}>
+                          {translateError && sIndex === 0 ? (
+                            <span className="translation-error">{translateError}</span>
+                          ) : translating && !sentence.translation ? (
+                            <span className="translation-skeleton" aria-hidden="true" />
+                          ) : (
+                            sentence.translation && (
+                              <span className="translation-text">{sentence.translation}</span>
+                            )
+                          )}
+                        </span>
                       )}
                     </p>
                   )

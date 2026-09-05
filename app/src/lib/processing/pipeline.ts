@@ -1,13 +1,13 @@
 /**
  * 导入 AI 处理管道（PRD 接缝二的编排层）
- * 三步依次流转：提取关键词汇 → 提取重点短语 → 生成语音文件
+ * 四步依次流转：提取关键词汇 → 提取重点短语 → 获取中文译文 → 生成语音文件
  * 通过适配器接口调用（mock / 真实供应商零差异），编排逻辑不感知供应商。
  * runPipeline 可从首个未完成步骤续跑：单步失败后再次调用即为「重试该步并继续」。
  */
 import type { PhraseEntry, Sentence, TextAiAdapter, TtsResult, VoiceAiAdapter, WordEntry } from '../ai/types'
 
 /** 管道步骤标识（顺序即执行顺序） */
-export type StepId = 'words' | 'phrases' | 'audio'
+export type StepId = 'words' | 'phrases' | 'translation' | 'audio'
 
 /** 步骤状态：待处理 / 进行中 / 完成 / 失败 */
 export type StepStatus = 'pending' | 'running' | 'done' | 'error'
@@ -40,7 +40,7 @@ export interface PipelineAdapters {
   voice: VoiceAiAdapter
 }
 
-export const STEP_ORDER: readonly StepId[] = ['words', 'phrases', 'audio'] as const
+export const STEP_ORDER: readonly StepId[] = ['words', 'phrases', 'translation', 'audio'] as const
 
 /**
  * 将句级时间轴等比缩放到实际语音时长。
@@ -63,6 +63,7 @@ export function fitSentencesToDuration(sentences: Sentence[], durationMs: number
 export const STEP_TITLES: Record<StepId, string> = {
   words: '提取关键词汇',
   phrases: '提取重点短语',
+  translation: '获取中文译文',
   audio: '生成语音文件',
 }
 
@@ -71,6 +72,7 @@ export function initialPipelineState(): PipelineState {
     steps: {
       words: { status: 'pending' },
       phrases: { status: 'pending' },
+      translation: { status: 'pending' },
       audio: { status: 'pending' },
     },
     words: [],
@@ -95,13 +97,16 @@ function errorMessage(err: unknown): string {
 export function summarizeStep(step: StepId, state: PipelineState): string {
   if (step === 'words') return `已提取 ${state.words.length} 个单词`
   if (step === 'phrases') return `已提取 ${state.phrases.length} 个短语`
+  if (step === 'translation') return `已翻译 ${state.sentences.length} 句`
   const seconds = Math.round((state.audio?.durationMs ?? 0) / 1000)
   return `语音已生成（约 ${seconds} 秒）`
 }
 
 /**
  * 执行单个 step 的适配器调用并把产物写回 state：
- * words → extractWords；phrases → extractPhrases；audio → splitSentences + synthesize（并等比缩放时间轴）。
+ * words → extractWords；phrases → extractPhrases；
+ * translation → （无句子时先 splitSentences）translateSentences 写回每句译文；
+ * audio → （无句子时先 splitSentences）synthesize，并等比缩放时间轴。
  * 成功置 done + summary，失败置 error（不抛出，由调用方决定后续）。
  */
 async function execStep(
@@ -114,10 +119,22 @@ async function execStep(
     state.words = await adapters.text.extractWords(content)
   } else if (step === 'phrases') {
     state.phrases = await adapters.text.extractPhrases(content)
+  } else if (step === 'translation') {
+    // 句子尚不存在时先分句（译文可能在分句时顺带产出，只补缺）
+    if (state.sentences.length === 0) {
+      state.sentences = await adapters.text.splitSentences(content)
+    }
+    const texts = state.sentences.map((s) => s.text)
+    const translations = await adapters.text.translateSentences(texts)
+    state.sentences = state.sentences.map((s, i) => ({
+      ...s,
+      translation: translations[i] || s.translation || '',
+    }))
   } else {
-    // 语音步骤同时产出句级分句（时间轴供播客字幕/逐句精听消费），
-    // 并将估算时间轴等比缩放到 TTS 真实时长
-    state.sentences = await adapters.text.splitSentences(content)
+    // 语音步骤：已有句子（translation 步骤产出）则复用，避免重新分句覆盖译文
+    if (state.sentences.length === 0) {
+      state.sentences = await adapters.text.splitSentences(content)
+    }
     state.audio = await adapters.voice.synthesize(content)
     state.sentences = fitSentencesToDuration(state.sentences, state.audio.durationMs)
   }

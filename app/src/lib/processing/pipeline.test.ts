@@ -47,9 +47,9 @@ function makeBaselineAdapters(): PipelineAdapters & {
   calls: { method: string; arg: string }[]
 } {
   const calls: { method: string; arg: string }[] = []
-  const record = <T>(method: string, work: (arg: string) => Promise<T>) => {
-    return async (arg: string) => {
-      calls.push({ method, arg })
+  const record = <A, T>(method: string, work: (arg: A) => Promise<T>) => {
+    return async (arg: A) => {
+      calls.push({ method, arg: String(arg) })
       return work(arg)
     }
   }
@@ -59,6 +59,7 @@ function makeBaselineAdapters(): PipelineAdapters & {
       extractWords: record('extractWords', async () => [DEFAULT_WORD]),
       extractPhrases: record('extractPhrases', async () => [DEFAULT_PHRASE]),
       splitSentences: record('splitSentences', async () => DEFAULT_SENTENCES),
+      translateSentences: record('translateSentences', async () => ['译文']),
       generateQuiz: async () => [],
     },
     voice: {
@@ -69,17 +70,19 @@ function makeBaselineAdapters(): PipelineAdapters & {
 }
 
 describe('常量与初始状态', () => {
-  test('步骤顺序与标题固定为三步', () => {
-    expect(STEP_ORDER).toEqual(['words', 'phrases', 'audio'])
+  test('步骤顺序与标题固定为四步', () => {
+    expect(STEP_ORDER).toEqual(['words', 'phrases', 'translation', 'audio'])
     expect(STEP_TITLES.words).toBe('提取关键词汇')
     expect(STEP_TITLES.phrases).toBe('提取重点短语')
+    expect(STEP_TITLES.translation).toBe('获取中文译文')
     expect(STEP_TITLES.audio).toBe('生成语音文件')
   })
 
-  test('初始状态：三步均待处理，无产物', () => {
+  test('初始状态：四步均待处理，无产物', () => {
     const state = initialPipelineState()
     expect(state.steps.words.status).toBe('pending')
     expect(state.steps.phrases.status).toBe('pending')
+    expect(state.steps.translation.status).toBe('pending')
     expect(state.steps.audio.status).toBe('pending')
     expect(state.words).toEqual([])
     expect(state.phrases).toEqual([])
@@ -88,7 +91,7 @@ describe('常量与初始状态', () => {
   })
 })
 
-describe('三步依次流转', () => {
+describe('四步依次流转', () => {
   test('全部成功：pending → running → done，结果计数正确', async () => {
     const adapters = makeBaselineAdapters()
     const result = await runPipeline(CONTENT, adapters)
@@ -96,36 +99,41 @@ describe('三步依次流转', () => {
     expect(result.completed).toBe(true)
     expect(result.steps.words).toEqual({ status: 'done', summary: '已提取 1 个单词' })
     expect(result.steps.phrases).toEqual({ status: 'done', summary: '已提取 1 个短语' })
+    expect(result.steps.translation).toEqual({ status: 'done', summary: '已翻译 1 句' })
     expect(result.steps.audio).toEqual({ status: 'done', summary: '语音已生成（约 2 秒）' })
     expect(result.words).toHaveLength(1)
     expect(result.phrases).toHaveLength(1)
     expect(result.sentences).toHaveLength(1)
+    // 译文写回句子
+    expect(result.sentences[0].translation).toBe('译文')
     expect(result.audio?.durationMs).toBe(1500)
     // 估算时间轴等比缩放到 TTS 真实时长（1000 → 1500）
-    expect(result.sentences).toEqual([{ text: 's', startMs: 0, endMs: 1500 }])
+    expect(result.sentences).toEqual([{ text: 's', startMs: 0, endMs: 1500, translation: '译文' }])
   })
 
-  test('每步经历 running：onStateChange 发出 6 次快照（3 步 × running+done）', async () => {
+  test('每步经历 running：onStateChange 发出 8 次快照（4 步 × running+done）', async () => {
     const adapters = makeBaselineAdapters()
     const states: PipelineState[] = []
     await runPipeline(CONTENT, adapters, { onStateChange: (s) => states.push(s) })
 
-    expect(states).toHaveLength(6)
+    expect(states).toHaveLength(8)
     // 依次观察到 words running → words done → phrases running → ...
     expect(states[0].steps.words.status).toBe('running')
     expect(states[1].steps.words.status).toBe('done')
     expect(states[2].steps.phrases.status).toBe('running')
     expect(states[2].steps.words.status).toBe('done') // 前序步骤保持完成
-    expect(states[5].steps.audio.status).toBe('done')
+    expect(states[7].steps.audio.status).toBe('done')
   })
 
   test('后一步不会先于前一步开始（严格顺序）', async () => {
     const adapters = makeBaselineAdapters()
     await runPipeline(CONTENT, adapters)
+    // translation 步骤无句子时先 splitSentences，再翻译，最后 synthesize
     expect(adapters.calls.map((c) => c.method)).toEqual([
       'extractWords',
       'extractPhrases',
       'splitSentences',
+      'translateSentences',
       'synthesize',
     ])
   })
@@ -176,7 +184,7 @@ describe('单步失败与重试', () => {
     expect(result.steps.words).toEqual({ status: 'error', error: '字符串错误' })
   })
 
-  test('语音步骤失败可单独重试，前两步不重复调用', async () => {
+  test('语音步骤失败可单独重试，前序步骤不重复调用', async () => {
     const adapters = makeBaselineAdapters()
     let synthCalls = 0
     adapters.voice.synthesize = async () => {
@@ -187,23 +195,30 @@ describe('单步失败与重试', () => {
 
     const failed = await runPipeline(CONTENT, adapters)
     expect(failed.steps.audio.status).toBe('error')
+    // 失败时 words/phrases/translation 已完成
+    expect(failed.steps.translation.status).toBe('done')
 
     const retried = await runPipeline(CONTENT, adapters, { initialState: failed })
     expect(retried.completed).toBe(true)
     expect(retried.steps.audio.summary).toBe('语音已生成（约 2 秒）')
-    // 重试以步骤为原子单位：前两步各只调用一次，语音步骤整体重跑
+    // 重试以步骤为原子单位：words/phrases/translation 各只调用一次，audio 重跑
     expect(adapters.calls.filter((c) => c.method === 'extractWords')).toHaveLength(1)
     expect(adapters.calls.filter((c) => c.method === 'extractPhrases')).toHaveLength(1)
-    expect(adapters.calls.filter((c) => c.method === 'splitSentences')).toHaveLength(2)
+    expect(adapters.calls.filter((c) => c.method === 'translateSentences')).toHaveLength(1)
+    // audio 步骤复用已有句子，不再调用 splitSentences
+    expect(adapters.calls.filter((c) => c.method === 'splitSentences')).toHaveLength(1)
     expect(synthCalls).toBe(2)
   })
 })
 
 describe('适配器参数传递与接缝', () => {
-  test('全文内容原样传给各适配器方法', async () => {
+  test('全文内容原样传给全文型适配器方法', async () => {
     const adapters = makeBaselineAdapters()
     await runPipeline(CONTENT, adapters)
-    for (const call of adapters.calls) {
+    // extractWords / extractPhrases 接收整篇原文
+    for (const call of adapters.calls.filter((c) =>
+      ['extractWords', 'extractPhrases'].includes(c.method),
+    )) {
       expect(call.arg).toBe(CONTENT)
     }
   })

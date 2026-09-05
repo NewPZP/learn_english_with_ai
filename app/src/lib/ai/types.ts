@@ -85,6 +85,8 @@ export interface TextAiAdapter {
   splitSentences(content: string): Promise<Sentence[]>
   /** 智能出题：单选/填空/判断三题型 */
   generateQuiz(content: string): Promise<Quiz[]>
+  /** 整篇翻译：按句序返回中文译文（与输入 texts 一一对应） */
+  translateSentences(texts: string[]): Promise<string[]>
 }
 
 /** 声音模型适配器：应用内所有 TTS 能力的唯一入口 */

@@ -116,6 +116,9 @@ Single choice: {"type":"single-choice","question":"English question","options":[
 Fill in the blank: {"type":"fill-blank","question":"English sentence with ______ as the blank placeholder","answer":"English answer","explanation":"English explanation"}
 True/False: {"type":"true-false","question":"English statement","answer":true,"explanation":"English explanation"}`
 
+const TRANSLATE_INSTRUCTION = `你是专业中英翻译。用户会提供一个英文句子的 JSON 数组，请按原句顺序把每个句子翻译成流畅自然的中文。
+只输出一个 JSON 字符串数组（与输入顺序一一对应），不要输出任何其他文字。`
+
 /* ---- 文字适配器 ---- */
 
 export class OpenAiTextAdapter implements TextAiAdapter {
@@ -210,6 +213,15 @@ export class OpenAiTextAdapter implements TextAiAdapter {
       .map((item) => ({ text: str(item.text).trim(), translation: str(item.translation) }))
       .filter((item) => item.text.length > 0)
     return estimateTimeline(items)
+  }
+
+  async translateSentences(texts: string[]): Promise<string[]> {
+    if (texts.length === 0) return []
+    const data = await this.chatJson(JSON.stringify(texts), TRANSLATE_INSTRUCTION)
+    if (!Array.isArray(data)) throw new Error('翻译结果格式不正确，请重试')
+    const translations = data.filter((v): v is string => typeof v === 'string')
+    // 数量不足时按序对齐（缺失位返回空串，由调用方保留旧译文）
+    return texts.map((_, i) => translations[i] ?? '')
   }
 
   async generateQuiz(content: string): Promise<Quiz[]> {
