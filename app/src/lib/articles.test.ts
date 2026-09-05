@@ -5,6 +5,7 @@ import {
   getArticle,
   attachProcessing,
   clearArticles,
+  deleteArticle,
   countWords,
   estimateDifficulty,
   deriveTitle,
@@ -89,6 +90,43 @@ describe('文章持久化', () => {
     saveArticle('text', '粘贴文本')
     clearArticles()
     expect(loadArticles()).toEqual([])
+  })
+
+  test('deleteArticle 按 ID 删除单篇文章', () => {
+    const a = saveArticle('First article.', '粘贴文本')
+    const b = saveArticle('Second article.', 'test.txt')
+
+    expect(deleteArticle(a.id)).toBe(true)
+
+    const articles = loadArticles()
+    expect(articles).toHaveLength(1)
+    expect(articles[0].id).toBe(b.id)
+  })
+
+  test('deleteArticle ID 不存在时返回 false 且不修改存储', () => {
+    saveArticle('Some content.', '粘贴文本')
+    const before = loadArticles()
+
+    expect(deleteArticle('nonexistent')).toBe(false)
+
+    expect(loadArticles()).toEqual(before)
+  })
+
+  test('deleteArticle 不影响其他文章的 processing', () => {
+    const a = saveArticle('First article.', '粘贴文本')
+    const b = saveArticle('Second article.', '粘贴文本')
+    const PROCESSING = {
+      words: [],
+      phrases: [],
+      sentences: [{ text: 'Hi.', startMs: 0, endMs: 1000 }],
+    }
+    attachProcessing(b.id, PROCESSING)
+
+    deleteArticle(a.id)
+
+    const remaining = loadArticles()
+    expect(remaining).toHaveLength(1)
+    expect(remaining[0].processing).toEqual(PROCESSING)
   })
 })
 

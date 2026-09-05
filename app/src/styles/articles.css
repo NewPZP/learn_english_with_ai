@@ -227,6 +227,18 @@
   box-shadow: var(--en-shadow-2);
 }
 
+.function-btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--en-border);
+  color: #dc2626;
+}
+
+.function-btn-danger:hover {
+  border-color: #dc2626;
+  background-color: #dc2626;
+  color: #fff;
+}
+
 .function-btn:focus-visible {
   outline: 2px solid var(--en-ring);
   outline-offset: 2px;

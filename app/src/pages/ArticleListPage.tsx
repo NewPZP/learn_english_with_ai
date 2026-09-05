@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen, Headphones, Ear, FileText } from 'lucide-react'
-import { loadArticles, type Article } from '../lib/articles'
+import { Plus, BookOpen, Headphones, Ear, FileText, Trash2 } from 'lucide-react'
+import { loadArticles, deleteArticle, type Article } from '../lib/articles'
 import { computeArticleProgress, getTodayStudyMs, type ModeProgress } from '../lib/studyProgress'
 import { routes } from '../routes'
 
@@ -40,7 +40,7 @@ function ProgressRow({
   )
 }
 
-function ArticleCard({ article }: { article: Article }) {
+function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => void }) {
   const progress = computeArticleProgress(article)
   return (
     <article className="article-card">
@@ -99,6 +99,16 @@ function ArticleCard({ article }: { article: Article }) {
           <Ear />
           <span>听力训练</span>
         </Link>
+        <button
+          data-dom-id="cta-delete-article"
+          className="function-btn function-btn-danger"
+          onClick={() => {
+            if (window.confirm(`确定删除「${article.title}」？此操作不可撤销。`)) onDelete()
+          }}
+        >
+          <Trash2 />
+          <span>删除</span>
+        </button>
       </div>
     </article>
   )
@@ -110,7 +120,7 @@ function ArticleCard({ article }: { article: Article }) {
  * 统计栏「今日学习分钟数」来自当日累计学习时长（跨天归零）
  */
 export function ArticleListPage() {
-  const [articles] = useState(() => loadArticles())
+  const [articles, setArticles] = useState(() => loadArticles())
   const todayMinutes = Math.floor(getTodayStudyMs() / 60_000)
 
   return (
@@ -138,7 +148,14 @@ export function ArticleListPage() {
       ) : (
         <div className="article-grid">
           {articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <ArticleCard
+              key={article.id}
+              article={article}
+              onDelete={() => {
+                deleteArticle(article.id)
+                setArticles((prev) => prev.filter((a) => a.id !== article.id))
+              }}
+            />
           ))}
         </div>
       )}

@@ -113,6 +113,15 @@ export function attachProcessing(articleId: string, processing: ArticleProcessin
   return target
 }
 
+/** 按 ID 删除单篇文章；返回是否成功删除（ID 不存在时返回 false） */
+export function deleteArticle(id: string): boolean {
+  const articles = loadArticles()
+  const target = articles.find((a) => a.id === id)
+  if (!target) return false
+  persist(articles.filter((a) => a.id !== id))
+  return true
+}
+
 export function clearArticles(): void {
   localStorage.removeItem(STORAGE_KEY)
 }

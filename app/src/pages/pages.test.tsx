@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest'
+import { describe, test, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
@@ -173,6 +173,92 @@ describe('文章卡片', () => {
     expect(document.querySelector('[data-dom-id="cta-word-preview"]')).toBeInTheDocument()
     expect(document.querySelector('[data-dom-id="cta-podcast"]')).toBeInTheDocument()
     expect(document.querySelector('[data-dom-id="cta-intensive-listening"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-dom-id="cta-delete-article"]')).toBeInTheDocument()
+  })
+
+  test('点击删除按钮并确认后，文章从列表消失', () => {
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Article One',
+          source: 's',
+          content: 'c',
+          wordCount: 1,
+          difficulty: 'Beginner',
+          createdAt: '2026-08-10',
+        },
+        {
+          id: 'a2',
+          title: 'Article Two',
+          source: 's',
+          content: 'c',
+          wordCount: 1,
+          difficulty: 'Beginner',
+          createdAt: '2026-08-11',
+        },
+      ]),
+    )
+
+    // 模拟用户点击确认
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    render(
+      <BrowserRouter>
+        <ArticleListPage />
+      </BrowserRouter>,
+    )
+
+    expect(screen.getByText('已导入 2 篇')).toBeInTheDocument()
+    expect(screen.getByText('Article One')).toBeInTheDocument()
+
+    // 点击第一张卡片的删除按钮
+    fireEvent.click(screen.getAllByText('删除')[0])
+
+    expect(window.confirm).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('已导入 1 篇')).toBeInTheDocument()
+    expect(screen.queryByText('Article One')).not.toBeInTheDocument()
+    expect(screen.getByText('Article Two')).toBeInTheDocument()
+
+    // localStorage 中也确实删除了
+    const stored = JSON.parse(localStorage.getItem('linguaai.articles') || '[]')
+    expect(stored).toHaveLength(1)
+    expect(stored[0].id).toBe('a2')
+
+    vi.restoreAllMocks()
+  })
+
+  test('取消删除确认时文章不受影响', () => {
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Keep Me',
+          source: 's',
+          content: 'c',
+          wordCount: 1,
+          difficulty: 'Beginner',
+          createdAt: '2026-08-10',
+        },
+      ]),
+    )
+
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(
+      <BrowserRouter>
+        <ArticleListPage />
+      </BrowserRouter>,
+    )
+
+    fireEvent.click(screen.getByText('删除'))
+
+    expect(screen.getByText('已导入 1 篇')).toBeInTheDocument()
+    expect(screen.getByText('Keep Me')).toBeInTheDocument()
+
+    vi.restoreAllMocks()
   })
 
   test('三模式入口导航到对应路由', async () => {
