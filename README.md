@@ -12,6 +12,8 @@
 - 自动保存，一键进入 AI 预处理
 - 支持自定义标题
 
+![导入文章](docs/screenshots/import-article.png)
+
 ### AI 预处理
 
 - 自动提取生词和短语
@@ -19,12 +21,16 @@
 - 一键翻译全文
 - 支持 mock 模式（无需 API 即可体验）和真实 AI 模式
 
+![AI 预处理](docs/screenshots/ai-preprocess.png)
+
 ### 词汇预习
 
 - 闪卡模式，翻面看释义
 - 三档自评：不会 / 模糊 / 掌握
 - 单词和短语分类学习
 - 记忆曲线跟踪，掌握程度一目了然
+
+![词汇预习](docs/screenshots/vocabulary-prestudy.png)
 
 ### 深入学习
 
@@ -34,6 +40,8 @@
 - AI 译文随时开关
 - 播放模式切换、空格跳空、全文/挖空切换
 
+![深入学习](docs/screenshots/deep-learning.png)
+
 ### 发现页 — TED 频道
 
 - 浏览 TED 最新演讲
@@ -42,12 +50,16 @@
 - 一键加入学习：自动抓取文字稿，存为文章
 - 已加入的演讲自动标记，避免重复
 
+![发现页](docs/screenshots/discover-channels.png)
+
 ### 学习进度
 
 - 每篇文章显示学习进度条
 - 今日统计：导入数、学习数、掌握数
 - 间隔重复调度，复习提醒
 - 卡片进度回显（词汇 / 短语 / 精听）
+
+![文章列表](docs/screenshots/article-list.png)
 
 ### TTS 语音
 
@@ -130,6 +142,8 @@ learn_english_with_ai/
 │   └── src/
 │       ├── parsers.ts      # 纯函数（RSS 解析、transcript 清洗）
 │       └── index.ts        # Worker 入口（路由、缓存、CORS）
+├── docs/
+│   └── screenshots/        # 功能截图
 └── README.md
 ```
 

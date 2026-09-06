@@ -7,7 +7,7 @@
       "version": 1,
       "createdAt": 1786492800000,
       "canvasData": {
-        "x": 620,
+        "x": 480,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -52,7 +52,7 @@
       "createdAt": 1786492800000,
       "canvasData": {
         "x": 0,
-        "y": 381,
+        "y": 378,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -88,7 +88,7 @@
       "createdAt": 1786492800000,
       "canvasData": {
         "x": 0,
-        "y": 786,
+        "y": 779,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -120,7 +120,7 @@
       "createdAt": 1786492800000,
       "canvasData": {
         "x": 0,
-        "y": 1233,
+        "y": 1222,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -152,7 +152,7 @@
       "createdAt": 1786492800000,
       "canvasData": {
         "x": 0,
-        "y": 1610,
+        "y": 1595,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -183,8 +183,8 @@
       "version": 1,
       "createdAt": 1786492800000,
       "canvasData": {
-        "x": 620,
-        "y": 377,
+        "x": 480,
+        "y": 373,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -241,6 +241,7 @@
     "autoLayout": true,
     "deviceType": "desktop",
     "projectName": "AI英语学习App - 桌面版",
-    "visualEditorEnabled": true
+    "visualEditorEnabled": true,
+    "showEdge": true
   }
 }
