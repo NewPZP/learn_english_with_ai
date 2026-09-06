@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { RefreshCw } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { RefreshCw, Loader2, Check, Plus, AlertCircle } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import { getChannel } from '../lib/channels'
 import {
   clearCachedTalks,
   fetchTalks,
+  fetchTranscript,
   filterByDuration,
   formatDuration,
   loadCachedTalks,
@@ -14,6 +15,7 @@ import {
   type DurationFilter,
   type Talk,
 } from '../lib/discover'
+import { loadArticles, saveArticle } from '../lib/articles'
 import { routes } from '../routes'
 
 /**
@@ -235,7 +237,7 @@ export function ChannelPage() {
         {filteredTalks.length > 0 && (
           <div className="discover-talk-grid" data-testid="talk-grid">
             {filteredTalks.map((talk) => (
-              <TalkCard key={talk.id} talk={talk} />
+              <TalkCard key={talk.id} talk={talk} channelId={channelId} />
             ))}
           </div>
         )}
@@ -263,8 +265,32 @@ export function ChannelPage() {
   )
 }
 
-/** 单个 Talk 卡片 — 缩略图/标题/讲者/简介/时长/日期 */
-function TalkCard({ talk }: { talk: Talk }) {
+/** 单个 Talk 卡片 — 缩略图/标题/讲者/简介/时长/日期 + 加入学习按钮 */
+function TalkCard({ talk, channelId }: { talk: Talk; channelId: string }) {
+  const navigate = useNavigate()
+
+  // 加入状态：检查 localStorage 中是否已有匹配 sourceUrl 的文章
+  const [addState, setAddState] = useState<'idle' | 'loading' | 'added'>(() =>
+    loadArticles().some((a) => a.sourceUrl === talk.canonicalUrl) ? 'added' : 'idle',
+  )
+  const [addError, setAddError] = useState<string | null>(null)
+
+  const handleAdd = async () => {
+    setAddState('loading')
+    setAddError(null)
+    try {
+      const transcript = await fetchTranscript(channelId, talk.id)
+      saveArticle(transcript, `TED · ${talk.presenter}`, {
+        title: talk.title,
+        sourceUrl: talk.canonicalUrl,
+      })
+      setAddState('added')
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : '加入失败')
+      setAddState('idle')
+    }
+  }
+
   return (
     <article className="talk-card" data-testid={`talk-card-${talk.id}`}>
       {talk.thumbnailUrl ? (
@@ -285,6 +311,47 @@ function TalkCard({ talk }: { talk: Talk }) {
           <span className="talk-card-duration">{formatDuration(talk.durationSec)}</span>
           <span className="talk-card-date">{talk.pubDate.slice(0, 10)}</span>
         </div>
+        <div className="talk-card-actions">
+          {addState === 'added' ? (
+            <button
+              className="talk-card-btn talk-card-btn-added"
+              onClick={() => navigate(routes.articles)}
+              data-testid={`talk-added-${talk.id}`}
+            >
+              <Check size={14} /> 去学习
+            </button>
+          ) : !talk.transcriptAvailable ? (
+            <button
+              className="talk-card-btn talk-card-btn-disabled"
+              disabled
+              title="文字稿尚未上线"
+              data-testid={`talk-unavailable-${talk.id}`}
+            >
+              <AlertCircle size={14} /> 文字稿未上线
+            </button>
+          ) : addState === 'loading' ? (
+            <button
+              className="talk-card-btn talk-card-btn-loading"
+              disabled
+              data-testid={`talk-loading-${talk.id}`}
+            >
+              <Loader2 size={14} className="spin" /> 加入中...
+            </button>
+          ) : (
+            <button
+              className="talk-card-btn talk-card-btn-add"
+              onClick={handleAdd}
+              data-testid={`talk-add-${talk.id}`}
+            >
+              <Plus size={14} /> 加入学习
+            </button>
+          )}
+        </div>
+        {addError && (
+          <p className="talk-card-error" data-testid={`talk-error-${talk.id}`} role="alert">
+            {addError}
+          </p>
+        )}
       </div>
     </article>
   )
