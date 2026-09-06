@@ -7,9 +7,12 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
+  Play,
   RotateCcw,
   Sparkles,
   Upload,
+  Volume2,
+  X,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
 import { getArticle, MAX_ARTICLE_CHARS, mergeProcessing, saveArticle } from '../lib/articles'
@@ -129,8 +132,9 @@ function ImportMode() {
 
   const handleSave = () => {
     if (!content.trim()) return
-    saveArticle(content, source)
-    navigate(routes.articles)
+    const article = saveArticle(content, source)
+    // 保存后直接进入预处理模式，可立即操作提取单词/短语/译文/语音
+    navigate(routes.articleProcess(article.id))
   }
 
   return (
@@ -200,7 +204,7 @@ function ImportMode() {
           <div className="right-column">
             <div className="section-card panel-placeholder">
               <Sparkles size={20} />
-              <p>导入后可在文章卡片点「AI 预处理」生成单词、短语与语音。</p>
+              <p>导入后将自动进入 AI 预处理，可立即提取单词、短语、译文与语音。</p>
             </div>
           </div>
         </div>
@@ -219,7 +223,9 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
   )
   const [running, setRunning] = useState(false)
   const [runningStep, setRunningStep] = useState<StepId | null>(null)
+  const [playingAudio, setPlayingAudio] = useState(false)
   const adaptersRef = useRef<PipelineAdapters | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   /** 惰性构造一次适配器（测试可注入，默认走工厂取真实/mock 实现） */
   const getAdapters = (): PipelineAdapters => {
@@ -279,6 +285,37 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
     } finally {
       setRunning(false)
       setRunningStep(null)
+    }
+  }
+
+  /** 删除单个词汇：更新本地状态并持久化 */
+  const removeWord = (word: string) => {
+    setPipelineState((prev) => {
+      const nextWords = prev.words.filter((w) => w.word !== word)
+      mergeProcessing(articleId, { words: nextWords })
+      return { ...prev, words: nextWords }
+    })
+  }
+
+  /** 删除单个短语：更新本地状态并持久化 */
+  const removePhrase = (phrase: string) => {
+    setPipelineState((prev) => {
+      const nextPhrases = prev.phrases.filter((p) => p.phrase !== phrase)
+      mergeProcessing(articleId, { phrases: nextPhrases })
+      return { ...prev, phrases: nextPhrases }
+    })
+  }
+
+  /** 试听生成的语音 */
+  const handlePreviewAudio = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (playingAudio) {
+      audio.pause()
+      setPlayingAudio(false)
+    } else {
+      audio.play().catch(() => setPlayingAudio(false))
+      setPlayingAudio(true)
     }
   }
 
@@ -358,6 +395,18 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
                         {isRunningThis ? <Loader2 size={14} className="spinner-icon" /> : <RotateCcw size={14} />}
                         <span>{actionLabel}</span>
                       </button>
+                      {step === 'audio' && pipelineState.audio && (
+                        <button
+                          type="button"
+                          className="retry-button"
+                          onClick={handlePreviewAudio}
+                          data-dom-id="cta-preview-audio"
+                          data-testid="preview-audio"
+                        >
+                          {playingAudio ? <Volume2 size={14} /> : <Play size={14} />}
+                          <span>{playingAudio ? '暂停' : '试听'}</span>
+                        </button>
+                      )}
                     </div>
                   )
                 })}
@@ -372,6 +421,15 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
                 <div className="vocab-grid">
                   {pipelineState.words.map((word) => (
                     <div className="vocab-chip" key={word.word}>
+                      <button
+                        type="button"
+                        className="vocab-remove-btn"
+                        onClick={() => removeWord(word.word)}
+                        data-testid={`remove-word-${word.word}`}
+                        aria-label={`删除词汇 ${word.word}`}
+                      >
+                        <X size={12} />
+                      </button>
                       <div className="vocab-word">{word.word}</div>
                       <div className="vocab-phonetic">{word.phonetic}</div>
                       <div className="vocab-translation">{word.translation}</div>
@@ -389,12 +447,30 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
                 <div>
                   {pipelineState.phrases.map((phrase) => (
                     <div className="phrase-item" key={phrase.phrase}>
+                      <button
+                        type="button"
+                        className="phrase-remove-btn"
+                        onClick={() => removePhrase(phrase.phrase)}
+                        data-testid={`remove-phrase-${phrase.phrase}`}
+                        aria-label={`删除短语 ${phrase.phrase}`}
+                      >
+                        <X size={12} />
+                      </button>
                       <div className="phrase-text">{phrase.phrase}</div>
                       <div className="phrase-translation">{phrase.translation}</div>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
+            {pipelineState.audio && (
+              <audio
+                ref={audioRef}
+                src={pipelineState.audio.audioUrl}
+                onEnded={() => setPlayingAudio(false)}
+                onPause={() => setPlayingAudio(false)}
+                data-testid="preview-audio-element"
+              />
             )}
           </div>
         </div>

@@ -618,6 +618,7 @@
 }
 
 .vocab-chip {
+  position: relative;
   background-color: var(--en-muted);
   border-radius: 8px;
   padding: 8px;
@@ -644,6 +645,7 @@
 }
 
 .phrase-item {
+  position: relative;
   background-color: var(--en-muted);
   border-radius: var(--radius-md);
   padding: 8px;
@@ -664,4 +666,36 @@
   margin-top: 2px;
   font-size: 12px;
   color: var(--en-muted-foreground);
+}
+
+/* ---- 词汇/短语删除按钮（右上角） ---- */
+.vocab-remove-btn,
+.phrase-remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: var(--en-neutral-300);
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.vocab-chip:hover .vocab-remove-btn,
+.phrase-item:hover .phrase-remove-btn {
+  opacity: 1;
+}
+
+.vocab-remove-btn:hover,
+.phrase-remove-btn:hover {
+  background-color: var(--state-danger);
+  color: var(--en-card);
 }

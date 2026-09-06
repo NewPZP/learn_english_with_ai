@@ -97,7 +97,7 @@ function ArticleCard({ article, onDelete }: { article: Article; onDelete: () => 
           className="function-btn function-btn-secondary"
         >
           <GraduationCap />
-          <span>深入学习</span>
+          <span>精听精读</span>
         </Link>
         <button
           data-dom-id="cta-delete-article"

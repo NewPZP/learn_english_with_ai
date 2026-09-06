@@ -23,7 +23,7 @@ type User = ReturnType<typeof userEvent.setup>
  * 产物经 mergeProcessing 持久化，供后续词汇预习/播客/听力训练消费。
  */
 async function processViaAiPreprocess(user: User) {
-  await user.click(screen.getByRole('link', { name: /AI 预处理/ }))
+  // 导入后已直接进入预处理页，等待面板出现即可
   await screen.findByTestId('ai-processing-panel')
 
   await user.click(screen.getByTestId('process-words'))
@@ -105,20 +105,17 @@ describe('导入 → 列表完整流程', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     expect(screen.getByRole('heading', { name: '导入文章' }))
 
-    // 粘贴文本并完成导入：仅保存纯文本，不触发 AI，保存后回列表
+    // 粘贴文本并完成导入：仅保存纯文本，不触发 AI，保存后直接进入预处理页
     const textarea = screen.getByLabelText('粘贴文章内容')
     await user.type(textarea, 'The quick brown fox jumps over the lazy dog.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
 
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    // 导入后直接进入 AI 预处理页（三步初始均为待处理）
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     // 导入后无 processing（首次只存文本）
     const stored0 = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored0).toHaveLength(1)
     expect(stored0[0].processing).toBeUndefined()
-
-    // 经卡片「AI 预处理」进入加工页，三步初始均为待处理
-    await user.click(screen.getByRole('link', { name: /AI 预处理/ }))
-    expect(screen.getByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     expect(screen.getByTestId('ai-processing-panel')).toBeInTheDocument()
     expect(screen.getByTestId('step-words')).toHaveTextContent('待处理')
     expect(screen.getByTestId('step-phrases')).toHaveTextContent('待处理')
@@ -333,7 +330,7 @@ describe('文章卡片', () => {
     await user.click(screen.getByRole('link', { name: '文章' }))
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: '深入学习' }))
+    await user.click(screen.getByRole('link', { name: '精听精读' }))
     expect(screen.getByRole('heading', { name: '深入学习' })).toBeInTheDocument()
   })
 })
@@ -348,10 +345,10 @@ describe('导入 AI 处理管道（页面级）', () => {
       </BrowserRouter>,
     )
     expect(screen.queryByTestId('ai-processing-panel')).not.toBeInTheDocument()
-    expect(screen.getByText(/导入后可在文章卡片点/)).toBeInTheDocument()
+    expect(screen.getByText(/导入后将自动进入 AI 预处理/)).toBeInTheDocument()
   })
 
-  test('完成导入即时保存并返回列表，不触发 AI 处理', async () => {
+  test('完成导入即时保存并进入预处理页，不触发 AI 处理', async () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
@@ -359,8 +356,8 @@ describe('导入 AI 处理管道（页面级）', () => {
     await user.type(screen.getByLabelText('粘贴文章内容'), 'Some English content here.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
 
-    // 即时回到列表，文章已存入但未加工
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    // 即时进入预处理页，文章已存入但未加工
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored[0].processing).toBeUndefined()
   })
@@ -486,7 +483,7 @@ describe('导入 → 词汇预习完整链路', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     // 经 AI 预处理完成三步加工后回列表
     await processViaAiPreprocess(user)
 
@@ -517,11 +514,11 @@ describe('导入 → 词汇预习完整链路', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
     // 进入深入学习
-    await user.click(screen.getByRole('link', { name: /深入学习/ }))
+    await user.click(screen.getByRole('link', { name: /精听精读/ }))
 
     // 信息卡与字幕区渲染，首句高亮
     expect(screen.getByTestId('podcast-info-card')).toBeInTheDocument()
@@ -551,11 +548,11 @@ describe('导入 → 词汇预习完整链路', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
     // 进入深入学习
-    await user.click(screen.getByRole('link', { name: /深入学习/ }))
+    await user.click(screen.getByRole('link', { name: /精听精读/ }))
 
     // 默认难度「重要词语」：首句无命中词语 → 无挖空输入框
     expect(screen.queryAllByTestId(/^blank-0-/)).toHaveLength(0)
@@ -587,11 +584,11 @@ describe('导入 → 词汇预习完整链路', () => {
     await user.click(screen.getByRole('link', { name: '导入文章' }))
     await user.type(screen.getByLabelText('粘贴文章内容'), 'The quick brown fox jumps.')
     await user.click(screen.getByRole('button', { name: /完成导入/ }))
-    expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
     // 进入深入学习，切到 AI 综合测验 Tab
-    await user.click(screen.getByRole('link', { name: /深入学习/ }))
+    await user.click(screen.getByRole('link', { name: /精听精读/ }))
     await user.click(screen.getByText('AI 综合测验'))
 
     // AI 出题徽章 + 三题型渲染
@@ -712,12 +709,12 @@ describe('学习进度闭环（工单 #11）', () => {
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
     // 2) 深入学习（收听）：拖动进度条到 5s/10s → 收听进度持久化（用于续播，卡片不单独展示）
-    await user.click(screen.getByRole('link', { name: /深入学习/ }))
+    await user.click(screen.getByRole('link', { name: /精听精读/ }))
     fireEvent.change(screen.getByTestId('progress-slider'), { target: { value: '5000' } })
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
     // 3) 深入学习（精听）：全部听写难度下填对首句所有空 → 1/2
-    await user.click(screen.getByRole('link', { name: /深入学习/ }))
+    await user.click(screen.getByRole('link', { name: /精听精读/ }))
     await user.click(screen.getByText('全部听写'))
     // 首句 "The quick brown fox jumps." → 5 个空，全部填对触发句子完成
     const answers = ['the', 'quick', 'brown', 'fox', 'jumps']
