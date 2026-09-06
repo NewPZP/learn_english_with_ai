@@ -76,14 +76,42 @@
   border-radius: var(--radius-lg);
   padding: 16px 20px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 12px;
 }
 
 .vocab-item-main {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* 右侧操作区：自评按钮 + 移除按钮，纵向排列 */
+.vocab-item-side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 120px;
+}
+
+/* 生词本内的自评按钮：覆盖默认 flex:1，固定宽度不换行 */
+.vocab-item-side .repetition-controls {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vocab-item-side .repetition-btn {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 36px;
+  white-space: nowrap;
+  font-size: 13px;
 }
 
 .vocab-item-head {
@@ -190,6 +218,7 @@
 }
 
 .vocab-source-list {
+  flex: 1 1 100%;
   list-style: none;
   padding: 8px 12px;
   margin: 0;
@@ -211,16 +240,8 @@
 }
 
 /* ---- 行内操作 ---- */
-.vocab-item-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--en-border);
-}
-
 .vocab-remove-btn {
+  align-self: center;
   color: var(--en-muted-foreground);
 }
 

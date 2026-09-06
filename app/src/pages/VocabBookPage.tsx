@@ -127,7 +127,16 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
               <span>开始复习 ({dueCount})</span>
             </Link>
           ) : (
-            <span className="topbar-count nums">共 {rows.length} 项</span>
+            <button
+              type="button"
+              className="function-btn function-btn-primary"
+              data-dom-id={`cta-review-${kind}`}
+              disabled
+              title="当前没有到期需要复习的内容"
+            >
+              <Play size={16} />
+              <span>暂无到期复习</span>
+            </button>
           )
         }
       />
@@ -216,22 +225,7 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
                     </div>
                   </div>
 
-                  {isExpanded && (
-                    <ul className="vocab-source-list" data-testid={`source-list-${entry.text}`}>
-                      {entry.sourceArticleIds.map((aid) => {
-                        const article = getArticle(aid)
-                        return (
-                          <li key={aid}>
-                            <Link to={routes.articleWords(aid)}>
-                              {article?.title ?? `文章 #${aid}`}
-                            </Link>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-
-                  <div className="vocab-item-actions">
+                  <div className="vocab-item-side">
                     <RatingControls
                       onRate={(rating) => handleRate(entry, rating)}
                       domIdPrefix={`vocab-${entry.text}`}
@@ -249,6 +243,21 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
                       <Trash2 size={16} />
                     </button>
                   </div>
+
+                  {isExpanded && (
+                    <ul className="vocab-source-list" data-testid={`source-list-${entry.text}`}>
+                      {entry.sourceArticleIds.map((aid) => {
+                        const article = getArticle(aid)
+                        return (
+                          <li key={aid}>
+                            <Link to={routes.articleWords(aid)}>
+                              {article?.title ?? `文章 #${aid}`}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
                 </li>
               )
             })}
