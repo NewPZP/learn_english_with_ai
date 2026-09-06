@@ -1,0 +1,21 @@
+{
+  "name": "linguaai-discover-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker backend serving TED talks data for the LinguaAI discover page.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240614.0",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.11",
+    "wrangler": "^3.60.0"
+  }
+}

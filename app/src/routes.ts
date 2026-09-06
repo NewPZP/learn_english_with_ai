@@ -8,4 +8,6 @@ export const routes = {
   articleDeepLearning: (id: string | number) => `/articles/${id}/podcast`,
   articleProcess: (id: string | number) => `/articles/${id}/process`,
   aiConfig: '/ai-config',
+  discover: '/discover',
+  discoverChannel: (channelId: string) => `/discover/${channelId}`,
 } as const

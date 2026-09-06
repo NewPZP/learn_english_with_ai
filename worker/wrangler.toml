@@ -1,0 +1,8 @@
+name = "linguaai-discover"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# 鉴权 token：开发期默认值 "dev-token"（见 src/index.ts）。
+# 生产环境通过 `wrangler secret put API_TOKEN` 设置真实 token。
+[vars]
+# 在此可放置非敏感配置；API_TOKEN 切勿写在这里，请用 wrangler secret。

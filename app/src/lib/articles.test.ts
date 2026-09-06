@@ -70,6 +70,29 @@ describe('文章持久化', () => {
     expect(article.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 
+  test('options.title 覆盖自动推导的标题', () => {
+    const article = saveArticle('Some content here.', 'TED · Speaker', {
+      title: 'My Custom Title',
+    })
+    expect(article.title).toBe('My Custom Title')
+  })
+
+  test('options.sourceUrl 写入 article.sourceUrl', () => {
+    const url = 'https://www.ted.com/talks/some_talk'
+    const article = saveArticle('Some content here.', 'TED · Speaker', {
+      sourceUrl: url,
+    })
+    expect(article.sourceUrl).toBe(url)
+
+    const loaded = loadArticles()
+    expect(loaded[0].sourceUrl).toBe(url)
+  })
+
+  test('不传 options 时 sourceUrl 为 undefined（向后兼容）', () => {
+    const article = saveArticle('Some content here.', '粘贴文本')
+    expect(article.sourceUrl).toBeUndefined()
+  })
+
   test('超长内容截断到上限', () => {
     const article = saveArticle('x'.repeat(MAX_ARTICLE_CHARS + 1000), '粘贴文本')
     expect(article.content).toHaveLength(MAX_ARTICLE_CHARS)

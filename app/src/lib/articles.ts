@@ -23,8 +23,18 @@ export interface Article {
   wordCount: number
   difficulty: Difficulty
   createdAt: string // ISO 日期（yyyy-mm-dd）
+  /** 外部内容标识（如 TED 演讲规范 URL），用于发现页去重 */
+  sourceUrl?: string
   /** AI 处理管道完成后写入；未处理的文章缺失该字段 */
   processing?: ArticleProcessing
+}
+
+/** saveArticle 可选参数：覆盖标题、设置来源 URL */
+export interface SaveArticleOptions {
+  /** 覆盖自动推导的标题（如 TED 演讲标题） */
+  title?: string
+  /** 外部内容标识，用于去重 */
+  sourceUrl?: string
 }
 
 export const MAX_ARTICLE_CHARS = 50000
@@ -84,15 +94,20 @@ function persist(articles: Article[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(articles))
 }
 
-export function saveArticle(content: string, source: string): Article {
+export function saveArticle(
+  content: string,
+  source: string,
+  options?: SaveArticleOptions,
+): Article {
   const article: Article = {
     id: generateId(),
-    title: deriveTitle(content),
+    title: options?.title ?? deriveTitle(content),
     source,
     content: content.slice(0, MAX_ARTICLE_CHARS),
     wordCount: countWords(content),
     difficulty: estimateDifficulty(content),
     createdAt: new Date().toISOString().slice(0, 10),
+    ...(options?.sourceUrl ? { sourceUrl: options.sourceUrl } : {}),
   }
   const articles = loadArticles()
   persist([article, ...articles])

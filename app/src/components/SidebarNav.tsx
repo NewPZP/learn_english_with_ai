@@ -23,10 +23,14 @@ export function SidebarNav() {
           <Library className="nav-icon" />
           <span>文章</span>
         </NavLink>
-        <button type="button" className="sidebar-nav-btn" disabled title="发现（即将上线）">
+        <NavLink
+          to={routes.discover}
+          className="sidebar-nav-btn"
+          data-dom-id="cta-discover"
+        >
           <Compass className="nav-icon" />
           <span>发现</span>
-        </button>
+        </NavLink>
         <div className="nav-group">
           <div className="nav-group-label">
             <User className="nav-icon" />

@@ -19,7 +19,7 @@ describe('应用壳', () => {
 
     // 导航项
     expect(screen.getByRole('link', { name: '文章' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '发现' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: '发现' })).toBeInTheDocument()
     expect(screen.getByText('我的')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'AI 配置' })).toBeInTheDocument()
   })

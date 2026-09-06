@@ -1,0 +1,336 @@
+/* ============================================================
+   发现页（频道广场）— 频道卡片网格
+   ============================================================ */
+
+.discover-intro {
+  font-size: 14px;
+  color: var(--en-muted-foreground);
+  margin-bottom: 24px;
+}
+
+.channel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.channel-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--en-border);
+  border-radius: 16px;
+  background-color: var(--en-card);
+  box-shadow: var(--en-shadow-1);
+  transition: box-shadow 160ms ease, border-color 160ms ease, transform 120ms cubic-bezier(.2, .8, .2, 1);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+}
+
+.channel-card-available:hover {
+  border-color: var(--en-primary-300);
+  box-shadow: var(--en-shadow-2);
+  transform: translateY(-2px);
+}
+
+.channel-card-available:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+.channel-card-unavailable {
+  opacity: 0.6;
+}
+
+.channel-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: var(--en-primary-50);
+  color: var(--en-primary);
+  flex-shrink: 0;
+}
+
+.channel-card-body {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.channel-card-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--en-foreground);
+  margin: 0;
+}
+
+.channel-card-desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.channel-card-arrow {
+  color: var(--en-primary);
+  flex-shrink: 0;
+}
+
+.channel-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--en-muted-foreground);
+}
+
+html.dark .channel-card-overlay {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+@media (max-width: 900px) {
+  .channel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel-card-available {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   频道列表页 — 时长筛选 + Talk 卡片网格 + 无限滚动
+   ============================================================ */
+
+.discover-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.discover-filter-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--en-border);
+  border-radius: 999px;
+  background-color: var(--en-card);
+  color: var(--en-muted-foreground);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.discover-filter-btn:hover {
+  border-color: var(--en-primary-300);
+}
+
+.discover-filter-btn.active {
+  background-color: var(--en-primary);
+  color: white;
+  border-color: var(--en-primary);
+}
+
+.discover-filter-btn:focus-visible {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+.discover-talk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* ---- Talk 卡片 ---- */
+
+.talk-card {
+  border: 1px solid var(--en-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--en-card);
+  box-shadow: var(--en-shadow-1);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.talk-card:hover {
+  box-shadow: var(--en-shadow-2);
+  border-color: var(--en-primary-300);
+}
+
+.talk-card-thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+.talk-card-thumbnail-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--en-muted);
+}
+
+.talk-card-body {
+  padding: 14px 16px;
+}
+
+.talk-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--en-foreground);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.talk-card-presenter {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--en-primary);
+  font-weight: 500;
+}
+
+.talk-card-summary {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.talk-card-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--en-muted-foreground);
+}
+
+.talk-card-duration {
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+/* ---- 骨架屏 ---- */
+
+.talk-card-skeleton {
+  border: 1px solid var(--en-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--en-muted);
+  aspect-ratio: 16 / 9;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ---- 哨兵 & 空状态 ---- */
+
+.discover-sentinel {
+  height: 1px;
+  visibility: hidden;
+}
+
+.discover-empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--en-muted-foreground);
+  font-size: 14px;
+}
+
+.discover-error {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: var(--en-error-50);
+  color: var(--en-error);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* ---- 配置引导 ---- */
+
+.discover-config-prompt {
+  max-width: 400px;
+  margin: 48px auto;
+  text-align: center;
+}
+
+.discover-config-prompt h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.discover-config-prompt p {
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  margin: 0 0 20px;
+}
+
+.discover-config-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--en-border);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--en-card);
+  color: var(--en-foreground);
+}
+
+.discover-config-input:focus {
+  outline: 2px solid var(--en-ring);
+  outline-offset: -1px;
+}
+
+/* ---- 旋转动画 ---- */
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .discover-talk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .talk-card,
+  .talk-card-skeleton,
+  .spin {
+    transition: none;
+    animation: none;
+  }
+}

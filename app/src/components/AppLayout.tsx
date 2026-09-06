@@ -18,15 +18,25 @@ export function AppLayout() {
   )
 }
 
-/** 页面顶栏：返回按钮（back-article-list）+ 居中标题 + 右侧插槽 */
-export function PageTopbar({ title, right }: { title: string; right?: React.ReactNode }) {
+/** 页面顶栏：返回按钮 + 居中标题 + 右侧插槽 */
+export function PageTopbar({
+  title,
+  right,
+  backTo,
+  backLabel,
+}: {
+  title: string
+  right?: React.ReactNode
+  backTo?: string
+  backLabel?: string
+}) {
   return (
     <header className="page-topbar">
       <Link
-        to={routes.articles}
+        to={backTo ?? routes.articles}
         className="icon-btn"
-        data-dom-id="back-article-list"
-        aria-label="返回文章列表"
+        data-dom-id={backTo ? `back-to-${backTo}` : 'back-article-list'}
+        aria-label={backLabel ?? '返回文章列表'}
       >
         <ArrowLeft size={20} />
       </Link>
