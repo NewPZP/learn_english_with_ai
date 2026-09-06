@@ -190,3 +190,48 @@ function rateItem(
   persistStore(storageKey, store)
   return record
 }
+
+/* ---- 全局生词本自评：同步写回所有来源文章 ---- */
+
+/**
+ * 在生词本/复习模式自评某单词：对所有来源文章调用 rateWord，
+ * 每篇文章基于其自身已有档位推进，保证各文章进度独立且同步更新。
+ * 返回最终记录（取最后一篇的写入结果，各篇 stage 可能因历史不同而不同）
+ */
+export function rateGlobalWord(
+  text: string,
+  sourceArticleIds: string[],
+  rating: SelfRating,
+  now: Date = new Date(),
+): WordProgressRecord {
+  return rateGlobalItem(WORD_STORAGE_KEY, text, sourceArticleIds, rating, now)
+}
+
+/** 短语版全局自评：同步写回所有来源文章 */
+export function rateGlobalPhrase(
+  text: string,
+  sourceArticleIds: string[],
+  rating: SelfRating,
+  now: Date = new Date(),
+): WordProgressRecord {
+  return rateGlobalItem(PHRASE_STORAGE_KEY, text, sourceArticleIds, rating, now)
+}
+
+function rateGlobalItem(
+  storageKey: string,
+  item: string,
+  sourceArticleIds: string[],
+  rating: SelfRating,
+  now: Date,
+): WordProgressRecord {
+  let last: WordProgressRecord | undefined
+  for (const articleId of sourceArticleIds) {
+    last = rateItem(storageKey, articleId, item, rating, now)
+  }
+  if (!last) {
+    // 无来源文章时退化为基于空档位的调度（不应发生，兜底）
+    const { stage, nextReviewAt } = scheduleNext(rating, 0, now)
+    last = { word: item, rating, stage, ratedAt: now.toISOString(), nextReviewAt }
+  }
+  return last
+}

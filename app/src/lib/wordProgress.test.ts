@@ -6,6 +6,8 @@ import {
   loadPhraseProgress,
   rateWord,
   ratePhrase,
+  rateGlobalWord,
+  rateGlobalPhrase,
   nextStage,
   scheduleNext,
   type WordProgressRecord,
@@ -232,5 +234,39 @@ describe('短语进度持久化（独立存储，不与单词混淆）', () => {
 
   test('loadPhraseProgress 初始为空对象', () => {
     expect(loadPhraseProgress('a1')).toEqual({})
+  })
+})
+
+describe('全局生词本自评：同步写回所有来源文章', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('rateGlobalWord 对所有来源文章写入同一自评', () => {
+    rateGlobalWord('w', ['a1', 'a2', 'a3'], 'known', NOW)
+
+    expect(loadWordProgress('a1').w.rating).toBe('known')
+    expect(loadWordProgress('a2').w.rating).toBe('known')
+    expect(loadWordProgress('a3').w.rating).toBe('known')
+  })
+
+  test('每篇文章基于自身已有档位独立推进', () => {
+    // a1 已评过 known（stage 1），a2 未评（stage 0）
+    rateWord('a1', 'w', 'known', NOW)
+    rateGlobalWord('w', ['a1', 'a2'], 'known', NOW)
+
+    // a1 从 stage 1 → 2；a2 从 stage 0 → 1
+    expect(loadWordProgress('a1').w.stage).toBe(2)
+    expect(loadWordProgress('a2').w.stage).toBe(1)
+  })
+
+  test('rateGlobalPhrase 同步写回所有来源文章的短语进度', () => {
+    rateGlobalPhrase('pull an all-nighter', ['a1', 'a2'], 'fuzzy', NOW)
+    expect(loadPhraseProgress('a1')['pull an all-nighter'].rating).toBe('fuzzy')
+    expect(loadPhraseProgress('a2')['pull an all-nighter'].rating).toBe('fuzzy')
+  })
+
+  test('空来源数组时返回基于空档位的兜底记录', () => {
+    const record = rateGlobalWord('w', [], 'known', NOW)
+    expect(record.rating).toBe('known')
+    expect(record.stage).toBe(1)
   })
 })

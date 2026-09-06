@@ -91,11 +91,35 @@
 
 /* ---- 闪卡 ---- */
 .flashcard {
+  position: relative;
   background: var(--en-card);
   border: 1px solid var(--en-border);
   border-radius: var(--radius-md);
   padding: 24px;
   min-height: 240px;
+}
+
+.flashcard-bookmark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.flashcard-bookmark:hover {
+  background-color: var(--en-muted);
+}
+
+.flashcard-bookmark.is-collected {
+  color: var(--en-primary);
 }
 
 .flashcard-front-body {
@@ -375,6 +399,38 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.word-row-bookmark {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.word-row-bookmark:hover {
+  background-color: var(--en-neutral-200);
+}
+
+.word-row-bookmark.is-collected {
+  color: var(--en-primary);
+}
+
+.word-row.is-current .word-row-bookmark {
+  color: var(--en-primary-foreground);
+  opacity: 0.85;
+}
+
+.word-row.is-current .word-row-bookmark.is-collected {
+  color: var(--en-primary-foreground);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

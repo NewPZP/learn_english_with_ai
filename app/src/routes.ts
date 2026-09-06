@@ -10,4 +10,8 @@ export const routes = {
   aiConfig: '/ai-config',
   discover: '/discover',
   discoverChannel: (channelId: string) => `/discover/${channelId}`,
+  vocabWords: '/vocabulary/words',
+  vocabPhrases: '/vocabulary/phrases',
+  vocabReview: (kind: 'words' | 'phrases') => `/vocabulary/${kind}/review`,
+  settings: '/settings',
 } as const

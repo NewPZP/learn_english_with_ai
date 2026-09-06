@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { BookOpen, Check, Minus, Rotate3d, Sparkles, X } from 'lucide-react'
+import { BookOpen, Bookmark, BookmarkCheck, Check, Rotate3d, Sparkles } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
+import { RatingControls } from '../components/RatingControls'
 import { getArticle } from '../lib/articles'
 import { routes } from '../routes'
 import type { PhraseEntry, WordEntry } from '../lib/ai'
@@ -14,11 +15,19 @@ import {
   ratePhrase,
   MEMORY_CURVE_LABELS,
   MAX_STAGE,
-  RATING_LABELS,
   type CurveNodeStatus,
   type SelfRating,
   type WordProgressRecord,
 } from '../lib/wordProgress'
+import {
+  addWordEntry,
+  removeWordEntry,
+  isWordCollected,
+  addPhraseEntry,
+  removePhraseEntry,
+  isPhraseCollected,
+} from '../lib/vocabBook'
+import { loadSettings } from '../lib/settings'
 import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
 
 type LearnTab = 'words' | 'phrases'
@@ -227,40 +236,6 @@ function PhraseFlashcardBack({ phrase }: { phrase: PhraseEntry }) {
   )
 }
 
-/* ---- 三档自评按钮 ---- */
-
-const RATING_META: Record<SelfRating, { icon: typeof X; className: string }> = {
-  unknown: { icon: X, className: 'rate-unknown' },
-  fuzzy: { icon: Minus, className: 'rate-fuzzy' },
-  known: { icon: Check, className: 'rate-known' },
-}
-
-const RATING_ORDER: SelfRating[] = ['unknown', 'fuzzy', 'known']
-
-function RatingControls({ onRate, disabled }: { onRate: (rating: SelfRating) => void; disabled?: boolean }) {
-  return (
-    <div className="repetition-controls">
-      {RATING_ORDER.map((rating) => {
-        const Icon = RATING_META[rating].icon
-        return (
-          <button
-            key={rating}
-            type="button"
-            className={`repetition-btn ${RATING_META[rating].className}`}
-            data-dom-id={`cta-rate-${rating}`}
-            data-testid={`rate-${rating}`}
-            onClick={() => onRate(rating)}
-            disabled={disabled}
-          >
-            <Icon size={16} />
-            <span>{RATING_LABELS[rating]}</span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 /* ---- 页面 ---- */
 
 /**
@@ -303,6 +278,13 @@ export function WordPreviewPage() {
   const [flipped, setFlipped] = useState(false)
   /** 本轮自评全部完成 → 展示完成卡；从列表跳转可回到闪卡 */
   const [showCompletion, setShowCompletion] = useState(false)
+  /** 生词本收录状态（单词/短语分集合），用于驱动收藏按钮 UI */
+  const [collectedWords, setCollectedWords] = useState<Set<string>>(
+    () => new Set(words.map((w) => w.word).filter((w) => isWordCollected(w))),
+  )
+  const [collectedPhrases, setCollectedPhrases] = useState<Set<string>>(
+    () => new Set(phrases.map((p) => p.phrase).filter((p) => isPhraseCollected(p))),
+  )
 
   useStudyTimeTracker()
 
@@ -336,6 +318,11 @@ export function WordPreviewPage() {
       setFlipped(false)
       setWordIndex((i) => Math.min(i + 1, words.length - 1))
       setShowCompletion(words.every((w) => nextRecords[w.word] !== undefined))
+      autoCollectIfNeeded('words', word.word, rating, {
+        phonetic: word.phonetic,
+        translation: word.translation,
+        partOfSpeech: word.partOfSpeech,
+      })
     } else {
       const phrase = currentItem as PhraseEntry
       const record = ratePhrase(id, phrase.phrase, rating)
@@ -344,6 +331,71 @@ export function WordPreviewPage() {
       setFlipped(false)
       setPhraseIndex((i) => Math.min(i + 1, phrases.length - 1))
       setShowCompletion(phrases.every((p) => nextRecords[p.phrase] !== undefined))
+      autoCollectIfNeeded('phrases', phrase.phrase, rating, {
+        phonetic: '',
+        translation: phrase.translation,
+      })
+    }
+  }
+
+  /** 命中学习设置的自动收录档位时，把词收入生词本（已收录则跳过） */
+  const autoCollectIfNeeded = (
+    tab: LearnTab,
+    text: string,
+    rating: SelfRating,
+    meta: { phonetic: string; translation: string; partOfSpeech?: string },
+  ) => {
+    const { autoCollectRatings } = loadSettings()
+    if (!autoCollectRatings.includes(rating)) return
+    if (tab === 'words') {
+      if (!isWordCollected(text)) {
+        addWordEntry({ text, articleId: id!, ...meta })
+        setCollectedWords((prev) => new Set(prev).add(text))
+      }
+    } else {
+      if (!isPhraseCollected(text)) {
+        addPhraseEntry({ text, articleId: id!, ...meta })
+        setCollectedPhrases((prev) => new Set(prev).add(text))
+      }
+    }
+  }
+
+  /** 手动切换生词本收录状态 */
+  const handleToggleCollect = (tab: LearnTab, text: string) => {
+    if (tab === 'words') {
+      const word = words.find((w) => w.word === text)
+      if (!word) return
+      if (isWordCollected(text)) {
+        removeWordEntry(text)
+        setCollectedWords((prev) => {
+          const next = new Set(prev)
+          next.delete(text)
+          return next
+        })
+      } else {
+        addWordEntry({
+          text,
+          articleId: id!,
+          phonetic: word.phonetic,
+          translation: word.translation,
+          partOfSpeech: word.partOfSpeech,
+        })
+        setCollectedWords((prev) => new Set(prev).add(text))
+      }
+    } else {
+      const phrase = phrases.find((p) => p.phrase === text)
+      if (!phrase) return
+      if (isPhraseCollected(text)) {
+        removePhraseEntry(text)
+        setCollectedPhrases((prev) => {
+          const next = new Set(prev)
+          next.delete(text)
+          return next
+        })
+      } else {
+        addPhraseEntry({ text, articleId: id!, phonetic: '', translation: phrase.translation })
+        setCollectedPhrases((prev) => new Set(prev).add(text))
+      }
     }
   }
 
@@ -489,6 +541,47 @@ export function WordPreviewPage() {
                     ) : (
                       <PhraseFlashcardFront phrase={currentItem as PhraseEntry} />
                     )}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className={`flashcard-bookmark ${
+                        (activeTab === 'words'
+                          ? collectedWords.has(currentKey)
+                          : collectedPhrases.has(currentKey))
+                          ? 'is-collected'
+                          : ''
+                      }`}
+                      aria-label={
+                        activeTab === 'words'
+                          ? collectedWords.has(currentKey)
+                            ? '移出生词本'
+                            : '加入生词本'
+                          : collectedPhrases.has(currentKey)
+                            ? '移出短语本'
+                            : '加入短语本'
+                      }
+                      data-dom-id={`cta-flashcard-bookmark`}
+                      data-testid="flashcard-bookmark"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleCollect(activeTab, currentKey)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleToggleCollect(activeTab, currentKey)
+                        }
+                      }}
+                    >
+                      {(activeTab === 'words'
+                        ? collectedWords.has(currentKey)
+                        : collectedPhrases.has(currentKey)) ? (
+                        <BookmarkCheck size={18} />
+                      ) : (
+                        <Bookmark size={18} />
+                      )}
+                    </span>
                   </div>
                   <RatingControls onRate={handleRate} />
                 </>
@@ -507,6 +600,8 @@ export function WordPreviewPage() {
                       activeTab === 'words' ? (item as WordEntry).word : (item as PhraseEntry).phrase
                     const record = records[key]
                     const rowState = record ? 'completed' : index === currentIndex ? 'current' : 'upcoming'
+                    const isCollected =
+                      activeTab === 'words' ? collectedWords.has(key) : collectedPhrases.has(key)
                     return (
                       <button
                         key={key}
@@ -521,6 +616,28 @@ export function WordPreviewPage() {
                           {record && <Check size={12} />}
                         </span>
                         <span className="word-row-text">{key}</span>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className={`word-row-bookmark ${isCollected ? 'is-collected' : ''}`}
+                          aria-label={isCollected ? '移出生词本' : '加入生词本'}
+                          data-dom-id={`cta-bookmark-${key}`}
+                          data-testid={`bookmark-${key}`}
+                          data-collected={isCollected}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleToggleCollect(activeTab, key)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleToggleCollect(activeTab, key)
+                            }
+                          }}
+                        >
+                          {isCollected ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+                        </span>
                       </button>
                     )
                   })}

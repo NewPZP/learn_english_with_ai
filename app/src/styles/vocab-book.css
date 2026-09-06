@@ -1,0 +1,362 @@
+/* ============================================================
+   生词本 / 短语本 / 学习设置 / 复习模式
+   ============================================================ */
+
+/* ---- 工具栏 ---- */
+.vocab-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.vocab-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vocab-filter-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-full);
+  background: var(--en-card);
+  color: var(--en-muted-foreground);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.vocab-filter-btn:hover {
+  border-color: var(--en-primary);
+  color: var(--en-primary);
+}
+
+.vocab-filter-btn.is-active {
+  background: var(--en-primary);
+  border-color: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.vocab-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+}
+
+.vocab-sort select {
+  padding: 6px 10px;
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-md);
+  background: var(--en-card);
+  color: var(--en-foreground);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ---- 列表 ---- */
+.vocab-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vocab-item {
+  background: var(--en-card);
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vocab-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vocab-item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vocab-item-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--en-foreground);
+}
+
+.vocab-item-phonetic {
+  font-size: 14px;
+  color: var(--en-muted-foreground);
+  font-family: var(--en-font-mono);
+}
+
+.vocab-item-pos {
+  font-size: 12px;
+  color: var(--en-primary);
+  background: var(--en-primary-50);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.vocab-item-translation {
+  font-size: 15px;
+  color: var(--en-foreground);
+}
+
+.vocab-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.vocab-mastery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocab-rating-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.vocab-rating-tag.rating-unknown {
+  background: var(--state-error-light);
+  color: var(--state-error);
+}
+
+.vocab-rating-tag.rating-fuzzy {
+  background: var(--state-warning-light);
+  color: var(--state-warning);
+}
+
+.vocab-rating-tag.rating-known {
+  background: var(--state-success-light);
+  color: var(--state-success);
+}
+
+.vocab-rating-tag.rating-unrated {
+  background: var(--en-muted);
+  color: var(--en-muted-foreground);
+}
+
+.vocab-stage {
+  font-size: 12px;
+  color: var(--en-muted-foreground);
+}
+
+.vocab-source-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-full);
+  background: var(--en-card);
+  color: var(--en-muted-foreground);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.vocab-source-toggle .chevron,
+.vocab-source-toggle svg {
+  transition: transform 150ms ease;
+}
+
+.vocab-source-toggle svg.is-open {
+  transform: rotate(180deg);
+}
+
+.vocab-source-list {
+  list-style: none;
+  padding: 8px 12px;
+  margin: 0;
+  background: var(--en-muted);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vocab-source-list a {
+  color: var(--en-primary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.vocab-source-list a:hover {
+  text-decoration: underline;
+}
+
+/* ---- 行内操作 ---- */
+.vocab-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--en-border);
+}
+
+.vocab-remove-btn {
+  color: var(--en-muted-foreground);
+}
+
+.vocab-remove-btn:hover {
+  color: var(--state-error);
+}
+
+/* ---- 复习页 ---- */
+.review-col {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.review-result-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.review-result-item {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ---- 学习设置 ---- */
+.settings-section {
+  max-width: 640px;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.settings-section-header svg {
+  color: var(--en-primary);
+  margin-top: 2px;
+}
+
+.settings-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.settings-section-desc {
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--en-border);
+  margin-bottom: 16px;
+}
+
+.settings-toggle-label {
+  font-size: 14px;
+}
+
+.settings-switch {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--en-muted);
+  color: var(--en-muted-foreground);
+}
+
+.settings-switch.is-on {
+  background: var(--state-success-light);
+  color: var(--state-success);
+}
+
+.settings-checkboxes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--en-border);
+  border-radius: var(--radius-md);
+  background: var(--en-card);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.settings-checkbox:hover {
+  border-color: var(--en-primary);
+}
+
+.settings-checkbox.is-checked {
+  border-color: var(--en-primary);
+  background: var(--en-primary-50);
+  color: var(--en-primary);
+}
+
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--en-neutral-300);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--en-primary);
+}
+
+.settings-checkbox.is-checked .checkbox-box {
+  border-color: var(--en-primary);
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+}
+
+.settings-hint {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: var(--en-muted);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+}

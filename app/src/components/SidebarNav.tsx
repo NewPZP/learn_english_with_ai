@@ -1,12 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { Library, Compass, User, Settings, ChevronDown } from 'lucide-react'
+import { Library, Compass, User, Settings, ChevronDown, BookMarked, Quote, SlidersHorizontal } from 'lucide-react'
 import { routes } from '../routes'
 
 /**
  * 左侧固定侧边栏导航（240px）
- * 导航项：文章 / 发现（占位）/ 我的 → AI 配置
- * 原型契约：「文章」入口带 data-dom-id="back-article-list"，
- * 「AI 配置」入口带 data-dom-id="cta-ai-config"
+ * 导航项：文章 / 发现 / 我的 → {生词本, 短语本, 学习设置, AI 配置}
  */
 export function SidebarNav() {
   return (
@@ -37,6 +35,30 @@ export function SidebarNav() {
             <span>我的</span>
             <ChevronDown className="chevron" />
           </div>
+          <NavLink
+            to={routes.vocabWords}
+            className="sidebar-nav-btn nav-group-item"
+            data-dom-id="cta-vocab-words"
+          >
+            <BookMarked className="nav-icon" />
+            <span>生词本</span>
+          </NavLink>
+          <NavLink
+            to={routes.vocabPhrases}
+            className="sidebar-nav-btn nav-group-item"
+            data-dom-id="cta-vocab-phrases"
+          >
+            <Quote className="nav-icon" />
+            <span>短语本</span>
+          </NavLink>
+          <NavLink
+            to={routes.settings}
+            className="sidebar-nav-btn nav-group-item"
+            data-dom-id="cta-settings"
+          >
+            <SlidersHorizontal className="nav-icon" />
+            <span>学习设置</span>
+          </NavLink>
           <NavLink
             to={routes.aiConfig}
             className="sidebar-nav-btn nav-group-item"

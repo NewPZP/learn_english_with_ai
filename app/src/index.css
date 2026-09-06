@@ -6,6 +6,7 @@
 @import './styles/word-preview.css';
 @import './styles/podcast.css';
 @import './styles/listening.css';
+@import './styles/vocab-book.css';
 
 * {
   margin: 0;
