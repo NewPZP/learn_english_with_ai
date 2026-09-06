@@ -23,9 +23,8 @@ import { routes } from './routes'
  * /ai-config                 → AI 配置
  * /discover                  → 发现页（频道广场）
  * /discover/:channelId       → 频道详情
- * /vocabulary/words          → 生词本
- * /vocabulary/phrases        → 短语本
- * /vocabulary/:kind/review   → 生词/短语到期复习（翻卡）
+ * /vocabulary                → 生词（单词/短语切换）
+ * /vocabulary/:kind/review   → 生词/短语复习（翻卡）
  * /settings                  → 学习设置
  */
 export function App() {
@@ -42,8 +41,7 @@ export function App() {
           <Route path={routes.aiConfig} element={<AiConfigPage />} />
           <Route path={routes.discover} element={<DiscoverPage />} />
           <Route path="/discover/:channelId" element={<ChannelPage />} />
-          <Route path={routes.vocabWords} element={<VocabBookPage kind="words" />} />
-          <Route path={routes.vocabPhrases} element={<VocabBookPage kind="phrases" />} />
+          <Route path={routes.vocabulary} element={<VocabBookPage />} />
           <Route path="/vocabulary/:kind/review" element={<VocabReviewPage />} />
           <Route path={routes.settings} element={<LearningSettingsPage />} />
           <Route path="*" element={<Navigate to={routes.articles} replace />} />

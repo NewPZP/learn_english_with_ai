@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   BookOpen,
+  CheckSquare,
   ChevronDown,
   Play,
+  Square,
   Trash2,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
-import { RatingControls } from '../components/RatingControls'
+import { MasterySwitch } from '../components/MasterySwitch'
 import { routes } from '../routes'
 import { getArticle } from '../lib/articles'
 import {
@@ -41,17 +43,22 @@ interface VocabRow {
 }
 
 /**
- * 生词本 / 短语本列表页（按 kind 复用）
- * - 跨文章汇总收录条目，掌握程度取各来源最新自评
- * - 支持按掌握度筛选、排序、行内自评（同步写回所有来源）、移除
- * - 顶部「开始复习」入口（有到期词时可用）
+ * 生词页（合并单词/短语）
+ * - 页面内切换「单词 / 短语」
+ * - 支持按掌握度筛选、排序、行内自评（MasterySwitch 多档开关）、移除
+ * - 顶栏紧凑复习入口（始终可进入）
+ * - 批量勾选条目后「复习选中」
  */
-export function VocabBookPage({ kind }: { kind: VocabKind }) {
+export function VocabBookPage() {
+  const navigate = useNavigate()
+  const [kind, setKind] = useState<VocabKind>('words')
   const isWords = kind === 'words'
-  const title = isWords ? '生词本' : '短语本'
+  const title = '生词'
+
   const [filter, setFilter] = useState<FilterRating>('all')
   const [sortKey, setSortKey] = useState<SortKey>('collected')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   /** 版本号：自评/移除后自增以触发重新读取 localStorage */
   const [version, setVersion] = useState(0)
 
@@ -100,6 +107,11 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
   const handleRemove = (entry: VocabEntry) => {
     if (isWords) removeWordEntry(entry.text)
     else removePhraseEntry(entry.text)
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.delete(entry.text)
+      return next
+    })
     setVersion((v) => v + 1)
   }
 
@@ -112,37 +124,66 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
     })
   }
 
+  const toggleSelect = (text: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(text)) next.delete(text)
+      else next.add(text)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(filtered.map((r) => r.entry.text)))
+    }
+  }
+
+  const handleReviewSelected = () => {
+    const texts = Array.from(selected)
+    navigate(routes.vocabReview(kind), { state: { mode: 'selected', texts } })
+  }
+
+  const allSelected = filtered.length > 0 && selected.size === filtered.length
+
   return (
     <>
       <PageTopbar
         title={title}
         right={
-          dueCount > 0 ? (
-            <Link
-              to={routes.vocabReview(kind)}
-              className="function-btn function-btn-primary"
-              data-dom-id={`cta-review-${kind}`}
-            >
-              <Play size={16} />
-              <span>开始复习 ({dueCount})</span>
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="function-btn function-btn-primary"
-              data-dom-id={`cta-review-${kind}`}
-              disabled
-              title="当前没有到期需要复习的内容"
-            >
-              <Play size={16} />
-              <span>暂无到期复习</span>
-            </button>
-          )
+          <Link
+            to={routes.vocabReview(kind)}
+            className="vocab-review-entry"
+            data-dom-id={`cta-review-${kind}`}
+          >
+            <Play size={16} />
+            {dueCount > 0 && <span className="vocab-review-badge">{dueCount}</span>}
+            <span>复习</span>
+          </Link>
         }
       />
       <div className="app-content-inner">
-        {/* 筛选 + 排序工具栏 */}
+        {/* 类型切换 + 工具栏 */}
         <div className="vocab-toolbar" data-testid="vocab-toolbar">
+          <div className="vocab-kind-switch" role="group" aria-label="类型">
+            {(['words', 'phrases'] as VocabKind[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                className={`vocab-kind-btn ${kind === k ? 'is-active' : ''}`}
+                data-testid={`kind-${k}`}
+                onClick={() => {
+                  setKind(k)
+                  setSelected(new Set())
+                  setExpanded(new Set())
+                }}
+              >
+                {k === 'words' ? '单词' : '短语'}
+              </button>
+            ))}
+          </div>
           <div className="vocab-filters" role="group" aria-label="按掌握度筛选">
             {(['all', ...RATING_ORDER] as FilterRating[]).map((f) => (
               <button
@@ -171,11 +212,40 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
           </div>
         </div>
 
+        {/* 批量操作栏 */}
+        {rows.length > 0 && (
+          <div className="vocab-batch-bar" data-testid="vocab-batch-bar">
+            <button
+              type="button"
+              className="vocab-select-all"
+              data-testid="select-all"
+              onClick={toggleSelectAll}
+            >
+              {allSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+              <span>全选</span>
+            </button>
+            <span className="vocab-selected-count" data-testid="selected-count">
+              已选 {selected.size} / {filtered.length}
+            </span>
+            <button
+              type="button"
+              className="function-btn function-btn-primary vocab-review-selected-btn"
+              data-dom-id="cta-review-selected"
+              data-testid="review-selected"
+              disabled={selected.size === 0}
+              onClick={handleReviewSelected}
+            >
+              <Play size={14} />
+              <span>复习选中 ({selected.size})</span>
+            </button>
+          </div>
+        )}
+
         {filtered.length === 0 ? (
           <div className="empty-state" data-testid="vocab-empty">
             <BookOpen size={32} />
             <span className="empty-state-title">
-              {rows.length === 0 ? `${title}还是空的` : '没有符合条件的条目'}
+              {rows.length === 0 ? `${isWords ? '单词' : '短语'}列表还是空的` : '没有符合条件的条目'}
             </span>
             <span className="empty-state-hint">
               {rows.length === 0
@@ -187,8 +257,24 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
           <ul className="vocab-list" data-testid="vocab-list">
             {filtered.map(({ entry, record }) => {
               const isExpanded = expanded.has(entry.text)
+              const isSelected = selected.has(entry.text)
               return (
-                <li key={entry.text} className="vocab-item" data-testid={`vocab-item-${entry.text}`}>
+                <li
+                  key={entry.text}
+                  className={`vocab-item ${isSelected ? 'is-selected' : ''}`}
+                  data-testid={`vocab-item-${entry.text}`}
+                >
+                  <button
+                    type="button"
+                    className="vocab-checkbox"
+                    aria-label={isSelected ? '取消选择' : '选择'}
+                    data-testid={`checkbox-${entry.text}`}
+                    data-checked={isSelected}
+                    onClick={() => toggleSelect(entry.text)}
+                  >
+                    {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+                  </button>
+
                   <div className="vocab-item-main">
                     <div className="vocab-item-head">
                       <span className="vocab-item-text">{entry.text}</span>
@@ -226,11 +312,11 @@ export function VocabBookPage({ kind }: { kind: VocabKind }) {
                   </div>
 
                   <div className="vocab-item-side">
-                    <RatingControls
-                      onRate={(rating) => handleRate(entry, rating)}
+                    <MasterySwitch
+                      value={record?.rating}
+                      onChange={(rating) => handleRate(entry, rating)}
                       domIdPrefix={`vocab-${entry.text}`}
-                      testIdPrefix={`rate-${entry.text}`}
-                      size={14}
+                      testIdPrefix={`mastery-${entry.text}`}
                     />
                     <button
                       type="button"

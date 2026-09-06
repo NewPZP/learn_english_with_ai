@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { Library, Compass, User, Settings, ChevronDown, BookMarked, Quote, SlidersHorizontal } from 'lucide-react'
+import { Library, Compass, User, Settings, ChevronDown, BookMarked, SlidersHorizontal } from 'lucide-react'
 import { routes } from '../routes'
 
 /**
  * 左侧固定侧边栏导航（240px）
- * 导航项：文章 / 发现 / 我的 → {生词本, 短语本, 学习设置, AI 配置}
+ * 导航项：文章 / 发现 / 我的 → {生词, 学习设置, AI 配置}
  */
 export function SidebarNav() {
   return (
@@ -36,20 +36,12 @@ export function SidebarNav() {
             <ChevronDown className="chevron" />
           </div>
           <NavLink
-            to={routes.vocabWords}
+            to={routes.vocabulary}
             className="sidebar-nav-btn nav-group-item"
-            data-dom-id="cta-vocab-words"
+            data-dom-id="cta-vocabulary"
           >
             <BookMarked className="nav-icon" />
-            <span>生词本</span>
-          </NavLink>
-          <NavLink
-            to={routes.vocabPhrases}
-            className="sidebar-nav-btn nav-group-item"
-            data-dom-id="cta-vocab-phrases"
-          >
-            <Quote className="nav-icon" />
-            <span>短语本</span>
+            <span>生词</span>
           </NavLink>
           <NavLink
             to={routes.settings}

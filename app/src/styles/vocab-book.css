@@ -1,6 +1,40 @@
 /* ============================================================
-   生词本 / 短语本 / 学习设置 / 复习模式
+   生词 / 学习设置 / 复习模式
    ============================================================ */
+
+/* ---- 顶栏紧凑复习入口 ---- */
+.vocab-review-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--en-primary);
+  color: var(--en-primary-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+  transition: background-color 150ms ease;
+}
+
+.vocab-review-entry:hover {
+  background: var(--en-primary-700);
+}
+
+.vocab-review-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--en-primary-foreground);
+  color: var(--en-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
 
 /* ---- 工具栏 ---- */
 .vocab-toolbar {
@@ -8,8 +42,36 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+/* 类型切换：单词 / 短语 */
+.vocab-kind-switch {
+  display: inline-flex;
+  background: var(--en-muted);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.vocab-kind-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--en-muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.vocab-kind-btn.is-active {
+  background: var(--en-card);
+  color: var(--en-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .vocab-filters {
@@ -60,6 +122,50 @@
   cursor: pointer;
 }
 
+/* ---- 批量操作栏 ---- */
+.vocab-batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: var(--en-muted);
+  border-radius: var(--radius-md);
+}
+
+.vocab-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--en-foreground);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.vocab-select-all:hover {
+  color: var(--en-primary);
+}
+
+.vocab-selected-count {
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  margin-right: auto;
+}
+
+.vocab-review-selected-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.vocab-review-selected-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ---- 列表 ---- */
 .vocab-list {
   list-style: none;
@@ -80,6 +186,36 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.vocab-item.is-selected {
+  border-color: var(--en-primary);
+  box-shadow: 0 0 0 1px var(--en-primary);
+}
+
+/* 复选框 */
+.vocab-checkbox {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  padding: 0;
+  margin-top: 2px;
+}
+
+.vocab-checkbox:hover {
+  color: var(--en-primary);
+}
+
+.vocab-item.is-selected .vocab-checkbox {
+  color: var(--en-primary);
 }
 
 .vocab-item-main {
@@ -90,28 +226,13 @@
   gap: 6px;
 }
 
-/* 右侧操作区：自评按钮 + 移除按钮，纵向排列 */
+/* 右侧操作区：自评开关 + 移除按钮，纵向排列 */
 .vocab-item-side {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
-  min-width: 120px;
-}
-
-/* 生词本内的自评按钮：覆盖默认 flex:1，固定宽度不换行 */
-.vocab-item-side .repetition-controls {
-  flex-direction: column;
-  gap: 6px;
-}
-
-.vocab-item-side .repetition-btn {
-  flex: 0 0 auto;
-  width: 100%;
-  height: 36px;
-  white-space: nowrap;
-  font-size: 13px;
 }
 
 .vocab-item-head {
@@ -241,7 +362,6 @@
 
 /* ---- 行内操作 ---- */
 .vocab-remove-btn {
-  align-self: center;
   color: var(--en-muted-foreground);
 }
 
@@ -249,10 +369,99 @@
   color: var(--state-error);
 }
 
+/* ---- 多档开关自评控件 (MasterySwitch) ---- */
+.mastery-switch {
+  display: inline-flex;
+  background: var(--en-muted);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.mastery-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--en-muted-foreground);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.mastery-segment:hover:not(:disabled) {
+  color: var(--en-foreground);
+}
+
+.mastery-segment.is-active.mastery-unknown {
+  background: var(--state-error);
+  color: #fff;
+}
+
+.mastery-segment.is-active.mastery-fuzzy {
+  background: var(--state-warning);
+  color: #fff;
+}
+
+.mastery-segment.is-active.mastery-known {
+  background: var(--state-success);
+  color: #fff;
+}
+
+.mastery-segment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mastery-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  background: var(--en-foreground);
+  color: var(--en-background);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mastery-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--en-foreground);
+}
+
 /* ---- 复习页 ---- */
 .review-col {
   max-width: 560px;
   margin: 0 auto;
+}
+
+.review-col .mastery-switch {
+  width: 100%;
+}
+
+.review-col .mastery-segment {
+  width: auto;
+  flex: 1;
+  gap: 6px;
+}
+
+.mastery-segment-label {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .review-result-stats {
