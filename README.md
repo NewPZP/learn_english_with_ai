@@ -1,174 +1,110 @@
-# LinguaAI — 用 AI 学英语
+# LinguaAI
 
-把任何英文文章变成你的私人英语课堂。导入文章 → AI 提取生词短语 → 闪卡预习 → 逐句精听 → 听力挑战 → 间隔复习，一条龙搞定。
+桌面版 AI 英语学习应用。导入英文文章 → AI 提取生词短语 → 闪卡预习 → 逐句精听/播客/听力挑战 → 学习进度跟踪。支持从 TED 频道直接加入学习。
 
-还能从 TED 演讲直接加入学习，自动抓取文字稿，边听边学。
-
-## 核心功能
-
-### 导入文章
-
-- 粘贴文本或拖拽 `.txt` 文件
-- 自动保存，一键进入 AI 预处理
-- 支持自定义标题
-
-![导入文章](docs/screenshots/import-article.png)
-
-### AI 预处理
-
-- 自动提取生词和短语
-- 智能分句，为后续学习拆好结构
-- 一键翻译全文
-- 支持 mock 模式（无需 API 即可体验）和真实 AI 模式
-
-![AI 预处理](docs/screenshots/ai-preprocess.png)
-
-### 词汇预习
-
-- 闪卡模式，翻面看释义
-- 三档自评：不会 / 模糊 / 掌握
-- 单词和短语分类学习
-- 记忆曲线跟踪，掌握程度一目了然
-
-![词汇预习](docs/screenshots/vocabulary-prestudy.png)
-
-### 深入学习
-
-- **播客模式**：整篇播放，字幕同步高亮，句子级控制
-- **逐句精听**：三档听写难度，逐字母输入，即时判分
-- **听力挑战**：AI 智能出题，三种题型，整卷判分
-- AI 译文随时开关
-- 播放模式切换、空格跳空、全文/挖空切换
-
-![深入学习](docs/screenshots/deep-learning.png)
-
-### 发现页 — TED 频道
-
-- 浏览 TED 最新演讲
-- 按时长筛选（≤6 分钟 / 6-12 分钟 / 12 分钟+）
-- 无限滚动加载
-- 一键加入学习：自动抓取文字稿，存为文章
-- 已加入的演讲自动标记，避免重复
-
-![发现页](docs/screenshots/discover-channels.png)
-
-### 学习进度
-
-- 每篇文章显示学习进度条
-- 今日统计：导入数、学习数、掌握数
-- 间隔重复调度，复习提醒
-- 卡片进度回显（词汇 / 短语 / 精听）
-
-![文章列表](docs/screenshots/article-list-with-actions.png)
-
-### TTS 语音
-
-- 接入火山引擎豆包 TTS
-- 整句和全文语音播放
-- 配置页面一键测试连接
+![功能演示](docs/screenshots/demo.gif)
 
 ## 快速开始
 
-### 环境要求
-
-- Node.js 20+
-- npm 10+
-
-### 安装
-
 ```bash
-git clone https://github.com/NewPZP/learn_english_with_ai.git
-cd learn_english_with_ai
 npm install
+npm run dev          # http://localhost:5173
 ```
 
-### 启动开发服务器
+默认 mock 模式开箱即用。真实 AI 在「AI 配置」页填入 OpenAI 兼容接口和火山 TTS 配置。
 
-```bash
-npm run dev
-```
-
-打开 http://localhost:5173 即可使用。
-
-### 使用 Mock 模式（无需配置 AI）
-
-默认使用 mock 模式，开箱即用。你可以导入文章、体验全部学习流程，不需要任何 API Key。
-
-### 配置真实 AI（可选）
-
-1. 点击侧边栏「AI 配置」
-2. 填入你的 AI 服务地址和 API Key
-3. 填入火山引擎 TTS 配置（如需语音）
-4. 点击「测试连接」验证
-5. 保存后所有 AI 功能切换为真实模型
-
-### 部署发现页 Worker（可选）
-
-发现页 TED 频道需要一个 Cloudflare Worker 后端：
-
-```bash
-cd worker
-npm install --legacy-peer-deps
-npx wrangler deploy
-npx wrangler secret put API_TOKEN
-```
-
-部署后在应用「发现页」输入 Worker 地址和 Token 即可使用。
-
-## 技术栈
-
-| 层级 | 技术 |
-|------|------|
-| 前端 | React 19 + TypeScript 6 + Vite 8 |
-| 路由 | React Router 7 |
-| 样式 | CSS 变量设计系统（亮/暗主题） |
-| 测试 | Vitest 4 + Testing Library + jsdom |
-| Lint | oxlint |
-| 后端 | Cloudflare Workers（TypeScript） |
-| AI | OpenAI 兼容接口 + 火山引擎 TTS |
-
-## 项目结构
+## 工程结构
 
 ```
 learn_english_with_ai/
-├── app/                    # React 前端应用
+├── app/                         # React 前端（Vite + TS6 + React19）
 │   └── src/
-│       ├── pages/          # 页面组件
-│       ├── components/     # 共享组件（侧边栏、顶栏、布局）
-│       ├── lib/            # 业务逻辑（文章、AI、词汇、发现页）
-│       ├── styles/         # 全局样式
-│       └── routes.ts       # 路由定义
-├── worker/                 # Cloudflare Worker（TED 数据后端）
-│   └── src/
-│       ├── parsers.ts      # 纯函数（RSS 解析、transcript 清洗）
-│       └── index.ts        # Worker 入口（路由、缓存、CORS）
-├── docs/
-│   └── screenshots/        # 功能截图
-└── README.md
+│       ├── pages/               # 页面组件（每功能一页）
+│       ├── components/          # 通用组件（SidebarNav, PageTopbar, ConfigPanel）
+│       ├── lib/                 # 领域逻辑（纯函数 + 少量 hooks）
+│       │   ├── articles.ts      # Article 模型 + localStorage 持久化
+│       │   ├── ai/              # AI 适配器层（mockAdapters / realAdapters）
+│       │   ├── channels.ts      # 频道注册表（TED / BBC / VOA）
+│       │   ├── discover.ts      # 发现页 API 客户端 + 客户端缓存
+│       │   ├── studyProgress.ts # 学习进度调度
+│       │   ├── wordProgress.ts  # 单词掌握进度
+│       │   └── aiConfig.ts      # AI 配置读写
+│       ├── routes.ts            # 路由常量（唯一来源）
+│       └── App.tsx              # 路由表
+└── worker/                      # Cloudflare Worker（TED 数据后端）
+    └── src/
+        ├── parsers.ts           # 纯函数（RSS 解析 / transcript 清洗 / 版本哈希）
+        └── index.ts             # Worker 入口：三端点 + 日缓存 + CORS + token
+```
+
+## 页面与路由
+
+| 路径 | 页面 | 职责 |
+|------|------|------|
+| `/articles` | ArticleListPage | 文章列表 + 今日统计 + 进度回显 |
+| `/articles/import` | ImportArticlePage | 粘贴/拖拽导入文章 |
+| `/articles/:id/process` | ImportArticlePage（加工模式） | AI 预处理：提取生词短语、分句、生成 TTS |
+| `/articles/:id/words` | WordPreviewPage | 闪卡预习（单词 + 短语 tab） |
+| `/articles/:id/podcast` | PodcastPage | 深入学习：播客/逐句精听/AI 测验 tab |
+| `/discover` | DiscoverPage | 频道广场 |
+| `/discover/:channelId` | ChannelPage | TED 演讲列表 + 时长筛选 + 加入学习 |
+| `/ai-config` | AiConfigPage | AI 数据源 / 文字模型 / 声音模型配置 |
+
+## 核心数据流
+
+```
+导入文本 → saveArticle() → Article (processing 缺失)
+    ↓
+AI 预处理（getTextAdapter().extractWords/Phrases/Sentences）
+    ↓
+attachProcessing() → Article.processing { words, phrases, sentences, audio }
+    ↓
+后续页面消费 processing：
+  - WordPreviewPage → words / phrases
+  - PodcastPage     → sentences + audio (TTS)
+```
+
+Article 模型关键字段：`id, title, source, content, wordCount, difficulty, createdAt, sourceUrl?, processing?`
+
+## AI 适配器层
+
+`lib/ai/index.ts` 的 `getTextAdapter()` / `getVoiceAdapter()` 根据 `aiConfig` 切换：
+
+- **mock 模式**：返回 `mockAdapters.ts` 的固定测试数据，无需网络
+- **real 模式**：`realAdapters.ts` 调用 OpenAI 兼容接口（文字）+ 火山引擎 TTS（语音）
+
+开发模式下 `devProxy.ts` 通过 Vite proxy 规避浏览器 CORS。
+
+## Cloudflare Worker
+
+| 端点 | 说明 |
+|------|------|
+| `GET /api/channels` | 静态频道列表 |
+| `GET /api/channels/:channel/talks?page=&force=` | 分页 + 日缓存懒刷新 + 版本哈希 |
+| `GET /api/channels/:channel/talks/:talkId/transcript` | 抓取 transcript 文本，null → 404 |
+
+部署：`cd worker && npm install --legacy-peer-deps && npx wrangler deploy && npx wrangler secret put API_TOKEN`
+
+## 测试约定
+
+- 测试文件名与源文件同名，`.test.ts` / `.test.tsx`
+- 工具函数尽量写成纯函数，便于单测（如 `articles.ts` 的 `countWords`、`worker/parsers.ts` 全部）
+- 页面测试用 `@testing-library/react` + `jsdom`，通过 `data-testid` 或文本定位元素
+- localStorage 在 `beforeEach` 中 `clear()`，隔离测试数据
+
+```bash
+npm run test         # 前端
+cd worker && npx vitest run   # Worker
 ```
 
 ## 开发
 
 ```bash
-# 前端开发
-npm run dev          # 启动开发服务器
-npm run build        # 构建生产版本
-npm run test         # 运行测试
-npm run test:watch   # 测试监听模式
-npm run lint         # 代码检查
-
-# Worker 开发
-cd worker
-npx wrangler dev     # 本地运行 Worker
-npx vitest run       # 运行 Worker 测试
+npm run dev          # 开发服务器
+npm run build        # tsc -b && vite build
+npm run lint         # oxlint
+npm run test         # vitest run
 ```
-
-## 路线图
-
-- 更多频道：BBC Learning English、VOA Special English
-- 更多 AI 出题题型
-- 学习数据云端同步
-- 移动端适配
 
 ## License
 
