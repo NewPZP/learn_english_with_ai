@@ -59,7 +59,7 @@
 - 间隔重复调度，复习提醒
 - 卡片进度回显（词汇 / 短语 / 精听）
 
-![文章列表](docs/screenshots/article-list.png)
+![文章列表](docs/screenshots/article-list-with-actions.png)
 
 ### TTS 语音
 
