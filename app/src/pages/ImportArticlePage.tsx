@@ -99,7 +99,7 @@ function stateFromArticle(processing: ArticleProcessing | undefined): PipelineSt
  * - 无文章 ID（/articles/import）：粘贴/上传 .txt + 字符计数，点「完成导入」仅保存纯文本，不触发 AI；
  *   保存后导航回文章列表，用户在卡片点「AI 预处理」进入加工。
  * - 有文章 ID（/articles/:id/process）：可编辑正文 + 右侧 AI 处理面板，四步（提取单词/提取短语/获取译文/生成语音）
- *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）；正文编辑后实时持久化。
+ *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）；正文编辑需「确认修改」后持久化。
  */
 export function ImportArticlePage({ adapters, pdfParser }: {
   adapters?: PipelineAdapters
@@ -253,8 +253,10 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
   const [pipelineState, setPipelineState] = useState<PipelineState>(() =>
     stateFromArticle(boot?.processing),
   )
-  /** 正文可编辑：初始取文章正文，编辑后实时持久化（后续 AI 步骤基于编辑后的正文） */
+  /** 正文草稿：编辑仅更新本地草稿，点「确认修改」后才持久化 */
   const [content, setContent] = useState(boot?.content ?? '')
+  /** 已确认持久化的正文（AI 步骤基于此执行） */
+  const [savedContent, setSavedContent] = useState(boot?.content ?? '')
   const [running, setRunning] = useState(false)
   const [runningStep, setRunningStep] = useState<StepId | null>(null)
   const [playingAudio, setPlayingAudio] = useState(false)
@@ -291,11 +293,19 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
   // boot 由 useMemo 固定（getArticle 同步读 localStorage，渲染期间不变）；
   // boot 存在时 pipelineState 已由 useState 初始化器推导（非 null），无需补初始化
 
-  /** 编辑正文：截断到上限、更新本地 state 并持久化 */
+  /** 编辑正文：截断到上限，仅更新草稿（不持久化） */
   const handleContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const next = e.target.value.slice(0, MAX_ARTICLE_CHARS)
-    setContent(next)
+    setContent(e.target.value.slice(0, MAX_ARTICLE_CHARS))
+  }
+
+  /** 是否有未确认的正文修改 */
+  const dirty = content !== savedContent
+
+  /** 确认修改：持久化草稿正文并重算词数/难度 */
+  const handleConfirmEdit = () => {
+    const next = content.slice(0, MAX_ARTICLE_CHARS)
     updateArticleContent(articleId, next)
+    setSavedContent(next)
   }
 
   /** 执行单个 step；成功后部分合并产物到文章（保留其它已完成产物） */
@@ -304,7 +314,7 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
     setRunning(true)
     setRunningStep(step)
     try {
-      const result = await runPipelineStep(content, getAdapters(), step, {
+      const result = await runPipelineStep(savedContent, getAdapters(), step, {
         initialState: pipelineState,
         onStateChange: setPipelineState,
       })
@@ -375,6 +385,19 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
               />
               <div className="char-count" data-testid="char-count">
                 {content.length} / {MAX_ARTICLE_CHARS} 字符
+              </div>
+              <div className="edit-actions">
+                <button
+                  type="button"
+                  className="function-btn function-btn-primary"
+                  onClick={handleConfirmEdit}
+                  disabled={!dirty || !content.trim()}
+                  data-dom-id="cta-confirm-edit"
+                  data-testid="confirm-edit"
+                >
+                  <Check size={16} />
+                  <span>确认修改</span>
+                </button>
               </div>
             </div>
             <button

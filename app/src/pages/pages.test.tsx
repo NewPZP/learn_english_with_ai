@@ -362,7 +362,7 @@ describe('导入 AI 处理管道（页面级）', () => {
     expect(stored[0].processing).toBeUndefined()
   })
 
-  test('加工页正文可编辑并实时持久化', async () => {
+  test('加工页正文编辑需确认修改后才持久化', async () => {
     const user = userEvent.setup()
     localStorage.setItem(
       'linguaai.articles',
@@ -388,20 +388,29 @@ describe('导入 AI 处理管道（页面级）', () => {
 
     expect(await screen.findByTestId('ai-processing-panel')).toBeInTheDocument()
 
-    // 正文 textarea 可编辑，初始为文章原文
+    // 正文 textarea 可编辑，初始为文章原文；确认按钮初始禁用
     const textarea = screen.getByLabelText('文章正文（可编辑）')
     expect(textarea).toHaveValue('Some English content here.')
+    const confirmBtn = screen.getByTestId('confirm-edit')
+    expect(confirmBtn).toBeDisabled()
 
     await user.clear(textarea)
     await user.type(textarea, 'Hello world again.')
 
-    // 编辑后实时持久化并重算词数与难度
+    // 未确认前不持久化（仍是原文），但确认按钮变为可用
     expect(textarea).toHaveValue('Hello world again.')
-    const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(confirmBtn).toBeEnabled()
+    let stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored[0].content).toBe('Some English content here.')
+
+    // 点击确认修改后持久化并重算词数与难度，按钮恢复禁用
+    await user.click(confirmBtn)
+    stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
     expect(stored[0].content).toBe('Hello world again.')
     expect(stored[0].wordCount).toBe(3)
     expect(stored[0].difficulty).toBe('Intermediate')
     expect(screen.getByTestId('char-count')).toHaveTextContent('18 / 50000 字符')
+    expect(screen.getByTestId('confirm-edit')).toBeDisabled()
   })
 
   test('加工页单步失败展示错误态与重试入口，重试后完成并持久化该步产物', async () => {

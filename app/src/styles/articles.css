@@ -367,6 +367,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 加工页正文「确认修改」操作：右对齐紧凑按钮，未确认修改时才可用 */
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.edit-actions .function-btn {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+}
+
 .save-button {
   display: flex;
   align-items: center;
