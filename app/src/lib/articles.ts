@@ -162,6 +162,23 @@ export function mergeProcessing(
   return target
 }
 
+/**
+ * 更新文章正文并重算词数与难度；保留已有 AI 处理产物。
+ * 用于「AI 预处理」加工页正文可编辑——用户修正正文后持久化，后续步骤基于新正文执行。
+ * 返回更新后的文章（找不到时返回 undefined）。
+ */
+export function updateArticleContent(articleId: string, content: string): Article | undefined {
+  const articles = loadArticles()
+  const target = articles.find((a) => a.id === articleId)
+  if (!target) return undefined
+  const next = content.slice(0, MAX_ARTICLE_CHARS)
+  target.content = next
+  target.wordCount = countWords(next)
+  target.difficulty = estimateDifficulty(next)
+  persist(articles)
+  return target
+}
+
 /** 按 ID 删除单篇文章；返回是否成功删除（ID 不存在时返回 false） */
 export function deleteArticle(id: string): boolean {
   const articles = loadArticles()

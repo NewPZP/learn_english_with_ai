@@ -5,6 +5,7 @@ import {
   saveArticle,
   getArticle,
   attachProcessing,
+  updateArticleContent,
   clearArticles,
   deleteArticle,
   countWords,
@@ -151,6 +152,46 @@ describe('文章持久化', () => {
     expect(deleteArticle('nonexistent')).toBe(false)
 
     expect(loadArticles()).toEqual(before)
+  })
+
+  test('updateArticleContent 更新正文并重算词数与难度', () => {
+    const article = saveArticle('The quick brown fox jumps over the lazy dog.', '粘贴文本')
+
+    const updated = updateArticleContent(article.id, 'extraordinarily sophisticated terminology characterizes this passage')
+
+    expect(updated?.content).toBe('extraordinarily sophisticated terminology characterizes this passage')
+    expect(updated?.wordCount).toBe(6)
+    expect(updated?.difficulty).toBe('Advanced')
+
+    const stored = getArticle(article.id)
+    expect(stored?.content).toBe('extraordinarily sophisticated terminology characterizes this passage')
+    expect(stored?.wordCount).toBe(6)
+    expect(stored?.difficulty).toBe('Advanced')
+  })
+
+  test('updateArticleContent 保留已有 AI 处理产物', () => {
+    const article = saveArticle('Some content.', '粘贴文本')
+    const PROCESSING = {
+      words: [],
+      phrases: [],
+      sentences: [{ text: 'Hi.', startMs: 0, endMs: 1000 }],
+    }
+    attachProcessing(article.id, PROCESSING)
+
+    updateArticleContent(article.id, 'Rewritten content here.')
+
+    expect(getArticle(article.id)?.processing).toEqual(PROCESSING)
+  })
+
+  test('updateArticleContent 超长内容截断到上限', () => {
+    const article = saveArticle('Short.', '粘贴文本')
+    updateArticleContent(article.id, 'x'.repeat(MAX_ARTICLE_CHARS + 100))
+    expect(getArticle(article.id)?.content).toHaveLength(MAX_ARTICLE_CHARS)
+  })
+
+  test('updateArticleContent 文章不存在时返回 undefined 且不写入', () => {
+    expect(updateArticleContent('nonexistent', 'text')).toBeUndefined()
+    expect(loadArticles()).toEqual([])
   })
 
   test('deleteArticle 不影响其他文章的 processing', () => {

@@ -362,6 +362,48 @@ describe('导入 AI 处理管道（页面级）', () => {
     expect(stored[0].processing).toBeUndefined()
   })
 
+  test('加工页正文可编辑并实时持久化', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem(
+      'linguaai.articles',
+      JSON.stringify([
+        {
+          id: 'a1',
+          title: 'Some English content here',
+          source: '粘贴文本',
+          content: 'Some English content here.',
+          wordCount: 4,
+          difficulty: 'Beginner',
+          createdAt: '2026-09-03',
+        },
+      ]),
+    )
+    render(
+      <MemoryRouter initialEntries={['/articles/a1/process']}>
+        <Routes>
+          <Route path="/articles/:id/process" element={<ImportArticlePage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByTestId('ai-processing-panel')).toBeInTheDocument()
+
+    // 正文 textarea 可编辑，初始为文章原文
+    const textarea = screen.getByLabelText('文章正文（可编辑）')
+    expect(textarea).toHaveValue('Some English content here.')
+
+    await user.clear(textarea)
+    await user.type(textarea, 'Hello world again.')
+
+    // 编辑后实时持久化并重算词数与难度
+    expect(textarea).toHaveValue('Hello world again.')
+    const stored = JSON.parse(localStorage.getItem('linguaai.articles') ?? '[]')
+    expect(stored[0].content).toBe('Hello world again.')
+    expect(stored[0].wordCount).toBe(3)
+    expect(stored[0].difficulty).toBe('Intermediate')
+    expect(screen.getByTestId('char-count')).toHaveTextContent('18 / 50000 字符')
+  })
+
   test('加工页单步失败展示错误态与重试入口，重试后完成并持久化该步产物', async () => {
     const user = userEvent.setup()
     // 种子文章 a1（无 processing）供加工模式加载

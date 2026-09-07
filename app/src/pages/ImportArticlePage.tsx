@@ -17,7 +17,14 @@ import {
   X,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
-import { deriveTitle, getArticle, MAX_ARTICLE_CHARS, mergeProcessing, saveArticle } from '../lib/articles'
+import {
+  deriveTitle,
+  getArticle,
+  MAX_ARTICLE_CHARS,
+  mergeProcessing,
+  saveArticle,
+  updateArticleContent,
+} from '../lib/articles'
 import { getTextAdapter, getVoiceAdapter } from '../lib/ai'
 import {
   initialPipelineState,
@@ -91,8 +98,8 @@ function stateFromArticle(processing: ArticleProcessing | undefined): PipelineSt
  * 导入文章页（双模式）：
  * - 无文章 ID（/articles/import）：粘贴/上传 .txt + 字符计数，点「完成导入」仅保存纯文本，不触发 AI；
  *   保存后导航回文章列表，用户在卡片点「AI 预处理」进入加工。
- * - 有文章 ID（/articles/:id/process）：只读展示正文 + 右侧 AI 处理面板，四步（提取单词/提取短语/获取译文/生成语音）
- *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）。
+ * - 有文章 ID（/articles/:id/process）：可编辑正文 + 右侧 AI 处理面板，四步（提取单词/提取短语/获取译文/生成语音）
+ *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）；正文编辑后实时持久化。
  */
 export function ImportArticlePage({ adapters, pdfParser }: {
   adapters?: PipelineAdapters
@@ -246,6 +253,8 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
   const [pipelineState, setPipelineState] = useState<PipelineState>(() =>
     stateFromArticle(boot?.processing),
   )
+  /** 正文可编辑：初始取文章正文，编辑后实时持久化（后续 AI 步骤基于编辑后的正文） */
+  const [content, setContent] = useState(boot?.content ?? '')
   const [running, setRunning] = useState(false)
   const [runningStep, setRunningStep] = useState<StepId | null>(null)
   const [playingAudio, setPlayingAudio] = useState(false)
@@ -282,7 +291,12 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
   // boot 由 useMemo 固定（getArticle 同步读 localStorage，渲染期间不变）；
   // boot 存在时 pipelineState 已由 useState 初始化器推导（非 null），无需补初始化
 
-  const content = boot.content
+  /** 编辑正文：截断到上限、更新本地 state 并持久化 */
+  const handleContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const next = e.target.value.slice(0, MAX_ARTICLE_CHARS)
+    setContent(next)
+    updateArticleContent(articleId, next)
+  }
 
   /** 执行单个 step；成功后部分合并产物到文章（保留其它已完成产物） */
   const runStep = async (step: StepId) => {
@@ -355,9 +369,9 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
               <textarea
                 className="article-textarea"
                 value={content}
-                readOnly
+                onChange={handleContentChange}
                 data-dom-id="article-input"
-                aria-label="文章正文（只读）"
+                aria-label="文章正文（可编辑）"
               />
               <div className="char-count" data-testid="char-count">
                 {content.length} / {MAX_ARTICLE_CHARS} 字符
