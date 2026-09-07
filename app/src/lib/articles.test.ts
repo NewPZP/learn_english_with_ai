@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest'
+import type { Sentence } from './ai/types'
 import {
   loadArticles,
   saveArticle,
@@ -91,6 +92,23 @@ describe('文章持久化', () => {
   test('不传 options 时 sourceUrl 为 undefined（向后兼容）', () => {
     const article = saveArticle('Some content here.', '粘贴文本')
     expect(article.sourceUrl).toBeUndefined()
+  })
+
+  test('options.sentences 写入 processing（PDF 双语导入携带译文）', () => {
+    const sentences: Sentence[] = [
+      { text: 'Hello world.', startMs: 0, endMs: 0, translation: '你好世界。' },
+      { text: 'Goodbye.', startMs: 0, endMs: 0, translation: '再见。' },
+    ]
+    const article = saveArticle('Hello world. Goodbye.', 'report.pdf', { sentences })
+    expect(article.processing).toBeDefined()
+    expect(article.processing!.sentences).toEqual(sentences)
+    expect(article.processing!.words).toEqual([])
+    expect(article.processing!.phrases).toEqual([])
+  })
+
+  test('不传 sentences 时 processing 为 undefined（向后兼容）', () => {
+    const article = saveArticle('Some content here.', '粘贴文本')
+    expect(article.processing).toBeUndefined()
   })
 
   test('超长内容截断到上限', () => {

@@ -29,12 +29,14 @@ export interface Article {
   processing?: ArticleProcessing
 }
 
-/** saveArticle 可选参数：覆盖标题、设置来源 URL */
+/** saveArticle 可选参数：覆盖标题、设置来源 URL、携带预对齐句子 */
 export interface SaveArticleOptions {
-  /** 覆盖自动推导的标题（如 TED 演讲标题） */
+  /** 覆盖自动推导的标题（如 TED 演讲标题、PDF 文章标题） */
   title?: string
   /** 外部内容标识，用于去重 */
   sourceUrl?: string
+  /** 预对齐句子（PDF 双语导入时携带译文，跳过 AI 翻译步骤） */
+  sentences?: Sentence[]
 }
 
 export const MAX_ARTICLE_CHARS = 50000
@@ -108,6 +110,14 @@ export function saveArticle(
     difficulty: estimateDifficulty(content),
     createdAt: new Date().toISOString().slice(0, 10),
     ...(options?.sourceUrl ? { sourceUrl: options.sourceUrl } : {}),
+  }
+  // PDF 导入携带已对齐句子时，直接写入 processing（翻译步骤标记为完成）
+  if (options?.sentences && options.sentences.length > 0) {
+    article.processing = {
+      words: [],
+      phrases: [],
+      sentences: options.sentences,
+    }
   }
   const articles = loadArticles()
   persist([article, ...articles])

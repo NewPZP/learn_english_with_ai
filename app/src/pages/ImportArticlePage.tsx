@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   AlertCircle,
@@ -6,6 +6,7 @@ import {
   Check,
   CheckCircle2,
   Circle,
+  FileText,
   Loader2,
   Play,
   RotateCcw,
@@ -29,6 +30,11 @@ import {
   type StepStatus,
 } from '../lib/processing/pipeline'
 import type { ArticleProcessing } from '../lib/articles'
+import type { Sentence } from '../lib/ai/types'
+import type { ParsedArticle, ParseOutput, PdfParser } from '../lib/pdf/types'
+import { isParseError } from '../lib/pdf/types'
+import { alignTranslations, splitChineseIntoSentences, splitIntoSentences } from '../lib/pdf/parse'
+import { loadPdf } from '../lib/pdf/loader'
 import { routes } from '../routes'
 
 const STEP_STATUS_LABELS: Record<StepStatus, string> = {
@@ -88,17 +94,31 @@ function stateFromArticle(processing: ArticleProcessing | undefined): PipelineSt
  * - 有文章 ID（/articles/:id/process）：只读展示正文 + 右侧 AI 处理面板，四步（提取单词/提取短语/获取译文/生成语音）
  *   各自独立触发，互不依赖、可重复执行（重提取覆盖旧产物，不影响其它已完成的产物）。
  */
-export function ImportArticlePage({ adapters }: { adapters?: PipelineAdapters }) {
+export function ImportArticlePage({ adapters, pdfParser }: {
+  adapters?: PipelineAdapters
+  pdfParser?: PdfParser
+}) {
   const { id } = useParams<{ id: string }>()
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
   if (id) {
     return <ProcessMode articleId={id} adapters={adapters} />
   }
-  return <ImportMode />
+  if (pdfFile) {
+    return (
+      <PdfPreviewMode
+        file={pdfFile}
+        source={pdfFile.name.replace(/\.pdf$/i, '')}
+        onBack={() => setPdfFile(null)}
+        pdfParser={pdfParser ?? loadPdf}
+      />
+    )
+  }
+  return <ImportMode onPdfSelected={setPdfFile} />
 }
 
 /* ---------------- 导入模式：只存文本 ---------------- */
 
-function ImportMode() {
+function ImportMode({ onPdfSelected }: { onPdfSelected?: (file: File) => void }) {
   // 导入模式只保存纯文本，不触发 AI（用户在卡片点「AI 预处理」进入加工模式）
   const navigate = useNavigate()
   const [content, setContent] = useState('')
@@ -106,8 +126,13 @@ function ImportMode() {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const readTxtFile = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.txt')) return
+  const readFile = (file: File) => {
+    const lower = file.name.toLowerCase()
+    if (lower.endsWith('.pdf')) {
+      onPdfSelected?.(file)
+      return
+    }
+    if (!lower.endsWith('.txt')) return
     const reader = new FileReader()
     reader.onload = () => {
       const text = String(reader.result ?? '')
@@ -119,7 +144,7 @@ function ImportMode() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) readTxtFile(file)
+    if (file) readFile(file)
     e.target.value = ''
   }
 
@@ -127,7 +152,7 @@ function ImportMode() {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files?.[0]
-    if (file) readTxtFile(file)
+    if (file) readFile(file)
   }
 
   const handleSave = () => {
@@ -148,7 +173,7 @@ function ImportMode() {
               <textarea
                 id="article-textarea"
                 className={`article-textarea${dragOver ? ' drag-over' : ''}`}
-                placeholder="粘贴英文文章内容，或拖拽 .txt 文件到此处..."
+                placeholder="粘贴英文文章内容，或拖拽 .txt / .pdf 文件到此处..."
                 maxLength={MAX_ARTICLE_CHARS}
                 value={content}
                 data-dom-id="article-input"
@@ -170,19 +195,19 @@ function ImportMode() {
                   className="upload-link"
                   role="button"
                   tabIndex={0}
-                  aria-label="上传 .txt 文件"
+                  aria-label="上传 .txt 或 .pdf 文件"
                   onClick={() => fileInputRef.current?.click()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
                   }}
                 >
-                  上传 .txt 文件
+                  上传 .txt / .pdf 文件
                 </span>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".txt"
-                  aria-label="选择 .txt 文件"
+                  accept=".txt,.pdf"
+                  aria-label="选择 .txt 或 .pdf 文件"
                   onChange={handleFileChange}
                 />
               </div>
@@ -474,6 +499,337 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
             )}
           </div>
         </div>
+      </div>
+    </>
+  )
+}
+
+/* ---------------- PDF 预览模式：确认后批量入库 ---------------- */
+
+interface PreviewArticle {
+  title: string
+  content: string
+  chineseText: string
+  sentences: Sentence[]
+  hasTranslation: boolean
+  selected: boolean
+}
+
+function toPreviewArticles(parsed: ParsedArticle[]): PreviewArticle[] {
+  return parsed.map((a) => ({
+    title: a.title,
+    content: a.content,
+    chineseText: a.chineseText,
+    sentences: a.sentences,
+    hasTranslation: a.hasTranslation,
+    selected: true,
+  }))
+}
+
+/** 重新对齐：编辑正文后重新切分英文/中文句子并检查数量是否相等 */
+function realign(article: PreviewArticle): PreviewArticle {
+  if (!article.chineseText) return { ...article, hasTranslation: false, sentences: [] }
+  const result = alignTranslations(
+    splitIntoSentences(article.content),
+    splitChineseIntoSentences(article.chineseText),
+  )
+  return { ...article, hasTranslation: result.aligned, sentences: result.sentences }
+}
+
+/** 合并两篇预览文章为一篇并重新对齐 */
+function mergeTwo(a: PreviewArticle, b: PreviewArticle): PreviewArticle {
+  return realign({
+    title: a.title,
+    content: a.content + '\n' + b.content,
+    chineseText: a.chineseText + '\n' + b.chineseText,
+    sentences: [],
+    hasTranslation: false,
+    selected: a.selected && b.selected,
+  })
+}
+
+function PdfPreviewMode({ file, source, onBack, pdfParser }: {
+  file: File
+  source: string
+  onBack: () => void
+  pdfParser: PdfParser
+}) {
+  const navigate = useNavigate()
+  const [parseState, setParseState] = useState<'loading' | 'done' | 'error'>('loading')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [articles, setArticles] = useState<PreviewArticle[]>([])
+  const [mode, setMode] = useState<'multi' | 'single'>('multi')
+  const [singleTitle, setSingleTitle] = useState('')
+  const [singleContent, setSingleContent] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    setParseState('loading')
+    pdfParser(file)
+      .then((result: ParseOutput) => {
+        if (cancelled) return
+        if (isParseError(result)) {
+          setParseState('error')
+          setErrorMsg(result.message)
+        } else {
+          setArticles(toPreviewArticles(result.articles))
+          setParseState('done')
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setParseState('error')
+        setErrorMsg(err instanceof Error ? err.message : String(err))
+      })
+    return () => { cancelled = true }
+  }, [file, pdfParser])
+
+  const switchToSingle = () => {
+    if (articles.length > 0) {
+      const merged = articles.reduce(mergeTwo)
+      setSingleTitle(merged.title)
+      setSingleContent(merged.content)
+    }
+    setMode('single')
+  }
+
+  const mergedHasTranslation = useMemo(() => {
+    if (mode !== 'single' || !articles.length) return false
+    const merged = articles.reduce(mergeTwo)
+    return merged.hasTranslation
+  }, [mode, articles])
+
+  const mergedSentences = useMemo(() => {
+    if (mode !== 'single' || !articles.length) return []
+    const chineseText = articles.map((a) => a.chineseText).filter(Boolean).join('\n')
+    if (!chineseText) return []
+    const result = alignTranslations(
+      splitIntoSentences(singleContent),
+      splitChineseIntoSentences(chineseText),
+    )
+    return result.aligned ? result.sentences : []
+  }, [mode, articles, singleContent])
+
+  const updateArticle = (i: number, updates: Partial<PreviewArticle>) => {
+    setArticles((prev) =>
+      prev.map((a, j) => (j === i ? { ...a, ...updates } : a)),
+    )
+  }
+
+  const updateContent = (i: number, content: string) => {
+    setArticles((prev) =>
+      prev.map((a, j) => (j === i ? realign({ ...a, content }) : a)),
+    )
+  }
+
+  const mergeWithAbove = (i: number) => {
+    if (i === 0) return
+    setArticles((prev) => {
+      const next = [...prev]
+      next[i - 1] = mergeTwo(next[i - 1], next[i])
+      next.splice(i, 1)
+      return next
+    })
+  }
+
+  const selectedCount = articles.filter((a) => a.selected).length
+  const hasOverLimit = mode === 'multi'
+    ? articles.some((a) => a.selected && a.content.length > MAX_ARTICLE_CHARS)
+    : singleContent.length > MAX_ARTICLE_CHARS
+
+  const handleConfirm = () => {
+    if (mode === 'single') {
+      saveArticle(singleContent, source, {
+        title: singleTitle || '未命名文章',
+        sentences: mergedHasTranslation && mergedSentences.length > 0 ? mergedSentences : undefined,
+      })
+    } else {
+      articles
+        .filter((a) => a.selected && a.content.length <= MAX_ARTICLE_CHARS)
+        .forEach((a) => {
+          saveArticle(a.content, source, {
+            title: a.title,
+            sentences: a.hasTranslation ? a.sentences : undefined,
+          })
+        })
+    }
+    navigate(routes.articles)
+  }
+
+  if (parseState === 'loading') {
+    return (
+      <>
+        <PageTopbar title="解析 PDF 中..." />
+        <div className="app-content-inner">
+          <div className="empty-state">
+            <Loader2 size={32} className="spinner-icon" />
+            <span className="empty-state-title">正在解析 PDF</span>
+            <span className="empty-state-hint">{file.name}</span>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  if (parseState === 'error') {
+    return (
+      <>
+        <PageTopbar title="PDF 导入失败" />
+        <div className="app-content-inner">
+          <div className="empty-state">
+            <AlertCircle size={32} />
+            <span className="empty-state-title">无法解析此 PDF</span>
+            <span className="empty-state-hint">{errorMsg}</span>
+            <button
+              type="button"
+              className="function-btn function-btn-primary"
+              onClick={onBack}
+              data-dom-id="cta-pdf-back"
+            >
+              <ArrowLeft size={16} />
+              <span>返回重新选择</span>
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  const chineseTextForSingle = articles.map((a) => a.chineseText).filter(Boolean).join('\n')
+
+  return (
+    <>
+      <PageTopbar title="预览确认导入" />
+      <div className="app-content-inner">
+        <div className="pdf-preview-toolbar">
+          <div className="pdf-mode-toggle">
+            <button
+              type="button"
+              className={`mode-btn${mode === 'multi' ? ' active' : ''}`}
+              onClick={() => setMode('multi')}
+              data-dom-id="cta-mode-multi"
+            >
+              按多篇导入
+            </button>
+            <button
+              type="button"
+              className={`mode-btn${mode === 'single' ? ' active' : ''}`}
+              onClick={switchToSingle}
+              data-dom-id="cta-mode-single"
+            >
+              合并为单篇
+            </button>
+          </div>
+          <FileText size={16} className="pdf-file-icon" />
+          <span className="pdf-file-name">{file.name}</span>
+          <button
+            type="button"
+            className="function-btn function-btn-secondary"
+            onClick={onBack}
+          >
+            <ArrowLeft size={16} />
+            <span>重新选择</span>
+          </button>
+        </div>
+
+        <div className="pdf-preview-list">
+          {mode === 'multi' && articles.map((article, i) => {
+            const overLimit = article.content.length > MAX_ARTICLE_CHARS
+            return (
+              <div
+                className={`pdf-preview-card${overLimit ? ' over-limit' : ''}`}
+                key={i}
+                data-testid={`pdf-article-${i}`}
+              >
+                <div className="pdf-card-header">
+                  <input
+                    type="checkbox"
+                    checked={article.selected}
+                    onChange={(e) => updateArticle(i, { selected: e.target.checked })}
+                    data-testid={`pdf-select-${i}`}
+                  />
+                  <input
+                    type="text"
+                    className="pdf-title-input"
+                    value={article.title}
+                    onChange={(e) => updateArticle(i, { title: e.target.value })}
+                    data-testid={`pdf-title-${i}`}
+                  />
+                  {article.hasTranslation ? (
+                    <span className="badge badge-translation">已提取译文</span>
+                  ) : article.chineseText ? (
+                    <span className="badge badge-no-translation">对齐失败·将降级</span>
+                  ) : null}
+                  {overLimit && <span className="badge badge-over-limit">超限·禁选</span>}
+                </div>
+                <textarea
+                  className="pdf-content-textarea"
+                  value={article.content}
+                  onChange={(e) => updateContent(i, e.target.value)}
+                  data-testid={`pdf-content-${i}`}
+                />
+                <div className="pdf-card-footer">
+                  <span className="char-count">
+                    {article.content.length} / {MAX_ARTICLE_CHARS} 字符
+                  </span>
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      className="function-btn function-btn-secondary pdf-merge-btn"
+                      onClick={() => mergeWithAbove(i)}
+                      data-testid={`pdf-merge-${i}`}
+                    >
+                      合并到上篇
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+
+          {mode === 'single' && (
+            <div className="pdf-preview-card" data-testid="pdf-single-article">
+              <div className="pdf-card-header">
+                <input
+                  type="text"
+                  className="pdf-title-input"
+                  value={singleTitle}
+                  onChange={(e) => setSingleTitle(e.target.value)}
+                  data-testid="pdf-single-title"
+                />
+                {mergedHasTranslation ? (
+                  <span className="badge badge-translation">已提取译文</span>
+                ) : chineseTextForSingle ? (
+                  <span className="badge badge-no-translation">对齐失败·将降级</span>
+                ) : null}
+              </div>
+              <textarea
+                className="pdf-content-textarea"
+                value={singleContent}
+                onChange={(e) => setSingleContent(e.target.value)}
+                data-testid="pdf-single-content"
+              />
+              <div className="pdf-card-footer">
+                <span className="char-count">
+                  {singleContent.length} / {MAX_ARTICLE_CHARS} 字符
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className="save-button"
+          onClick={handleConfirm}
+          disabled={hasOverLimit || (mode === 'multi' && selectedCount === 0)}
+          data-dom-id="cta-confirm-pdf-import"
+        >
+          <Check size={20} />
+          <span>
+            确认导入{mode === 'multi' ? `（${selectedCount} 篇）` : ''}
+          </span>
+        </button>
       </div>
     </>
   )

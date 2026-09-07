@@ -81,7 +81,7 @@ describe('导入页', () => {
     )
 
     const file = new File(['file content here'], 'article.txt', { type: 'text/plain' })
-    const input = screen.getByLabelText('选择 .txt 文件')
+    const input = screen.getByLabelText('选择 .txt 或 .pdf 文件')
     await user.upload(input, file)
 
     // FileReader 异步读入，等待值生效
