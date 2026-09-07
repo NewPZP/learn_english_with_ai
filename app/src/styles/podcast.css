@@ -1,5 +1,5 @@
 /* ============================================================
-   深入学习页 — 播客整篇播放 + 字幕挖空听写 + 听力挑战
+   精听精读页 — 播客整篇播放 + 字幕挖空听写 + 听力挑战
    ============================================================ */
 
 /* ---- 单栏纵向堆叠 ---- */
@@ -300,13 +300,80 @@
   outline-offset: 2px;
 }
 
-/* ---- 挖空听写工具栏：子模式 + 难度 ---- */
+/* ---- 挖空听写工具栏：难度 + 开关 ---- */
 .dictation-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* 工具栏开关组：靠右紧凑排列 */
+.toolbar-toggles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+/* Toggle Switch 控件 */
+.toggle-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--en-muted-foreground);
+  user-select: none;
+}
+
+.toggle-switch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--en-neutral-300, #ccc);
+  transition: background-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 150ms ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--en-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+.toggle-switch input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--en-ring);
+  outline-offset: 2px;
+}
+
+.toggle-label {
+  white-space: nowrap;
 }
 
 .mode-toggle {

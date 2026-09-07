@@ -331,7 +331,7 @@ describe('文章卡片', () => {
     expect(await screen.findByText('已导入 1 篇')).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: '精听精读' }))
-    expect(screen.getByRole('heading', { name: '深入学习' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '精听精读' })).toBeInTheDocument()
   })
 })
 
@@ -517,7 +517,7 @@ describe('导入 → 词汇预习完整链路', () => {
     expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
-    // 进入深入学习
+    // 进入精听精读
     await user.click(screen.getByRole('link', { name: /精听精读/ }))
 
     // 信息卡与字幕区渲染，首句高亮
@@ -540,7 +540,7 @@ describe('导入 → 词汇预习完整链路', () => {
     expect(screen.getByTestId('subtitle-line-1').className).toContain('current')
   })
 
-  test('E2E：导入并处理 → 卡片进入深入学习 → 切换难度 → 整词输入即判分 → 下一句', async () => {
+  test('E2E：导入并处理 → 卡片进入精听精读 → 切换难度 → 整词输入即判分 → 下一句', async () => {
     const user = userEvent.setup()
     renderAtRoute('/articles')
 
@@ -551,7 +551,7 @@ describe('导入 → 词汇预习完整链路', () => {
     expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
-    // 进入深入学习
+    // 进入精听精读
     await user.click(screen.getByRole('link', { name: /精听精读/ }))
 
     // 默认难度「重要词语」：首句无命中词语 → 无挖空输入框
@@ -587,7 +587,7 @@ describe('导入 → 词汇预习完整链路', () => {
     expect(await screen.findByRole('heading', { name: 'AI 预处理' })).toBeInTheDocument()
     await processViaAiPreprocess(user)
 
-    // 进入深入学习，切到 AI 综合测验 Tab
+    // 进入精听精读，切到 AI 综合测验 Tab
     await user.click(screen.getByRole('link', { name: /精听精读/ }))
     await user.click(screen.getByText('AI 综合测验'))
 
@@ -693,7 +693,7 @@ describe('学习进度闭环（工单 #11）', () => {
     )
   }
 
-  test('E2E：完成预习/深入学习行为 → 返回列表 → 卡片进度正确回显', async () => {
+  test('E2E：完成预习/精听精读行为 → 返回列表 → 卡片进度正确回显', async () => {
     const user = userEvent.setup()
     seedProcessedArticle()
     renderAtRoute('/articles')
@@ -708,12 +708,12 @@ describe('学习进度闭环（工单 #11）', () => {
     await user.click(screen.getByTestId('rate-known'))
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
-    // 2) 深入学习（收听）：拖动进度条到 5s/10s → 收听进度持久化（用于续播，卡片不单独展示）
+    // 2) 精听精读（收听）：拖动进度条到 5s/10s → 收听进度持久化（用于续播，卡片不单独展示）
     await user.click(screen.getByRole('link', { name: /精听精读/ }))
     fireEvent.change(screen.getByTestId('progress-slider'), { target: { value: '5000' } })
     await user.click(screen.getByRole('link', { name: '返回文章列表' }))
 
-    // 3) 深入学习（精听）：全部听写难度下填对首句所有空 → 1/2
+    // 3) 精听精读（精听）：全部听写难度下填对首句所有空 → 1/2
     await user.click(screen.getByRole('link', { name: /精听精读/ }))
     await user.click(screen.getByText('全部听写'))
     // 首句 "The quick brown fox jumps." → 5 个空，全部填对触发句子完成

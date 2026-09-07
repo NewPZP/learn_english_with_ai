@@ -63,7 +63,7 @@ function setNested<T>(
 export type TranslateSentences = (texts: string[]) => Promise<string[]>
 
 /**
- * 深入学习页：播客整篇播放 + 字幕挖空听写 + AI 综合测验（工单 #18、#19、#20）
+ * 精听精读页：播客整篇播放 + 字幕挖空听写 + AI 综合测验（工单 #18、#19、#20）
  * 以播客页为基础，移除右栏句子列表，顶部 Tab 切换「挖空听写 / AI 综合测验」。
  * 挖空听写支持三档屏蔽选项、全文显示开关与 AI 译文开关；屏蔽词为整词输入框，
  * 失焦/回车/空格即判分（复用 gradeBlank，忽略大小写与空格），空格自动跳下一个空。
@@ -281,7 +281,7 @@ export function PodcastPage({
     const missing = article && !audio
     return (
       <>
-        <PageTopbar title="深入学习" />
+        <PageTopbar title="精听精读" />
         <div className="app-content-inner">
           <div className="empty-state" data-testid="podcast-empty">
             <GraduationCap size={32} />
@@ -307,7 +307,7 @@ export function PodcastPage({
 
   return (
     <>
-      <PageTopbar title="深入学习" />
+      <PageTopbar title="精听精读" />
       <div className="app-content-inner">
         <div className="deep-learning-stack">
           {/* 信息卡 */}
@@ -363,7 +363,7 @@ export function PodcastPage({
             <QuizChallengeTab articleId={id} content={article.content} generateQuiz={generateQuiz} />
           ) : (
             <>
-              {/* 难度 + 全文显示开关 */}
+              {/* 难度 + 开关控件 */}
               <div className="dictation-toolbar">
                 <div className="difficulty-pills" data-testid="difficulty-pills">
                   {DIFFICULTY_ORDER.map((key) => (
@@ -379,24 +379,30 @@ export function PodcastPage({
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className={`fulltext-toggle${showFullText ? ' on' : ''}`}
-                  data-testid="fulltext-toggle"
-                  aria-pressed={showFullText}
-                  onClick={() => setShowFullText((v) => !v)}
-                >
-                  {showFullText ? '隐藏全文' : '显示全文'}
-                </button>
-                <button
-                  type="button"
-                  className={`fulltext-toggle${showTranslation ? ' on' : ''}`}
-                  data-testid="translation-toggle"
-                  aria-pressed={showTranslation}
-                  onClick={handleToggleTranslation}
-                >
-                  {showTranslation ? '隐藏译文' : '显示AI翻译'}
-                </button>
+                <div className="toolbar-toggles">
+                  <label className="toggle-switch" data-testid="fulltext-toggle">
+                    <span className="toggle-label">全文</span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={showFullText}
+                      aria-checked={showFullText}
+                      onChange={() => setShowFullText((v) => !v)}
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                  <label className="toggle-switch" data-testid="translation-toggle">
+                    <span className="toggle-label">翻译</span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={showTranslation}
+                      aria-checked={showTranslation}
+                      onChange={handleToggleTranslation}
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
               </div>
 
               {/* 字幕挖空区 */}

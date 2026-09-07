@@ -274,7 +274,7 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
         if (step === 'words') partial.words = result.words
         else if (step === 'phrases') partial.phrases = result.phrases
         else if (step === 'translation') {
-          // 译文写回句子并持久化（深入学习页开关直接复用，避免重复消耗 token）
+          // 译文写回句子并持久化（精听精读页开关直接复用，避免重复消耗 token）
           partial.sentences = result.sentences
         } else {
           partial.audio = result.audio ?? undefined

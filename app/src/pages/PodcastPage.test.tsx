@@ -6,7 +6,7 @@ import { PodcastPage } from './PodcastPage'
 import type { AudioLike } from '../lib/audio/useSentencePlayer'
 
 /**
- * 深入学习页验收测试（页面级，注入假音频）
+ * 精听精读页验收测试（页面级，注入假音频）
  * 覆盖：信息卡、播放/暂停、字幕高亮同步、上下句/重复/倍速、进度条、
  * Tab 切换（挖空听写/听力挑战）、子模式（整篇/逐句）、三档难度、
  * 整词输入即判分（失焦/回车）、重新编辑清除判分
@@ -89,7 +89,7 @@ function renderPage(fake: FakeAudio, translateSentences?: (texts: string[]) => P
   )
 }
 
-describe('深入学习页 — 初始渲染', () => {
+describe('精听精读页 — 初始渲染', () => {
   beforeEach(() => localStorage.clear())
 
   test('文章存在但未生成音频：空态提示并提供「去 AI 预处理」跳转', () => {
@@ -131,14 +131,14 @@ describe('深入学习页 — 初始渲染', () => {
     expect(screen.getByText('全部听写')).toBeInTheDocument()
     expect(screen.getByText('重要词语')).toBeInTheDocument()
     expect(screen.getByText('仅生词')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '显示全文' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('switch', { name: /全文/ })).not.toBeChecked()
     // 播放模式位于播放控制区，默认连续播放
     expect(screen.getByRole('button', { name: '连续播放' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '单句播放' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
 
-describe('深入学习页 — 播放与字幕同步', () => {
+describe('精听精读页 — 播放与字幕同步', () => {
   beforeEach(() => localStorage.clear())
 
   test('播放/暂停切换，播放中当前句显示动画点', async () => {
@@ -188,7 +188,7 @@ describe('深入学习页 — 播放与字幕同步', () => {
   })
 })
 
-describe('深入学习页 — 句级控制与倍速', () => {
+describe('精听精读页 — 句级控制与倍速', () => {
   beforeEach(() => localStorage.clear())
 
   test('下一句/上一句/重复本句', async () => {
@@ -242,7 +242,7 @@ describe('深入学习页 — 句级控制与倍速', () => {
   })
 })
 
-describe('深入学习页 — Tab 与子模式切换', () => {
+describe('精听精读页 — Tab 与子模式切换', () => {
   beforeEach(() => localStorage.clear())
 
   test('切换到「AI 综合测验」Tab，再切回「挖空听写」', async () => {
@@ -283,7 +283,7 @@ describe('深入学习页 — Tab 与子模式切换', () => {
   })
 })
 
-describe('深入学习页 — 整词挖空输入与即判分', () => {
+describe('精听精读页 — 整词挖空输入与即判分', () => {
   beforeEach(() => localStorage.clear())
 
   test('「全部听写」难度下首句所有词元变为输入框', async () => {
@@ -368,18 +368,18 @@ describe('深入学习页 — 整词挖空输入与即判分', () => {
     // 关闭状态：挖空输入框存在
     expect(screen.getByTestId('blank-0-0')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '显示全文' }))
-    // 开启状态：挖空输入框消失，按钮变为「隐藏全文」
+    await user.click(screen.getByRole('switch', { name: /全文/ }))
+    // 开启状态：挖空输入框消失
     expect(screen.queryByTestId('blank-0-0')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '隐藏全文' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('switch', { name: /全文/ })).toBeChecked()
 
     // 再次关闭：挖空输入框恢复
-    await user.click(screen.getByRole('button', { name: '隐藏全文' }))
+    await user.click(screen.getByRole('switch', { name: /全文/ }))
     expect(screen.getByTestId('blank-0-0')).toBeInTheDocument()
   })
 })
 
-describe('深入学习页 — AI 翻译开关', () => {
+describe('精听精读页 — AI 翻译开关', () => {
   beforeEach(() => localStorage.clear())
 
   test('缺译文时开启开关：调用翻译、显示骨架、完成后显示译文并持久化', async () => {
@@ -400,7 +400,7 @@ describe('深入学习页 — AI 翻译开关', () => {
     // 初始无译文行
     expect(screen.queryByTestId('translation-line-0')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+    await user.click(screen.getByRole('switch', { name: /翻译/ }))
 
     // 调用了翻译函数，且入参为各句原文
     expect(translateFn).toHaveBeenCalledTimes(1)
@@ -455,7 +455,7 @@ describe('深入学习页 — AI 翻译开关', () => {
     const translateFn = vi.fn(async () => ['不应被调用'])
     renderPage(fake, translateFn)
 
-    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+    await user.click(screen.getByRole('switch', { name: /翻译/ }))
 
     // 未调用翻译（避免浪费 token）
     expect(translateFn).not.toHaveBeenCalled()
@@ -471,10 +471,10 @@ describe('深入学习页 — AI 翻译开关', () => {
     const fake = createFakeAudio()
     renderPage(fake, async (texts) => texts.map(() => '译'))
 
-    await user.click(screen.getByRole('button', { name: '显示AI翻译' }))
+    await user.click(screen.getByRole('switch', { name: /翻译/ }))
     expect(screen.getByTestId('translation-line-0')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '隐藏译文' }))
+    await user.click(screen.getByRole('switch', { name: /翻译/ }))
     expect(screen.queryByTestId('translation-line-0')).not.toBeInTheDocument()
   })
 })
