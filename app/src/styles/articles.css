@@ -850,6 +850,13 @@
   margin-top: 8px;
 }
 
+.pdf-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .pdf-merge-btn {
   flex: none;
 }

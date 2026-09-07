@@ -10,13 +10,14 @@ import {
   Loader2,
   Play,
   RotateCcw,
+  Scissors,
   Sparkles,
   Upload,
   Volume2,
   X,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
-import { getArticle, MAX_ARTICLE_CHARS, mergeProcessing, saveArticle } from '../lib/articles'
+import { deriveTitle, getArticle, MAX_ARTICLE_CHARS, mergeProcessing, saveArticle } from '../lib/articles'
 import { getTextAdapter, getVoiceAdapter } from '../lib/ai'
 import {
   initialPipelineState,
@@ -30,7 +31,6 @@ import {
   type StepStatus,
 } from '../lib/processing/pipeline'
 import type { ArticleProcessing } from '../lib/articles'
-import type { Sentence } from '../lib/ai/types'
 import type { ParsedArticle, ParseOutput, PdfParser } from '../lib/pdf/types'
 import { isParseError } from '../lib/pdf/types'
 import { alignTranslations, splitChineseIntoSentences, splitIntoSentences } from '../lib/pdf/parse'
@@ -506,24 +506,10 @@ function ProcessMode({ articleId, adapters }: { articleId: string; adapters?: Pi
 
 /* ---------------- PDF 预览模式：确认后批量入库 ---------------- */
 
-interface PreviewArticle {
-  title: string
-  content: string
-  chineseText: string
-  sentences: Sentence[]
-  hasTranslation: boolean
-  selected: boolean
-}
+type PreviewArticle = ParsedArticle & { selected: boolean }
 
 function toPreviewArticles(parsed: ParsedArticle[]): PreviewArticle[] {
-  return parsed.map((a) => ({
-    title: a.title,
-    content: a.content,
-    chineseText: a.chineseText,
-    sentences: a.sentences,
-    hasTranslation: a.hasTranslation,
-    selected: true,
-  }))
+  return parsed.map((a) => ({ ...a, selected: true }))
 }
 
 /** 重新对齐：编辑正文后重新切分英文/中文句子并检查数量是否相等 */
@@ -539,6 +525,7 @@ function realign(article: PreviewArticle): PreviewArticle {
 /** 合并两篇预览文章为一篇并重新对齐 */
 function mergeTwo(a: PreviewArticle, b: PreviewArticle): PreviewArticle {
   return realign({
+    ...a,
     title: a.title,
     content: a.content + '\n' + b.content,
     chineseText: a.chineseText + '\n' + b.chineseText,
@@ -561,6 +548,7 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
   const [mode, setMode] = useState<'multi' | 'single'>('multi')
   const [singleTitle, setSingleTitle] = useState('')
   const [singleContent, setSingleContent] = useState('')
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([])
 
   useEffect(() => {
     let cancelled = false
@@ -593,12 +581,6 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
     setMode('single')
   }
 
-  const mergedHasTranslation = useMemo(() => {
-    if (mode !== 'single' || !articles.length) return false
-    const merged = articles.reduce(mergeTwo)
-    return merged.hasTranslation
-  }, [mode, articles])
-
   const mergedSentences = useMemo(() => {
     if (mode !== 'single' || !articles.length) return []
     const chineseText = articles.map((a) => a.chineseText).filter(Boolean).join('\n')
@@ -609,6 +591,8 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
     )
     return result.aligned ? result.sentences : []
   }, [mode, articles, singleContent])
+
+  const mergedHasTranslation = mergedSentences.length > 0
 
   const updateArticle = (i: number, updates: Partial<PreviewArticle>) => {
     setArticles((prev) =>
@@ -632,10 +616,36 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
     })
   }
 
-  const selectedCount = articles.filter((a) => a.selected).length
-  const hasOverLimit = mode === 'multi'
-    ? articles.some((a) => a.selected && a.content.length > MAX_ARTICLE_CHARS)
-    : singleContent.length > MAX_ARTICLE_CHARS
+  /** 在光标处分割文章为两篇，中文按比例切分后各自重新对齐 */
+  const splitAtCursor = (i: number) => {
+    const textarea = textareaRefs.current[i]
+    if (!textarea) return
+    const pos = textarea.selectionStart
+    setArticles((prev) => {
+      const article = prev[i]
+      if (pos <= 0 || pos >= article.content.length) return prev
+      const firstContent = article.content.slice(0, pos).trim()
+      const secondContent = article.content.slice(pos).trim()
+      if (!firstContent || !secondContent) return prev
+      const ratio = pos / article.content.length
+      const zhPos = Math.floor(article.chineseText.length * ratio)
+      const next = [...prev]
+      next[i] = realign({ ...article, content: firstContent, chineseText: article.chineseText.slice(0, zhPos) })
+      next.splice(i + 1, 0, realign({
+        ...article,
+        title: deriveTitle(secondContent),
+        content: secondContent,
+        chineseText: article.chineseText.slice(zhPos),
+        selected: article.selected,
+      }))
+      return next
+    })
+  }
+
+  const selectedCount = articles.filter(
+    (a) => a.selected && a.content.length <= MAX_ARTICLE_CHARS,
+  ).length
+  const singleOverLimit = singleContent.length > MAX_ARTICLE_CHARS
 
   const handleConfirm = () => {
     if (mode === 'single') {
@@ -746,6 +756,7 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
                     type="checkbox"
                     checked={article.selected}
                     onChange={(e) => updateArticle(i, { selected: e.target.checked })}
+                    disabled={overLimit}
                     data-testid={`pdf-select-${i}`}
                   />
                   <input
@@ -763,6 +774,7 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
                   {overLimit && <span className="badge badge-over-limit">超限·禁选</span>}
                 </div>
                 <textarea
+                  ref={(el) => { textareaRefs.current[i] = el }}
                   className="pdf-content-textarea"
                   value={article.content}
                   onChange={(e) => updateContent(i, e.target.value)}
@@ -772,23 +784,34 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
                   <span className="char-count">
                     {article.content.length} / {MAX_ARTICLE_CHARS} 字符
                   </span>
-                  {i > 0 && (
+                  <div className="pdf-card-actions">
                     <button
                       type="button"
                       className="function-btn function-btn-secondary pdf-merge-btn"
-                      onClick={() => mergeWithAbove(i)}
-                      data-testid={`pdf-merge-${i}`}
+                      onClick={() => splitAtCursor(i)}
+                      data-testid={`pdf-split-${i}`}
                     >
-                      合并到上篇
+                      <Scissors size={14} />
+                      <span>在光标处分割</span>
                     </button>
-                  )}
+                    {i > 0 && (
+                      <button
+                        type="button"
+                        className="function-btn function-btn-secondary pdf-merge-btn"
+                        onClick={() => mergeWithAbove(i)}
+                        data-testid={`pdf-merge-${i}`}
+                      >
+                        合并到上篇
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )
           })}
 
           {mode === 'single' && (
-            <div className="pdf-preview-card" data-testid="pdf-single-article">
+            <div className={`pdf-preview-card${singleOverLimit ? ' over-limit' : ''}`} data-testid="pdf-single-article">
               <div className="pdf-card-header">
                 <input
                   type="text"
@@ -802,6 +825,7 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
                 ) : chineseTextForSingle ? (
                   <span className="badge badge-no-translation">对齐失败·将降级</span>
                 ) : null}
+                {singleOverLimit && <span className="badge badge-over-limit">超限</span>}
               </div>
               <textarea
                 className="pdf-content-textarea"
@@ -822,7 +846,7 @@ function PdfPreviewMode({ file, source, onBack, pdfParser }: {
           type="button"
           className="save-button"
           onClick={handleConfirm}
-          disabled={hasOverLimit || (mode === 'multi' && selectedCount === 0)}
+          disabled={mode === 'multi' ? selectedCount === 0 : singleOverLimit}
           data-dom-id="cta-confirm-pdf-import"
         >
           <Check size={20} />
