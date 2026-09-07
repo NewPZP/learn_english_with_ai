@@ -339,6 +339,42 @@ describe('parsePdfText：版面杂质清洗', () => {
       expect(lines).not.toContain('3')
     }
   })
+
+  test('生词栏词性标记行被剔除（如 n./adj. 及词性+释义）', () => {
+    const items = [
+      ...bodyLines(['Learning is a lifelong journey.', 'It requires patience.'], {
+        startY: 700,
+        page: 0,
+      }),
+      item('n.', { x: 380, y: 500, page: 0 }),
+      item('adj.耐心的', { x: 380, y: 480, page: 0 }),
+    ]
+    const result = parsePdfText(items)
+    if (!isParseError(result)) {
+      const content = result.articles[0].content
+      expect(content).toContain('Learning is a lifelong journey.')
+      expect(content).not.toContain('n.')
+      expect(content).not.toContain('耐心的')
+    }
+  })
+
+  test('右侧窄生词栏（字符占比 < 20%）被整体剔除', () => {
+    const items = [
+      titleItem('Bilingual Reading', { y: 720, page: 0 }),
+      // 左栏正文（英文长句，x 从 14 延伸到 350）
+      item('Learning is a lifelong journey that requires patience.', { x: 14, y: 700, page: 0 }),
+      item('It takes dedication and consistent effort over time.', { x: 14, y: 684, page: 0 }),
+      // 右栏生词（窄列，x=370，字符极少）
+      item('journey', { x: 370, y: 700, page: 0 }),
+      item('n.旅程', { x: 370, y: 684, page: 0 }),
+    ]
+    const result = parsePdfText(items)
+    if (!isParseError(result)) {
+      const article = result.articles[0]
+      expect(article.content).toContain('Learning is a lifelong journey')
+      expect(article.content).not.toContain('n.旅程')
+    }
+  })
 })
 
 describe('parsePdfText：双语标题合并', () => {

@@ -110,7 +110,16 @@ function groupPageLines(items: PdfTextItem[]): TextLine[] {
   return lines
 }
 
-/** 检测双栏分界：在 x 坐标中找最大间隙，>100 视为双栏 */
+/** 统计一组文本项的总字符数 */
+function totalChars(items: PdfTextItem[]): number {
+  return items.reduce((s, i) => s + i.str.length, 0)
+}
+
+/**
+ * 检测双栏分界：全局 item 起始 x 排序后找最大间隙，>15 单位视为栏分界。
+ * 生词/注释边栏与正文的间隙可能只有 ~20 单位（正文行较长时），
+ * 阈值需足够小才能识别；配合 reconstructLines 的字符比例判定排除误判。
+ */
 function detectColumnBoundary(items: PdfTextItem[]): number | null {
   if (items.length < 4) return null
   const xs = items.map((i) => i.x).sort((a, b) => a - b)
@@ -123,10 +132,10 @@ function detectColumnBoundary(items: PdfTextItem[]): number | null {
       midpoint = xs[i - 1] + gap / 2
     }
   }
-  return maxGap > 100 ? midpoint : null
+  return maxGap > 15 ? midpoint : null
 }
 
-/** 全文档阅读顺序重建：逐页检测栏数，双栏先左后右 */
+/** 全文档阅读顺序重建：逐页检测栏数，双栏先左后右；边栏（字符数极少）直接排除 */
 function reconstructLines(items: PdfTextItem[]): TextLine[] {
   const byPage = new Map<number, PdfTextItem[]>()
   for (const item of items) {
@@ -139,11 +148,20 @@ function reconstructLines(items: PdfTextItem[]): TextLine[] {
     const boundary = detectColumnBoundary(pageItems)
     if (boundary === null) {
       allLines.push(...groupPageLines(pageItems))
+      continue
+    }
+    const leftItems = pageItems.filter((i) => i.x < boundary)
+    const rightItems = pageItems.filter((i) => i.x >= boundary)
+    const leftChars = totalChars(leftItems)
+    const rightChars = totalChars(rightItems)
+    const minChars = Math.min(leftChars, rightChars)
+    const maxChars = Math.max(leftChars, rightChars)
+    // 一栏字符数不足另一栏 20% → 视为边栏（生词注释/页眉等），只保留主栏
+    if (maxChars > 0 && minChars / maxChars < 0.2) {
+      const mainItems = leftChars >= rightChars ? leftItems : rightItems
+      allLines.push(...groupPageLines(mainItems))
     } else {
-      allLines.push(
-        ...groupPageLines(pageItems.filter((i) => i.x < boundary)),
-        ...groupPageLines(pageItems.filter((i) => i.x >= boundary)),
-      )
+      allLines.push(...groupPageLines(leftItems), ...groupPageLines(rightItems))
     }
   }
   return allLines
@@ -153,7 +171,18 @@ function reconstructLines(items: PdfTextItem[]): TextLine[] {
 // 内部：版面杂质清洗
 // ---------------------------------------------------------------------------
 
-/** 剔除跨页重复行（页眉/页脚）与纯数字行（页码） */
+/**
+ * 判断是否为生词栏词性标记行：如「n.」「adj.」「v.扔掉」「n.心理疗法」。
+ * 生词/注释边栏的每条词义通常以英文词性缩写 + 句点开头，正文不会出现此形态。
+ */
+function isVocabPosLine(text: string): boolean {
+  const t = text.trim()
+  if (!t) return false
+  // 词性缩写 + 句点，后跟结尾 / 括号 / 中文 / CJK 部首（生词栏释义）
+  return /^(n|v|vt|vi|adj|adv|prep|conj|pron|art|num|int|aux|abbr)\.($|\(|[\u4e00-\u9fff\u2e80-\u2fdf\uff00-\uffef])/i.test(t)
+}
+
+/** 剔除跨页重复行（页眉/页脚）、纯数字行（页码）与生词栏词性标记行 */
 function cleanArtifacts(lines: TextLine[]): TextLine[] {
   const counts = new Map<string, Set<number>>()
   for (const line of lines) {
@@ -171,6 +200,7 @@ function cleanArtifacts(lines: TextLine[]): TextLine[] {
     if (!text) return false
     if (repeated.has(text)) return false
     if (/^\d+$/.test(text)) return false
+    if (isVocabPosLine(text)) return false
     return true
   })
 }
