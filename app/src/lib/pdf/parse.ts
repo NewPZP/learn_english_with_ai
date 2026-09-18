@@ -5,6 +5,9 @@
 import type { Sentence } from '../ai/types'
 import type { ParseOutput, ParseResult, ParsedArticle, PdfTextItem, TextLine } from './types'
 
+// test 文件经 './parse' 导入 PdfTextItem，在此 re-export（类型定义在 ./types）
+export type { PdfTextItem } from './types'
+
 // ---------------------------------------------------------------------------
 // 语言检测
 // ---------------------------------------------------------------------------

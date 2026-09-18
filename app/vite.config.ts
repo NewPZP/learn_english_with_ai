@@ -77,11 +77,14 @@ function devCorsProxy(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // build 模式用相对 base：file://.../dist/index.html 下默认 '/' 会把资源解析到
+  // 文件系统根（404）。dev 模式保持 '/' 由 vite dev server 处理。
+  base: command === 'build' ? './' : '/',
   plugins: [react(), devCorsProxy()],
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
   },
-})
+}))

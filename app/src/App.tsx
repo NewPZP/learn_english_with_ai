@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { ArticleListPage } from './pages/ArticleListPage'
 import { ImportArticlePage } from './pages/ImportArticlePage'
@@ -29,7 +29,7 @@ import { routes } from './routes'
  */
 export function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to={routes.articles} replace />} />
@@ -47,6 +47,6 @@ export function App() {
           <Route path="*" element={<Navigate to={routes.articles} replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
