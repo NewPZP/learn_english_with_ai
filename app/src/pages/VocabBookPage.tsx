@@ -9,7 +9,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { PageTopbar } from '../components/AppLayout'
-import { MasterySwitch } from '../components/MasterySwitch'
+import { FamiliarityHearts } from '../components/FamiliarityHearts'
 import { routes } from '../routes'
 import { getArticle } from '../lib/articles'
 import {
@@ -19,33 +19,35 @@ import {
   aggregateLatestPhraseRecord,
   removeWordEntry,
   removePhraseEntry,
+  familiarityOf,
+  setWordFamiliarity,
+  setPhraseFamiliarity,
   type VocabEntry,
 } from '../lib/vocabBook'
 import {
-  rateGlobalWord,
-  rateGlobalPhrase,
-  RATING_LABELS,
+  MAX_FAMILIARITY,
   MEMORY_CURVE_LABELS,
-  type SelfRating,
   type WordProgressRecord,
 } from '../lib/wordProgress'
 
 type VocabKind = 'words' | 'phrases'
 
-const RATING_ORDER: SelfRating[] = ['unknown', 'fuzzy', 'known']
-
 type SortKey = 'collected' | 'mastery' | 'alpha'
-type FilterRating = SelfRating | 'all'
+/** 熟悉程度筛选：全部 / 未评(0) / 1-5 心 */
+type FamiliarityFilter = 'all' | number
 
 interface VocabRow {
   entry: VocabEntry
   record: WordProgressRecord | undefined
+  /** 熟悉程度 0-5 心（手动覆盖优先，否则算法计算） */
+  familiarity: number
 }
 
 /**
  * 生词页（合并单词/短语）
  * - 页面内切换「单词 / 短语」
- * - 支持按掌握度筛选、排序、行内自评（MasterySwitch 多档开关）、移除
+ * - 每个词条的熟悉程度为 5 颗心：由学习历史算法计算，也可点心手动设置
+ * - 支持按熟悉程度筛选（下拉）、排序、移除
  * - 顶栏紧凑复习入口（始终可进入）
  * - 批量勾选条目后「复习选中」
  */
@@ -55,26 +57,28 @@ export function VocabBookPage() {
   const isWords = kind === 'words'
   const title = '生词'
 
-  const [filter, setFilter] = useState<FilterRating>('all')
+  const [filter, setFilter] = useState<FamiliarityFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('collected')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  /** 版本号：自评/移除后自增以触发重新读取 localStorage */
+  /** 版本号：熟悉程度设置/移除后自增以触发重新读取 localStorage */
   const [version, setVersion] = useState(0)
 
   const rows: VocabRow[] = useMemo(() => {
     const entries = isWords ? listWordEntries() : listPhraseEntries()
-    return entries.map((entry) => ({
-      entry,
-      record: isWords ? aggregateLatestWordRecord(entry.text) : aggregateLatestPhraseRecord(entry.text),
-    }))
+    return entries.map((entry) => {
+      const record = isWords
+        ? aggregateLatestWordRecord(entry.text)
+        : aggregateLatestPhraseRecord(entry.text)
+      return { entry, record, familiarity: familiarityOf(entry, record) }
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, version])
 
   const filtered = useMemo(() => {
     let list = rows
     if (filter !== 'all') {
-      list = list.filter((r) => r.record?.rating === filter)
+      list = list.filter((r) => r.familiarity === filter)
     }
     const sorted = [...list]
     if (sortKey === 'collected') {
@@ -82,12 +86,8 @@ export function VocabBookPage() {
     } else if (sortKey === 'alpha') {
       sorted.sort((a, b) => a.entry.text.localeCompare(b.entry.text))
     } else {
-      // mastery 升序：未评 < 不认识 < 模糊 < 认识；同档按 stage 升序
-      const rank = (r: VocabRow): number => {
-        if (!r.record) return 0
-        const ratingRank = r.record.rating === 'unknown' ? 1 : r.record.rating === 'fuzzy' ? 2 : 3
-        return ratingRank * 10 + r.record.stage
-      }
+      // mastery 升序：心数少在前；同心数按记忆曲线 stage 升序
+      const rank = (r: VocabRow): number => r.familiarity * 10 + (r.record?.stage ?? 0)
       sorted.sort((a, b) => rank(a) - rank(b))
     }
     return sorted
@@ -98,9 +98,11 @@ export function VocabBookPage() {
     [rows],
   )
 
-  const handleRate = (entry: VocabEntry, rating: SelfRating) => {
-    if (isWords) rateGlobalWord(entry.text, entry.sourceArticleIds, rating)
-    else rateGlobalPhrase(entry.text, entry.sourceArticleIds, rating)
+  /** 设置熟悉程度：1-5 心为手动覆盖值，0 清除覆盖恢复算法值 */
+  const handleSetFamiliarity = (entry: VocabEntry, value: number) => {
+    const familiarity = value === 0 ? null : value
+    if (isWords) setWordFamiliarity(entry.text, familiarity)
+    else setPhraseFamiliarity(entry.text, familiarity)
     setVersion((v) => v + 1)
   }
 
@@ -184,31 +186,39 @@ export function VocabBookPage() {
               </button>
             ))}
           </div>
-          <div className="vocab-filters" role="group" aria-label="按掌握度筛选">
-            {(['all', ...RATING_ORDER] as FilterRating[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={`vocab-filter-btn ${filter === f ? 'is-active' : ''}`}
-                data-testid={`filter-${f}`}
-                onClick={() => setFilter(f)}
+          <div className="vocab-toolbar-right">
+            <div className="vocab-filter">
+              <label htmlFor="vocab-filter-select">熟悉度</label>
+              <select
+                id="vocab-filter-select"
+                value={filter === 'all' ? 'all' : String(filter)}
+                data-testid="vocab-filter"
+                onChange={(e) =>
+                  setFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
+                }
               >
-                {f === 'all' ? '全部' : RATING_LABELS[f]}
-              </button>
-            ))}
-          </div>
-          <div className="vocab-sort">
-            <label htmlFor="vocab-sort-select">排序</label>
-            <select
-              id="vocab-sort-select"
-              value={sortKey}
-              data-testid="vocab-sort"
-              onChange={(e) => setSortKey(e.target.value as SortKey)}
-            >
-              <option value="collected">收录时间</option>
-              <option value="mastery">掌握程度</option>
-              <option value="alpha">字母序</option>
-            </select>
+                <option value="all">全部</option>
+                <option value="0">未评</option>
+                {Array.from({ length: MAX_FAMILIARITY }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    {'❤'.repeat(n)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="vocab-sort">
+              <label htmlFor="vocab-sort-select">排序</label>
+              <select
+                id="vocab-sort-select"
+                value={sortKey}
+                data-testid="vocab-sort"
+                onChange={(e) => setSortKey(e.target.value as SortKey)}
+              >
+                <option value="collected">收录时间</option>
+                <option value="mastery">掌握程度</option>
+                <option value="alpha">字母序</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -255,7 +265,7 @@ export function VocabBookPage() {
           </div>
         ) : (
           <ul className="vocab-list" data-testid="vocab-list">
-            {filtered.map(({ entry, record }) => {
+            {filtered.map(({ entry, record, familiarity }) => {
               const isExpanded = expanded.has(entry.text)
               const isSelected = selected.has(entry.text)
               return (
@@ -287,14 +297,9 @@ export function VocabBookPage() {
                     <div className="vocab-item-meta">
                       <span className="vocab-mastery" data-testid={`mastery-${entry.text}`}>
                         {record ? (
-                          <>
-                            <span className={`vocab-rating-tag rating-${record.rating}`}>
-                              {RATING_LABELS[record.rating]}
-                            </span>
-                            <span className="vocab-stage">
-                              第 {record.stage + 1} / {MEMORY_CURVE_LABELS.length} 档
-                            </span>
-                          </>
+                          <span className="vocab-stage">
+                            第 {record.stage + 1} / {MEMORY_CURVE_LABELS.length} 档
+                          </span>
                         ) : (
                           <span className="vocab-rating-tag rating-unrated">未评</span>
                         )}
@@ -312,11 +317,10 @@ export function VocabBookPage() {
                   </div>
 
                   <div className="vocab-item-side">
-                    <MasterySwitch
-                      value={record?.rating}
-                      onChange={(rating) => handleRate(entry, rating)}
-                      domIdPrefix={`vocab-${entry.text}`}
-                      testIdPrefix={`mastery-${entry.text}`}
+                    <FamiliarityHearts
+                      value={familiarity}
+                      onChange={(value) => handleSetFamiliarity(entry, value)}
+                      testIdPrefix={`hearts-${entry.text}`}
                     />
                     <button
                       type="button"

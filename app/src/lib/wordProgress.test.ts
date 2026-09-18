@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import {
+  computeFamiliarity,
   computeStats,
   curveNodeStatuses,
   loadWordProgress,
@@ -52,6 +53,43 @@ describe('下次复习时间调度', () => {
 
   test('档位 4 认识后停留在 15 天间隔', () => {
     expect(scheduleNext('known', 4, NOW)).toEqual({ stage: 4, nextReviewAt: daysLater(15) })
+  })
+})
+
+describe('熟悉程度算法（生词本 5 颗心）', () => {
+  const record = (rating: 'unknown' | 'fuzzy' | 'known', stage: number): WordProgressRecord => ({
+    word: 'w',
+    rating,
+    stage,
+    ratedAt: '',
+    nextReviewAt: '',
+  })
+
+  test('无学习记录 → 0 心（未评）', () => {
+    expect(computeFamiliarity(undefined)).toBe(0)
+  })
+
+  test('不认识 → 1 心；模糊 → 2 心', () => {
+    expect(computeFamiliarity(record('unknown', 3))).toBe(1)
+    expect(computeFamiliarity(record('fuzzy', 2))).toBe(2)
+  })
+
+  test('认识只是暂时认识：首次认识（stage 1）→ 3 心', () => {
+    expect(computeFamiliarity(record('known', 1))).toBe(3)
+  })
+
+  test('认识后随复习巩固（stage）爬升，最高 5 心', () => {
+    expect(computeFamiliarity(record('known', 2))).toBe(4)
+    expect(computeFamiliarity(record('known', 3))).toBe(5)
+    expect(computeFamiliarity(record('known', 4))).toBe(5)
+  })
+
+  test('实际自评链路：连续认识复习多次后熟悉程度到达 5', () => {
+    localStorage.clear()
+    let record: WordProgressRecord | undefined
+    for (let i = 0; i < 4; i++) record = rateWord('a1', 'w', 'known', NOW)
+    expect(record?.stage).toBe(4)
+    expect(computeFamiliarity(record)).toBe(5)
   })
 })
 

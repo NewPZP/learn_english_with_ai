@@ -89,6 +89,26 @@ export function curveNodeStatuses(
   })
 }
 
+/* ---- 熟悉程度（5 心，算法计算） ---- */
+
+/** 熟悉程度上限：5 颗心 */
+export const MAX_FAMILIARITY = 5
+
+/**
+ * 由学习历史（最新自评 + 记忆曲线档位）算法计算熟悉程度（0-5 心）：
+ * - 无记录 → 0（未评）
+ * - 不认识 → 1 心（刚学过一次）
+ * - 模糊 → 2 心
+ * - 认识 → 3 心起步，随复习通过次数（stage）提升，最高 5 心
+ *   （学习时的「认识」只是暂时认识，需多次复习巩固才代表长期熟悉）
+ */
+export function computeFamiliarity(record: WordProgressRecord | undefined): number {
+  if (!record) return 0
+  if (record.rating === 'unknown') return 1
+  if (record.rating === 'fuzzy') return 2
+  return Math.min(2 + record.stage, MAX_FAMILIARITY)
+}
+
 /* ---- 统计 ---- */
 
 export interface ProgressStats {

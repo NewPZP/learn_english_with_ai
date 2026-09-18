@@ -11,6 +11,9 @@ import {
   aggregateLatestWordRecord,
   aggregateLatestPhraseRecord,
   getWordSourceRecords,
+  familiarityOf,
+  setWordFamiliarity,
+  setPhraseFamiliarity,
 } from './vocabBook'
 import { rateWord, ratePhrase } from './wordProgress'
 
@@ -87,6 +90,60 @@ describe('短语收录（与单词隔离）', () => {
     addPhraseEntry({ text: 'p', articleId: 'a1', now: NOW })
     removePhraseEntry('p')
     expect(isPhraseCollected('p')).toBe(false)
+  })
+})
+
+describe('熟悉程度（5 颗心）', () => {
+  beforeEach(() => localStorage.clear())
+
+  test('无覆盖值时由算法计算：认识 stage2 → 4 心', () => {
+    addWordEntry({ text: 'w', articleId: 'a1', now: NOW })
+    rateWord('a1', 'w', 'known', NOW)
+    rateWord('a1', 'w', 'known', NOW) // stage 0 → 1 → 2
+    const record = aggregateLatestWordRecord('w')
+    const entry = listWordEntries()[0]
+    expect(familiarityOf(entry, record)).toBe(4)
+  })
+
+  test('未评且无覆盖值 → 0 心', () => {
+    addWordEntry({ text: 'w', articleId: 'a1', now: NOW })
+    const entry = listWordEntries()[0]
+    expect(familiarityOf(entry, undefined)).toBe(0)
+  })
+
+  test('手动设置覆盖算法值并持久化；清除后恢复算法值', () => {
+    addWordEntry({ text: 'w', articleId: 'a1', now: NOW })
+    rateWord('a1', 'w', 'known', NOW) // 算法值 3 心
+
+    setWordFamiliarity('w', 5)
+    let entry = listWordEntries()[0]
+    expect(entry.familiarity).toBe(5)
+    expect(familiarityOf(entry, aggregateLatestWordRecord('w'))).toBe(5)
+
+    // 清除覆盖（学习/复习新自评后的行为）
+    setWordFamiliarity('w', null)
+    entry = listWordEntries()[0]
+    expect(entry.familiarity).toBeUndefined()
+    expect(familiarityOf(entry, aggregateLatestWordRecord('w'))).toBe(3)
+  })
+
+  test('对未收录的词设置熟悉程度为空操作', () => {
+    setWordFamiliarity('nope', 4)
+    expect(isWordCollected('nope')).toBe(false)
+    expect(listWordEntries()).toHaveLength(0)
+  })
+
+  test('短语与单词的熟悉程度互相隔离', () => {
+    addWordEntry({ text: 'put off', articleId: 'a1', now: NOW })
+    addPhraseEntry({ text: 'put off', articleId: 'a1', now: NOW })
+    setWordFamiliarity('put off', 2)
+    setPhraseFamiliarity('put off', 5)
+
+    expect(listWordEntries()[0].familiarity).toBe(2)
+    expect(listPhraseEntries()[0].familiarity).toBe(5)
+
+    setWordFamiliarity('put off', null)
+    expect(listPhraseEntries()[0].familiarity).toBe(5)
   })
 })
 

@@ -9,6 +9,8 @@ import {
   listPhraseEntries,
   aggregateLatestWordRecord,
   aggregateLatestPhraseRecord,
+  setWordFamiliarity,
+  setPhraseFamiliarity,
   type VocabEntry,
 } from '../lib/vocabBook'
 import {
@@ -75,8 +77,14 @@ export function VocabReviewPage() {
 
   const handleRate = (rating: SelfRating) => {
     if (!current) return
-    if (isWords) rateGlobalWord(current.entry.text, current.entry.sourceArticleIds, rating)
-    else rateGlobalPhrase(current.entry.text, current.entry.sourceArticleIds, rating)
+    // 新自评产生新学习证据：清除手动熟悉程度覆盖，交回算法计算
+    if (isWords) {
+      rateGlobalWord(current.entry.text, current.entry.sourceArticleIds, rating)
+      setWordFamiliarity(current.entry.text, null)
+    } else {
+      rateGlobalPhrase(current.entry.text, current.entry.sourceArticleIds, rating)
+      setPhraseFamiliarity(current.entry.text, null)
+    }
     setResults((prev) => ({ ...prev, [rating]: prev[rating] + 1 }))
     setFlipped(false)
     setIndex((i) => i + 1)

@@ -5,7 +5,7 @@
  * - 掌握程度仍由 wordProgress 的 WordProgressRecord 承载，本模块只做收录关系与聚合
  */
 import type { WordProgressRecord } from './wordProgress'
-import { loadWordProgress, loadPhraseProgress } from './wordProgress'
+import { loadWordProgress, loadPhraseProgress, computeFamiliarity } from './wordProgress'
 
 export interface VocabEntry {
   /** 词面（单词或短语） */
@@ -20,6 +20,11 @@ export interface VocabEntry {
   sourceArticleIds: string[]
   /** 收录时间 ISO */
   collectedAt: string
+  /**
+   * 手动设置的熟悉程度覆盖值（1-5 心）
+   * 缺省时按学习历史算法计算；学习/复习产生新自评后会被清除，让算法重新接管
+   */
+  familiarity?: number
 }
 
 const WORD_STORAGE_KEY = 'linguaai.vocab_words'
@@ -126,6 +131,37 @@ export function listPhraseEntries(): VocabEntry[] {
 
 export function isPhraseCollected(text: string): boolean {
   return isCollected(PHRASE_STORAGE_KEY, text)
+}
+
+/* ---- 熟悉程度（5 心） ---- */
+
+/**
+ * 词条的熟悉程度（0-5 心，0 = 未评）：
+ * 手动覆盖值优先，否则由学习历史（最新自评 + 记忆曲线档位）算法计算
+ */
+export function familiarityOf(
+  entry: VocabEntry,
+  record: WordProgressRecord | undefined,
+): number {
+  return entry.familiarity ?? computeFamiliarity(record)
+}
+
+/** 设置单词熟悉程度：1-5 为手动覆盖值，null 清除覆盖（恢复算法计算） */
+export function setWordFamiliarity(text: string, familiarity: number | null): void {
+  setFamiliarity(WORD_STORAGE_KEY, text, familiarity)
+}
+
+/** 设置短语熟悉程度：1-5 为手动覆盖值，null 清除覆盖（恢复算法计算） */
+export function setPhraseFamiliarity(text: string, familiarity: number | null): void {
+  setFamiliarity(PHRASE_STORAGE_KEY, text, familiarity)
+}
+
+function setFamiliarity(storageKey: string, text: string, familiarity: number | null): void {
+  const store = loadStore(storageKey)
+  if (!store[text]) return
+  if (familiarity === null) delete store[text].familiarity
+  else store[text].familiarity = familiarity
+  persistStore(storageKey, store)
 }
 
 /* ---- 多源掌握程度聚合 ---- */

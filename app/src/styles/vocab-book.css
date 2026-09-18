@@ -74,35 +74,16 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.vocab-filters {
+/* 右侧工具组：熟悉度筛选 + 排序，整体靠右 */
+.vocab-toolbar-right {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
   flex-wrap: wrap;
 }
 
-.vocab-filter-btn {
-  padding: 6px 14px;
-  border: 1px solid var(--en-border);
-  border-radius: var(--radius-full);
-  background: var(--en-card);
-  color: var(--en-muted-foreground);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 150ms ease;
-}
-
-.vocab-filter-btn:hover {
-  border-color: var(--en-primary);
-  color: var(--en-primary);
-}
-
-.vocab-filter-btn.is-active {
-  background: var(--en-primary);
-  border-color: var(--en-primary);
-  color: var(--en-primary-foreground);
-}
-
+.vocab-filter,
 .vocab-sort {
   display: flex;
   align-items: center;
@@ -111,6 +92,7 @@
   color: var(--en-muted-foreground);
 }
 
+.vocab-filter select,
 .vocab-sort select {
   padding: 6px 10px;
   border: 1px solid var(--en-border);
@@ -366,6 +348,36 @@
 }
 
 .vocab-remove-btn:hover {
+  color: var(--state-error);
+}
+
+/* ---- 熟悉程度 5 颗心控件 (FamiliarityHearts) ---- */
+.familiarity-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.familiarity-heart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--en-neutral-300);
+  cursor: pointer;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.familiarity-heart:hover {
+  color: var(--state-error);
+  transform: scale(1.15);
+}
+
+.familiarity-heart.is-filled {
   color: var(--state-error);
 }
 

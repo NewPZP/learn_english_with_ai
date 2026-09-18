@@ -26,6 +26,8 @@ import {
   addPhraseEntry,
   removePhraseEntry,
   isPhraseCollected,
+  setWordFamiliarity,
+  setPhraseFamiliarity,
 } from '../lib/vocabBook'
 import { loadSettings } from '../lib/settings'
 import { useStudyTimeTracker } from '../lib/useStudyTimeTracker'
@@ -313,6 +315,8 @@ export function WordPreviewPage() {
     if (activeTab === 'words') {
       const word = currentItem as WordEntry
       const record = rateWord(id, word.word, rating)
+      // 新自评产生新学习证据：清除手动熟悉程度覆盖，交回算法计算（未收录时为空操作）
+      setWordFamiliarity(word.word, null)
       const nextRecords = { ...wordRecords, [word.word]: record }
       setWordRecords(nextRecords)
       setFlipped(false)
@@ -326,6 +330,8 @@ export function WordPreviewPage() {
     } else {
       const phrase = currentItem as PhraseEntry
       const record = ratePhrase(id, phrase.phrase, rating)
+      // 新自评产生新学习证据：清除手动熟悉程度覆盖，交回算法计算（未收录时为空操作）
+      setPhraseFamiliarity(phrase.phrase, null)
       const nextRecords = { ...phraseRecords, [phrase.phrase]: record }
       setPhraseRecords(nextRecords)
       setFlipped(false)
